@@ -2,20 +2,23 @@
 #include <unistd.h>
 #include "terminvaders.h"
 
-int main(int argc, char* argv[]) {
-	play();
-} 
-
-int play() {
-	game_t game;  // not certain of world constructors etc
-	game.running = 1;
-	while (game.running) {
-		// do something, run the game
-		update(&game);
-		usleep(16666);
-	}
-}
+#define US_PER_UPDATE (1000000 / 60)
 
 int update(game_t* game) {
+    return 0;
+}
 
+void play() {
+    game_t game;
+    game.running = 1;
+    while (game.running) {
+        if (update(&game))
+            break;
+        usleep(US_PER_UPDATE);
+    }
+}
+
+int main(int argc, char* argv[]) {
+    play();
+    return 0;
 }
