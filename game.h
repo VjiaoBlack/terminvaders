@@ -1,5 +1,5 @@
-#define ROWS 30
-#define COLS 80
+#include "terminvaders.h"
+
 #define US_PER_UPDATE (1000000 / 15)
 
 struct point_t {

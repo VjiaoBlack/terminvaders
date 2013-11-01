@@ -7,7 +7,7 @@ build/keyboard.o: xterm/keyboard.c
 build/xterm_control.o: xterm/xterm_control.c
 	gcc -g -c xterm/xterm_control.c -o build/xterm_control.o
 
-build/game.o: game.c game.h
+build/game.o: game.c game.h terminvaders.h
 	gcc -g -c game.c -o build/game.o
 
 build/terminvaders.o: terminvaders.c terminvaders.h game.h
