@@ -18,7 +18,6 @@ void setup(game_t* game) {
 void render(game_t* game) {
     int r, c;
 
-    xt_par0(XT_CLEAR_SCREEN);
     for (r = 1; r <= ROWS; r++) {
         xt_par2(XT_SET_ROW_COL_POS, r, 1);
         for (c = 0; c < COLS; c++)

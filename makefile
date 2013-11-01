@@ -10,12 +10,11 @@ build/xterm_control.o: xterm/xterm_control.c
 build/game.o: game.c game.h
 	gcc -g -c game.c -o build/game.o
 
-build/terminvaders.o: terminvaders.c game.h
+build/terminvaders.o: terminvaders.c terminvaders.h game.h
 	gcc -g -c terminvaders.c -o build/terminvaders.o
 
 build:
 	mkdir build
 
 clean:
-	rm -rf build
-	rm -f terminvaders
+	rm -rf build terminvaders
