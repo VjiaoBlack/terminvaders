@@ -8,11 +8,11 @@
 void setup(game_t* game) {
     int r, c;
 
-    game->running = 1;
     for (r = 0; r < ROWS; r++) {
         for (c = 0; c < COLS; c++)
             game->screen[r][c] = ' ';
     }
+    game->running = 1;
 }
 
 void render(game_t* game) {
@@ -32,19 +32,23 @@ void handle_input(game_t* game) {
     switch ((key = getkey())) {
         case KEY_NOTHING:
             break;
+        case 'Q':
+            game->running = 0;
+            break;
     }
 }
 
 void update(game_t* game) {
-    handle_input(game);
     render(game);
+    handle_input(game);
 }
 
-void play() {
+void play(void) {
     game_t game;
     setup(&game);
     while (game.running) {
         update(&game);
-        // usleep(US_PER_UPDATE);
+        usleep(US_PER_UPDATE);
     }
+    getkey_terminate();
 }

@@ -1,6 +1,6 @@
 #define ROWS 30
 #define COLS 80
-#define US_PER_UPDATE (1000000 / 60)
+#define US_PER_UPDATE (1000000 / 15)
 
 struct point_t {
     int x;
@@ -28,6 +28,6 @@ struct game_t {
 };
 typedef struct game_t game_t;
 
-void play();
+void play(void);
 
 // TODO: lives, levels, waves, etc
