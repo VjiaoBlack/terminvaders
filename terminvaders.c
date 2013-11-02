@@ -17,7 +17,7 @@ int menu(void) {
     xt_par2(XT_SET_ROW_COL_POS, 1, 1);
     while (1) {
         switch ((key = getkey())) {
-            case KEY_UP
+            case KEY_UP:
             case 'w':
                 choice = !choice ? 2 : choice - 1;
                 xt_par2(XT_SET_ROW_COL_POS, choice + 1, 1);
