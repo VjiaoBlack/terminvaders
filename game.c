@@ -5,6 +5,7 @@
 #include "xterm/keyboard.h"
 #include "xterm/xterm_control.h"
 
+/* Set up the game. */
 void setup(game_t* game) {
     int r, c;
 
@@ -15,6 +16,7 @@ void setup(game_t* game) {
     game->running = 1;
 }
 
+/* Render the current game data. */
 void render(game_t* game) {
     int r, c;
 
@@ -25,6 +27,7 @@ void render(game_t* game) {
     }
 }
 
+/* Handle user keyboard input during the game. */
 void handle_input(game_t* game) {
     int key;
 
@@ -37,11 +40,13 @@ void handle_input(game_t* game) {
     }
 }
 
+/* Do a single cycle of game logic: render and handle input. */
 void update(game_t* game) {
-    render(game);
     handle_input(game);
+    render(game);
 }
 
+/* Play a game. */
 void play(void) {
     game_t game;
     setup(&game);
@@ -49,5 +54,4 @@ void play(void) {
         update(&game);
         usleep(US_PER_UPDATE);
     }
-    getkey_terminate();
 }
