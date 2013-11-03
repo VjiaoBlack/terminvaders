@@ -5,12 +5,11 @@
 
 /* Set up the game. */
 static void setup(game_t* game) {
+    point_t player_point = {COLS / 2 - 1, ROWS / 2 - 1};
     game->running = 1;
     game->score = 0;
     game->lives = PLAYER_LIVES;
-    game->player.point.x = COLS / 2 - 1;
-    game->player.point.y = ROWS / 2 - 1;
-    game->player.cooldown = 0;
+    game->player = (player_t) {player_point, 0, 0};
     game->first_enemy = NULL;
     game->first_bullet = NULL;
 }
@@ -40,6 +39,37 @@ static void player_shoot(game_t* game) {
     spawn_bullet(game, game->player.point.x, game->player.point.y - 2, 1);
 }
 
+/* Do game logic involving the player. */
+static void do_player_logic(game_t* game) {
+    static int vertical_radius = 0, horiz_radius = 0;
+    player_t* player = &game->player;
+
+    if (!vertical_radius) {
+        vertical_radius = get_sprite(PLAYER)->height / 2;
+        horiz_radius = get_sprite(PLAYER)->width / 2;
+    }
+    if (player->cooldown)  // Bullet cooldown timer
+        player->cooldown--;
+    if (player->vertical_accel) {
+        player->point.y += player->vertical_accel * PLAYER_Y_VELOCITY;
+        if (player->vertical_accel < 0) {  // Boundary check
+            if (player->point.y < vertical_radius)
+                player->point.y = vertical_radius;
+        }
+        else if (player->point.y > ROWS - vertical_radius - 1)
+            player->point.y = ROWS - vertical_radius - 1;
+    }
+    if (player->horiz_accel) {
+        player->point.x += player->horiz_accel * PLAYER_X_VELOCITY;
+        if (player->horiz_accel < 0) {  // Boundary check
+            if (player->point.x < horiz_radius)
+                player->point.x = horiz_radius;
+        }
+        else if (player->point.x > COLS - horiz_radius - 1)
+            player->point.x = COLS - horiz_radius - 1;
+    }
+}
+
 /* Do game logic involving bullets. */
 static void do_bullet_logic(game_t* game) {
     bullet_t* bullet = game->first_bullet;
@@ -48,9 +78,9 @@ static void do_bullet_logic(game_t* game) {
     while (bullet) {
         // bullet impact logic goes here
         if (bullet->fired_by_player)
-            bullet->point.y--;
+            bullet->point.y -= BULLET_VELOCITY;
         else
-            bullet->point.y++;
+            bullet->point.y += BULLET_VELOCITY;
         if (bullet->point.y < 0 || bullet->point.y >= ROWS)
             bullet = despawn_bullet(game, bullet, prev);
         else {
@@ -60,11 +90,8 @@ static void do_bullet_logic(game_t* game) {
     }
 }
 
-/* Do game logic, mainly involving bullets and enemy spawning/movement. */
-static void do_logic(game_t* game) {
-    if (game->player.cooldown)
-        game->player.cooldown--;
-    do_bullet_logic(game);
+/* Do game logic involving the enemy. */
+static void do_enemy_logic(game_t*  game) {
     if (!game->first_enemy) {
         enemy_t* enemy = malloc(sizeof(enemy_t));
         *enemy = (enemy_t) {(point_t) {COLS / 2 - 1, 3}, NULL};
@@ -72,51 +99,55 @@ static void do_logic(game_t* game) {
     }
 }
 
+/* Do game logic, mainly involving bullets and enemy spawning/movement. */
+static void do_logic(game_t* game) {
+    do_player_logic(game);
+    do_bullet_logic(game);
+    do_enemy_logic(game);
+}
+
 /* Handle user keyboard input during the game. */
 static void handle_input(game_t* game) {
-    static int vertical_radius = 0, horiz_radius = 0;
     int key;
-
-    if (!vertical_radius) {
-        vertical_radius = get_sprite(PLAYER)->height / 2;
-        horiz_radius = get_sprite(PLAYER)->width / 2;
+    while ((key = getkey()) != KEY_NOTHING) {
+        switch (key) {
+            case 'q':
+                game->running = 0;
+                break;
+            case KEY_UP:
+            case 'w':
+                if (game->player.vertical_accel < 0)
+                    game->player.vertical_accel = 0;
+                else
+                    game->player.vertical_accel = -1;
+                break;
+            case KEY_DOWN:
+            case 's':
+                if (game->player.vertical_accel > 0)
+                    game->player.vertical_accel = 0;
+                else
+                    game->player.vertical_accel = 1;
+                break;
+            case KEY_LEFT:
+            case 'a':
+                if (game->player.horiz_accel < 0)
+                    game->player.horiz_accel = 0;
+                else
+                    game->player.horiz_accel = -1;
+                break;
+            case KEY_RIGHT:
+            case 'd':
+                if (game->player.horiz_accel > 0)
+                    game->player.horiz_accel = 0;
+                else
+                    game->player.horiz_accel = 1;
+                break;
+            case ' ':
+                if (!game->player.cooldown)
+                    player_shoot(game);
+                break;
+        }
     }
-    switch (key = getkey()) {
-        case KEY_NOTHING:
-            return;
-        case 'q':
-            game->running = 0;
-            break;
-        case KEY_UP:
-        case 'w':
-            game->player.point.y -= PLAYER_VELOCITY;
-            if (game->player.point.y < vertical_radius)
-                game->player.point.y = vertical_radius;
-            break;
-        case KEY_DOWN:
-        case 's':
-            game->player.point.y += PLAYER_VELOCITY;
-            if (game->player.point.y > ROWS - vertical_radius - 1)
-                game->player.point.y = ROWS - vertical_radius - 1;
-            break;
-        case KEY_LEFT:
-        case 'a':
-            game->player.point.x -= PLAYER_VELOCITY;
-            if (game->player.point.x < horiz_radius)
-                game->player.point.x = horiz_radius;
-            break;
-        case KEY_RIGHT:
-        case 'd':
-            game->player.point.x += PLAYER_VELOCITY;
-            if (game->player.point.x > COLS - horiz_radius - 1)
-                game->player.point.x = COLS - horiz_radius - 1;
-            break;
-        case ' ':
-            if (!game->player.cooldown)
-                player_shoot(game);
-            break;
-    }
-    while (getkey() != KEY_NOTHING);  // Eat up remaining key events
 }
 
 /* Draw the heads-up display to the screen. */

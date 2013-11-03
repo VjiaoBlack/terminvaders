@@ -2,13 +2,19 @@
 #include "terminvaders.h"
 
 #define PLAYER_LIVES 3
-#define PLAYER_VELOCITY 3
+#define PLAYER_X_VELOCITY 2
+#define PLAYER_Y_VELOCITY 1
 #define PLAYER_COOLDOWN 5
+
+#define BULLET_VELOCITY 1
+
 #define FPS 15
 
 struct player_t {
     point_t point;
     int cooldown;
+    int vertical_accel;
+    int horiz_accel;
 };
 typedef struct player_t player_t;
 
