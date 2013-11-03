@@ -1,28 +1,23 @@
+#include "graphics.h"
 #include "terminvaders.h"
 
 #define US_PER_UPDATE (1000000 / 15)
 
-struct point_t {
-    int x;
-    int y;
-};
-typedef struct point_t point_t;
-
 struct player_t {
-    point_t center;
+    point_t point;
     int health;
 };
 typedef struct player_t player_t;
 
 struct enemy_t {
-    point_t center;
+    point_t point;
     int health;
 };
 typedef struct enemy_t enemy_t;
 
 struct game_t {
     int running;
-    char screen[ROWS][COLS];
+    int score;
     player_t player;
     enemy_t* enemies;
 };
