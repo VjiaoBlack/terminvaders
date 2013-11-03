@@ -6,7 +6,7 @@ int configloop(void) {
     ///-- here are the variables --//
     char key = ' ';
     char up = 'w', down = 's', left = 'a', right = 'd', Back = 'q', shoot = ' ';
-    int config = 0;
+    int config = 2;
 
     int cursor_r = 1, cursor_c = 1;
     CLRSCRN();
@@ -45,8 +45,11 @@ int configloop(void) {
 
     SETPOS(3 * ROWS / 4, COLS / 2 - 2);
     xt_par0(XT_CH_BOLD);
+    xt_par0(XT_CH_WHITE);
     xt_par0(XT_CH_INVERSE);
     printf("Back");
+    SETPOS(ROWS, COLS);
+    xt_par0(XT_CH_NORMAL);
 
     while (1) {
             switch ((key = getkey())) {
