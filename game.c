@@ -117,11 +117,11 @@ static void render(game_t* game) {
     int i;
 
     xt_par0(XT_CLEAR_SCREEN);
-    draw(&(game->player.point), get_sprite(PLAYER));
     while (enemy) {
         draw(&(enemy->point), get_sprite(ENEMY));
         enemy = enemy->next;
     }
+    draw(&(game->player.point), get_sprite(PLAYER));
     while (bullet) {
         draw(&(bullet->point), get_sprite(BULLET));
         bullet = bullet->next;
