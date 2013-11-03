@@ -116,28 +116,28 @@ static void handle_input(game_t* game) {
                 break;
             case KEY_UP:
             case 'w':
-                if (game->player.vertical_accel < 0)
+                if (game->player.vertical_accel > 0)
                     game->player.vertical_accel = 0;
                 else
                     game->player.vertical_accel = -1;
                 break;
             case KEY_DOWN:
             case 's':
-                if (game->player.vertical_accel > 0)
+                if (game->player.vertical_accel < 0)
                     game->player.vertical_accel = 0;
                 else
                     game->player.vertical_accel = 1;
                 break;
             case KEY_LEFT:
             case 'a':
-                if (game->player.horiz_accel < 0)
+                if (game->player.horiz_accel > 0)
                     game->player.horiz_accel = 0;
                 else
                     game->player.horiz_accel = -1;
                 break;
             case KEY_RIGHT:
             case 'd':
-                if (game->player.horiz_accel > 0)
+                if (game->player.horiz_accel < 0)
                     game->player.horiz_accel = 0;
                 else
                     game->player.horiz_accel = 1;
