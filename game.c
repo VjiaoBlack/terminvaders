@@ -1,10 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <sys/time.h>
 #include "game.h"
-
-static int logic_time, input_time, render_time;
 
 /* Set up the game. */
 static void setup(game_t* game) {
@@ -209,22 +206,6 @@ static void draw_hud(game_t* game) {
     }
     else
         printf(" %s0%s", XT_CH_YELLOW, XT_CH_NORMAL);
-    /* START DEBUG CODE */
-        int enemies = 0;
-        enemy_t* enemy = game->first_enemy;
-        while (enemy) {
-            enemies++;
-            enemy = enemy->next;
-        }
-        SETPOS(ROWS + 1, 1);
-        printf("----------");
-        SETPOS(ROWS + 2, 1);
-        printf("%sDEBUG:%s\t%3d enemies\t%3d timer", XT_CH_INVERSE, XT_CH_NORMAL, enemies, game->spawn_timer);
-        SETPOS(ROWS + 3, 1);
-        printf("%sLOGIC%s %03dus\t%sINPUT%s %03dus\t%sRENDER%s %03dus\t%sTOTAL%s %04dus",
-               XT_CH_INVERSE, XT_CH_NORMAL, logic_time, XT_CH_INVERSE, XT_CH_NORMAL, input_time,
-               XT_CH_INVERSE, XT_CH_NORMAL, render_time, XT_CH_INVERSE, XT_CH_NORMAL, logic_time + input_time + render_time);
-    /* END DEBUG CODE */
     SETPOS(ROWS, COLS);
 }
 
@@ -248,17 +229,9 @@ static void render(game_t* game) {
 
 /* Do a single cycle of game logic: render and handle input. */
 static void update(game_t* game) {
-    struct timeval t1, t2, t3, t4;
-    gettimeofday(&t1, NULL);
     do_logic(game);
-    gettimeofday(&t2, NULL);
     handle_input(game);
-    gettimeofday(&t3, NULL);
     render(game);
-    gettimeofday(&t4, NULL);
-    logic_time = (t2.tv_sec * 1000000 + t2.tv_usec) - (t1.tv_sec * 1000000 + t1.tv_usec);
-    input_time = (t3.tv_sec * 1000000 + t3.tv_usec) - (t2.tv_sec * 1000000 + t2.tv_usec);
-    render_time = (t4.tv_sec * 1000000 + t4.tv_usec) - (t3.tv_sec * 1000000 + t3.tv_usec);
 }
 
 /* Play a game. */
