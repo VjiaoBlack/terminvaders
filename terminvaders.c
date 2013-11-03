@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "terminvaders.h"
 #include "game.h"
-#include "settings.c"
+#include "settings.h"
 
 /* Set up the game by clearing the screen, etc. */
 static void setup(void) {
