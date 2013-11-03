@@ -2,6 +2,8 @@
 #include "terminvaders.h"
 
 #define PLAYER_LIVES 3
+#define PLAYER_RESPAWN 20
+#define PLAYER_INVINCIBILITY 60
 #define PLAYER_X_VELOCITY 1
 #define PLAYER_Y_VELOCITY 0.5
 #define PLAYER_BULLET_VELOCITY -2
@@ -15,6 +17,8 @@
 
 struct player_t {
     point_t point;
+    int respawning;
+    int invincible;
     int cooldown;
     int vertical_accel;
     int horiz_accel;

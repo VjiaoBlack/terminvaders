@@ -3,16 +3,23 @@
 #include <unistd.h>
 #include "game.h"
 
+static void spawn_player(game_t*);
+
 /* Set up the game. */
 static void setup(game_t* game) {
-    point_t player_point = {COLS / 2 - 1, ROWS / 2 - 1};
     game->running = 1;
     game->score = 0;
     game->lives = PLAYER_LIVES;
     game->spawn_timer = FPS;
-    game->player = (player_t) {player_point, 0, 0};
     game->first_enemy = NULL;
     game->first_bullet = NULL;
+    spawn_player(game);
+}
+
+/* Spawn the player in the game. */
+static void spawn_player(game_t* game) {
+    point_t player_point = {COLS / 2 - 1, ROWS - 5};
+    game->player = (player_t) {player_point, 0, PLAYER_INVINCIBILITY, 0, 0};
 }
 
 /* Spawn an enemy in the game. Return a pointer to the enemy. */
@@ -70,6 +77,15 @@ static void do_player_logic(game_t* game) {
         vertical_radius = get_sprite(PLAYER)->height / 2;
         horiz_radius = get_sprite(PLAYER)->width / 2;
     }
+    if (player->invincible)
+        player->invincible--;
+    if (player->respawning) {
+        player->respawning--;
+        if (!player->respawning) {
+            spawn_player(game);
+            player = &game->player;
+        }
+    }
     if (player->cooldown)  // Bullet cooldown timer
         player->cooldown--;
     if (player->vertical_accel) {
@@ -118,9 +134,13 @@ static int player_bullet_impacts(game_t* game, bullet_t* bullet) {
 
 /* Enemy bullet impact test function. See bullet_impacts(). */
 static int enemy_bullet_impacts(game_t* game, bullet_t* bullet) {
-    if (collides(&bullet->point, &game->player.point, 1, 1)) {
-        game->lives--;  // player dies
-        return 1;
+    player_t* player = &game->player;
+    if (!player->respawning && !player->invincible) {
+        if (collides(&bullet->point, &player->point, 1, 1)) {
+            player->respawning = PLAYER_RESPAWN;
+            game->lives--;
+            return 1;
+        }
     }
     return 0;
 }
@@ -204,35 +224,45 @@ static void handle_input(game_t* game) {
                 break;
             case KEY_UP:
             case 'w':
-                if (game->player.vertical_accel > 0)
-                    game->player.vertical_accel = 0;
-                else
-                    game->player.vertical_accel = -1;
+                if (!game->player.respawning) {
+                    if (game->player.vertical_accel > 0)
+                        game->player.vertical_accel = 0;
+                    else
+                        game->player.vertical_accel = -1;
+                }
                 break;
             case KEY_DOWN:
             case 's':
-                if (game->player.vertical_accel < 0)
-                    game->player.vertical_accel = 0;
-                else
-                    game->player.vertical_accel = 1;
+                if (!game->player.respawning) {
+                    if (game->player.vertical_accel < 0)
+                        game->player.vertical_accel = 0;
+                    else
+                        game->player.vertical_accel = 1;
+                }
                 break;
             case KEY_LEFT:
             case 'a':
-                if (game->player.horiz_accel > 0)
-                    game->player.horiz_accel = 0;
-                else
-                    game->player.horiz_accel = -1;
+                if (!game->player.respawning) {
+                    if (game->player.horiz_accel > 0)
+                        game->player.horiz_accel = 0;
+                    else
+                        game->player.horiz_accel = -1;
+                }
                 break;
             case KEY_RIGHT:
             case 'd':
-                if (game->player.horiz_accel < 0)
-                    game->player.horiz_accel = 0;
-                else
-                    game->player.horiz_accel = 1;
+                if (!game->player.respawning) {
+                    if (game->player.horiz_accel < 0)
+                        game->player.horiz_accel = 0;
+                    else
+                        game->player.horiz_accel = 1;
+                }
                 break;
             case ' ':
-                if (!game->player.cooldown)
-                    player_shoot(game);
+                if (!game->player.respawning) {
+                    if (!game->player.cooldown)
+                        player_shoot(game);
+                }
                 break;
         }
     }
@@ -266,7 +296,8 @@ static void render(game_t* game) {
         draw(&(enemy->point), get_sprite(ENEMY));
         enemy = enemy->next;
     }
-    draw(&(game->player.point), get_sprite(PLAYER));
+    if (!game->player.respawning && !(game->player.invincible % 2))
+        draw(&(game->player.point), get_sprite(PLAYER));
     while (bullet) {
         draw(&(bullet->point), get_sprite(BULLET));
         bullet = bullet->next;
