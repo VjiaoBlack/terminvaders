@@ -116,7 +116,7 @@ static void render(game_t* game) {
     bullet_t* bullet = game->first_bullet;
     int i;
 
-    clear();
+    xt_par0(XT_CLEAR_SCREEN);
     draw(&(game->player.point), get_sprite(PLAYER));
     while (enemy) {
         draw(&(enemy->point), get_sprite(ENEMY));
@@ -128,7 +128,7 @@ static void render(game_t* game) {
     }
     SETPOS(1, 1);
     printf("Score: %s%d%s", XT_CH_YELLOW, game->score, XT_CH_NORMAL);
-    SETPOS(2, 1);
+    SETPOS(ROWS, 1);
     printf("Lives: %s%d%s", XT_CH_YELLOW, game->lives, XT_CH_NORMAL);
     SETPOS(ROWS, COLS);
 }

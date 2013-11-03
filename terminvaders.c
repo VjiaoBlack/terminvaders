@@ -2,20 +2,20 @@
 #include "terminvaders.h"
 #include "game.h"
 
+/* Set up the game by clearing the screen, etc. */
+static void setup(void) {
+    setbuf(stdout, NULL);  // Turn off stdout buffering
+    xt_par0(XT_CLEAR_SCREEN);
+}
+
 /* Clear the screen. */
-void clear(void) {
+static void clear(void) {
     int r, c;
     for (r = 1; r <= ROWS; r++) {
         SETPOS(r, 1);
         for (c = 1; c <= COLS; c++)
             putchar(' ');
     }
-}
-
-/* Set up the game by clearing the screen, etc. */
-static void setup(void) {
-    setbuf(stdout, NULL);  // Turn off stdout buffering
-    xt_par0(XT_CLEAR_SCREEN);
 }
 
 /* Main menu: render the menu and return an option selected by the user. */
