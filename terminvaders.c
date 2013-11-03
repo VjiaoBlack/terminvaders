@@ -46,8 +46,8 @@ int menu(void) {
 
     xt_par2(XT_SET_ROW_COL_POS, 3 * ROWS / 4, COLS / 2 - 2);
     printf("Quit");
-
-    xt_par2(XT_SET_ROW_COL_POS, 1, 1);
+    
+    xt_par2(XT_SET_ROW_COL_POS, ROWS / 2, COLS / 2 - 2);
     while (1) {
         switch ((key = getkey())) {
             case KEY_UP:
@@ -64,7 +64,6 @@ int menu(void) {
                         xt_par2(XT_SET_ROW_COL_POS, 3 * ROWS / 4, COLS / 2 - 2);
                         break;
                 }
-                printf("%d", choice);
                 break;
             case KEY_DOWN:
             case 's':
@@ -80,7 +79,6 @@ int menu(void) {
                         xt_par2(XT_SET_ROW_COL_POS, 3 * ROWS / 4, COLS / 2 - 2);
                         break;
                 }
-                printf("%d", choice);
                 break;
             case KEY_ENTER:
                 return choice;
@@ -116,6 +114,5 @@ int main(int argc, char* argv[]) {
     start();
     loop();
     finish();
-    xt_par0(XT_CLEAR_SCREEN);
     return 0;
 }
