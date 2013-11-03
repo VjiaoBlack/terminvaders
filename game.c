@@ -9,13 +9,16 @@ static void setup(game_t* game) {
     game->lives = 3;
     game->player.point.x = COLS / 2 - 1;
     game->player.point.y = ROWS / 2 - 1;
+    game->num_enemies = 0;
 }
 
 /* Render the current game data. */
 static void render(game_t* game) {
+    int i;
     clear();
     draw(&(game->player.point), get_sprite(PLAYER));
-    // draw entities
+    for (i = 0; i < game->num_enemies; i++)
+        draw(&(game->enemies[i].point), get_sprite(ENEMY));
     SETPOS(1, 1);
     printf("Score: %s%d%s", XT_CH_YELLOW, game->score, XT_CH_NORMAL);
     SETPOS(2, 1);
@@ -25,13 +28,35 @@ static void render(game_t* game) {
 
 /* Handle user keyboard input during the game. */
 static void handle_input(game_t* game) {
-    int key;
-    switch ((key = getkey())) {
-        case KEY_NOTHING:
-            break;
-        case 'q':
-            game->running = 0;
-            break;
+    int key, playerx, playery;
+    while ((key = getkey()) != KEY_NOTHING) {
+        playerx = game->player.point.x;
+        playery = game->player.point.y;
+        switch (key) {
+            case 'q':
+                game->running = 0;
+                break;
+            case KEY_UP:
+            case 'w':
+                if (playery > get_sprite(PLAYER)->height / 2)
+                    game->player.point.y--;
+                break;
+            case KEY_DOWN:
+            case 's':
+                if (playery < ROWS - get_sprite(PLAYER)->height / 2 - 1)
+                    game->player.point.y++;
+                break;
+            case KEY_LEFT:
+            case 'a':
+                if (playerx > get_sprite(PLAYER)->width / 2)
+                    game->player.point.x--;
+                break;
+            case KEY_RIGHT:
+            case 'd':
+                if (playerx < COLS - get_sprite(PLAYER)->width / 2 - 1)
+                    game->player.point.x++;
+                break;
+        }
     }
 }
 
