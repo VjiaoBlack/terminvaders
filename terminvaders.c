@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "terminvaders.h"
 #include "game.h"
+#include "settings.c"
 
 /* Set up the game by clearing the screen, etc. */
 static void setup(void) {
@@ -175,7 +176,7 @@ static void loop(void) {
             case MENU_PLAY:
                 play();
             case MENU_SETTINGS:
-                break;
+                configloop();
             case MENU_QUIT:
                 return;
         }
