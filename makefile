@@ -13,7 +13,7 @@ build/game.o: game.c game.h graphics.h terminvaders.h
 build/graphics.o: graphics.c graphics.h
 	gcc -g -c graphics.c -o build/graphics.o
 
-build/terminvaders.o: terminvaders.c terminvaders.h game.h graphics.h
+build/terminvaders.o: terminvaders.c terminvaders.h game.h graphics.h settings.h
 	gcc -g -c terminvaders.c -o build/terminvaders.o
 
 build/settings.o: settings.c settings.h terminvaders.h

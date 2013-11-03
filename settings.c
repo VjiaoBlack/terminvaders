@@ -8,7 +8,7 @@ void configloop(void) {
     int config = 0;
 
     int cursor_r = 1, cursor_c = 1;
-    clrscrn();
+    CLRSCRN();
     SETPOS(1, 1);
     while (cursor_c <= COLS) {
         cursor_r = 1;
@@ -52,7 +52,7 @@ void configloop(void) {
     printf("quit : '%c'", quit);
 
     SETPOS(ROWS * 2 / 3, COLS * 2 / 3 - 1);
-    printf("shoot : '%c'", shoot); 
+    printf("shoot : '%c'", shoot);
 
     SETPOS(ROWS * 2 / 5, COLS / 3 - 1);
 
