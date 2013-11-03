@@ -175,8 +175,10 @@ static void loop(void) {
         switch ((option = menu())) {
             case MENU_PLAY:
                 play();
+                break;
             case MENU_SETTINGS:
                 configloop();
+                break;
             case MENU_QUIT:
                 return;
         }
