@@ -74,40 +74,49 @@ static void do_logic(game_t* game) {
 
 /* Handle user keyboard input during the game. */
 static void handle_input(game_t* game) {
-    int key, playerx, playery;
-    while ((key = getkey()) != KEY_NOTHING) {
-        playerx = game->player.point.x;
-        playery = game->player.point.y;
-        switch (key) {
-            case 'q':
-                game->running = 0;
-                break;
-            case KEY_UP:
-            case 'w':
-                if (playery > get_sprite(PLAYER)->height / 2)
-                    game->player.point.y--;
-                break;
-            case KEY_DOWN:
-            case 's':
-                if (playery < ROWS - get_sprite(PLAYER)->height / 2 - 1)
-                    game->player.point.y++;
-                break;
-            case KEY_LEFT:
-            case 'a':
-                if (playerx > get_sprite(PLAYER)->width / 2)
-                    game->player.point.x--;
-                break;
-            case KEY_RIGHT:
-            case 'd':
-                if (playerx < COLS - get_sprite(PLAYER)->width / 2 - 1)
-                    game->player.point.x++;
-                break;
-            case ' ':
-                if (!game->player.cooldown)
-                    player_shoot(game);
-                break;
-        }
+    static int vertical_radius = 0, horiz_radius = 0;
+    int key;
+
+    if (!vertical_radius) {
+        vertical_radius = get_sprite(PLAYER)->height / 2;
+        horiz_radius = get_sprite(PLAYER)->width / 2;
     }
+    switch (key = getkey()) {
+        case KEY_NOTHING:
+            return;
+        case 'q':
+            game->running = 0;
+            break;
+        case KEY_UP:
+        case 'w':
+            game->player.point.y -= PLAYER_VELOCITY;
+            if (game->player.point.y < vertical_radius)
+                game->player.point.y = vertical_radius;
+            break;
+        case KEY_DOWN:
+        case 's':
+            game->player.point.y += PLAYER_VELOCITY;
+            if (game->player.point.y > ROWS - vertical_radius - 1)
+                game->player.point.y = ROWS - vertical_radius - 1;
+            break;
+        case KEY_LEFT:
+        case 'a':
+            game->player.point.x -= PLAYER_VELOCITY;
+            if (game->player.point.x < horiz_radius)
+                game->player.point.x = horiz_radius;
+            break;
+        case KEY_RIGHT:
+        case 'd':
+            game->player.point.x += PLAYER_VELOCITY;
+            if (game->player.point.x > COLS - horiz_radius - 1)
+                game->player.point.x = COLS - horiz_radius - 1;
+            break;
+        case ' ':
+            if (!game->player.cooldown)
+                player_shoot(game);
+            break;
+    }
+    while (getkey() != KEY_NOTHING);  // Eat up remaining key events
 }
 
 /* Render the current game data. */
