@@ -10,6 +10,7 @@ static void setup(game_t* game) {
     game->running = 1;
     game->score = 0;
     game->lives = PLAYER_LIVES;
+    game->over = 0;
     game->spawn_timer = FPS;
     game->first_enemy = NULL;
     game->first_bullet = NULL;
@@ -68,26 +69,15 @@ static void player_shoot(game_t* game) {
     spawn_bullet(game, game->player.point.x, game->player.point.y - 2, PLAYER_BULLET_VELOCITY, 1);
 }
 
-/* Do game logic involving the player. */
-static void do_player_logic(game_t* game) {
+/* Do game logic involving moving the player. */
+static void do_player_movement_logic(game_t* game) {
     static int vertical_radius = 0, horiz_radius = 0;
     player_t* player = &game->player;
-
     if (!vertical_radius) {
         vertical_radius = get_sprite(PLAYER)->height / 2;
         horiz_radius = get_sprite(PLAYER)->width / 2;
     }
-    if (player->invincible)
-        player->invincible--;
-    if (player->respawning) {
-        player->respawning--;
-        if (!player->respawning) {
-            spawn_player(game);
-            player = &game->player;
-        }
-    }
-    if (player->cooldown)  // Bullet cooldown timer
-        player->cooldown--;
+
     if (player->vertical_accel) {
         player->point.y += player->vertical_accel * PLAYER_Y_VELOCITY;
         if (player->vertical_accel < 0) {  // Boundary check
@@ -116,6 +106,30 @@ static void do_player_logic(game_t* game) {
     }
 }
 
+/* Do game logic involving the player. */
+static void do_player_logic(game_t* game) {
+    player_t* player = &game->player;
+    if (player->invincible)  // Post-spawn invincibility timer
+        player->invincible--;
+    if (player->respawning && !game->over) {  // Respawn timer
+        player->respawning--;
+        if (!player->respawning) {
+            if (!game->lives) {
+                player->respawning = 1;  // Prevent player from being displayed
+                game->over = GAME_OVER_TIMER;
+            }
+            else {
+                game->lives--;
+                spawn_player(game);
+                player = &game->player;
+            }
+        }
+    }
+    if (player->cooldown)  // Bullet cooldown timer
+        player->cooldown--;
+    do_player_movement_logic(game);
+}
+
 /* Player bullet impact test function. See bullet_impacts(). */
 static int player_bullet_impacts(game_t* game, bullet_t* bullet) {
     enemy_t* enemy = game->first_enemy;
@@ -138,7 +152,6 @@ static int enemy_bullet_impacts(game_t* game, bullet_t* bullet) {
     if (!player->respawning && !player->invincible) {
         if (collides(&bullet->point, &player->point, 1, 1)) {
             player->respawning = PLAYER_RESPAWN;
-            game->lives--;
             return 1;
         }
     }
@@ -283,6 +296,13 @@ static void draw_hud(game_t* game) {
     }
     else
         printf(" %s0%s", XT_CH_YELLOW, XT_CH_NORMAL);
+    if (game->over) {
+        SETPOS(ROWS / 2, COLS / 2 - 4);
+        printf("%sGAME OVER%s", XT_CH_BOLD, XT_CH_NORMAL);
+        game->over--;
+        if (!game->over)
+            game->running = 0;
+    }
     SETPOS(ROWS, COLS);
 }
 
