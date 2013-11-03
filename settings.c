@@ -131,7 +131,12 @@ int configloop(void) {
                 xt_par0(XT_CH_WHITE);
                 break;
             case KEY_ENTER:
-                return 1;
+                switch (config) {
+                    case 0:
+                    case 1:
+                    case 2:
+                        return 1;
+                }
             case 'q':
                 return MENU_QUIT;
         }

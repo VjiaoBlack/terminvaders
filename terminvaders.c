@@ -177,8 +177,10 @@ static void loop(void) {
                 play();
                 break;
             case MENU_SETTINGS:
-                configloop();
-                break;
+                if (configloop() != MENU_QUIT)
+                    break;
+                else 
+                    return;
             case MENU_QUIT:
                 return;
         }
