@@ -10,35 +10,15 @@ static void setup(game_t* game) {
     game->lives = 3;
     game->player.point.x = COLS / 2 - 1;
     game->player.point.y = ROWS / 2 - 1;
-    game->player.cooldown = 5;  // Don't accidentally fire when hitting play
+    game->player.cooldown = 0;
     game->first_bullet = NULL;
     game->num_enemies = 0;
 }
 
-/* Render the current game data. */
-static void render(game_t* game) {
-    bullet_t* bullet = game->first_bullet;
-    int i;
-
-    clear();
-    draw(&(game->player.point), get_sprite(PLAYER));
-    for (i = 0; i < game->num_enemies; i++)
-        draw(&(game->enemies[i].point), get_sprite(ENEMY));
-    while (bullet) {
-        draw(&(bullet->point), get_sprite(BULLET));
-        bullet = bullet->next;
-    }
-    SETPOS(1, 1);
-    printf("Score: %s%d%s", XT_CH_YELLOW, game->score, XT_CH_NORMAL);
-    SETPOS(2, 1);
-    printf("Lives: %s%d%s", XT_CH_YELLOW, game->lives, XT_CH_NORMAL);
-    SETPOS(ROWS, COLS);
-}
-
 /* Spawn a bullet in the game. */
 static void spawn_bullet(game_t* game, int x, int y, int fired_by_player) {
-    point_t point = {x, y};
     bullet_t* bullet = malloc(sizeof(bullet_t));
+    point_t point = {x, y};
     *bullet = (bullet_t) {point, fired_by_player, game->first_bullet};
     game->first_bullet = bullet;
 }
@@ -57,7 +37,7 @@ static bullet_t* despawn_bullet(game_t* game, bullet_t* bullet, bullet_t* prev) 
 /* Make the player shoot a bullet. */
 static void player_shoot(game_t* game) {
     game->player.cooldown = PLAYER_COOLDOWN;
-    spawn_bullet(game, game->player.point.x, game->player.point.y - 4, 1);
+    spawn_bullet(game, game->player.point.x, game->player.point.y - 2, 1);
 }
 
 /* Do game logic involving bullets. */
@@ -129,10 +109,30 @@ static void handle_input(game_t* game) {
     }
 }
 
+/* Render the current game data. */
+static void render(game_t* game) {
+    bullet_t* bullet = game->first_bullet;
+    int i;
+
+    clear();
+    draw(&(game->player.point), get_sprite(PLAYER));
+    for (i = 0; i < game->num_enemies; i++)
+        draw(&(game->enemies[i].point), get_sprite(ENEMY));
+    while (bullet) {
+        draw(&(bullet->point), get_sprite(BULLET));
+        bullet = bullet->next;
+    }
+    SETPOS(1, 1);
+    printf("Score: %s%d%s", XT_CH_YELLOW, game->score, XT_CH_NORMAL);
+    SETPOS(2, 1);
+    printf("Lives: %s%d%s", XT_CH_YELLOW, game->lives, XT_CH_NORMAL);
+    SETPOS(ROWS, COLS);
+}
+
 /* Do a single cycle of game logic: render and handle input. */
 static void update(game_t* game) {
-    handle_input(game);
     do_logic(game);
+    handle_input(game);
     render(game);
 }
 

@@ -1,7 +1,7 @@
 #include "graphics.h"
 #include "terminvaders.h"
 
-#define PLAYER_COOLDOWN 8
+#define PLAYER_COOLDOWN 5
 #define MAX_ENEMIES 100
 #define FPS 15
 
