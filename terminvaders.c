@@ -12,7 +12,13 @@ void start(void) {
 /* Main menu: render the menu and return an option selected by the user. */
 int menu(void) {
     int key, choice = 0;
+    
+    xt_par2(XT_SET_ROW_COL_POS, ROWS / 4, COLS / 2 - 11);
+    printf("-~<[ terminvaders ]>~-");
+
     xt_par2(XT_SET_ROW_COL_POS, 1, 1);
+
+
     printf(" Play\n Settings\n Quit\n");
     xt_par2(XT_SET_ROW_COL_POS, 1, 1);
     while (1) {
@@ -29,7 +35,7 @@ int menu(void) {
                 break;
             case KEY_ENTER:
                 return choice;
-            case KEY_ESC:
+            //case KEY_ESC: //error
             case 'q':
                 return MENU_QUIT;
         }
