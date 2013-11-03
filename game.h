@@ -8,7 +8,7 @@
 
 #define BULLET_VELOCITY 2
 
-#define FPS 30
+#define FPS 20
 
 struct player_t {
     point_t point;
