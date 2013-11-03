@@ -34,7 +34,7 @@ void handle_input(game_t* game) {
     switch ((key = getkey())) {
         case KEY_NOTHING:
             break;
-        case 'Q':
+        case 'q':
             game->running = 0;
             break;
     }

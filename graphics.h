@@ -8,9 +8,8 @@
 #define ENEMY = {\
     "  :---:  ",\
     "   \0/   ",\
-    "  	 n    "}
+    "    n    "}
 
 #define BULLET = '.';
 #define CANNON = 'o';
 #define LASER = '|';
-

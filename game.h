@@ -31,5 +31,3 @@ typedef struct game_t game_t;
 void play(void);
 
 // TODO: lives, levels, waves, etc
-
-// QUESTION: struct menu_t?
