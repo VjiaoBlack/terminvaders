@@ -2,7 +2,7 @@
 #include "settings.h"
 #include "terminvaders.h"
 
-static void configloop(void) {
+void configloop(void) {
     ///-- here are the variables --//
     char up = 'w', down = 's', left = 'a', right = 'd', quit = 'q', shoot = ' ';
     int config = 0;
