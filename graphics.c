@@ -13,14 +13,14 @@ static void init_sprites(void) {
             "  |  ",
             " /^\\ ",
             ":n^n:"
-        }, 5, 3
+        }, 5, 3, XT_CH_GREEN
     };
     sprite_table[ENEMY] = (sprite_t) {
         {
             ":---:",
             " \\0/ ",
             "  n  "
-        }, 5, 3
+        }, 5, 3, XT_CH_RED
     };
     sprite_table[BULLET] = (sprite_t) {{"."}, 1, 1};
     sprite_table[CANNON] = (sprite_t) {{"o"}, 1, 1};
@@ -40,9 +40,17 @@ void draw(point_t* point, sprite_t* sprite) {
         starty = point->y - sprite->height / 2,
         row, col;
 
+    if (sprite->fg_color)
+        xt_par0(sprite->fg_color);
+    if (sprite->bg_color)
+        xt_par0(sprite->bg_color);
     for (row = 0; row < sprite->height; row++) {
         xt_par2(XT_SET_ROW_COL_POS, row + starty + 1, startx + 1);
         for (col = 0; col < sprite->width; col++)
             putchar(sprite->graphic[row][col]);
     }
+    if (sprite->fg_color)
+        xt_par0(XT_CH_NORMAL);
+    if (sprite->bg_color)
+        xt_par0(XT_BG_DEFAULT);
 }

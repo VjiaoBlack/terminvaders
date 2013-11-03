@@ -21,6 +21,8 @@ struct sprite_t {
     char* graphic[MAX_SPRITE_HEIGHT];
     int width;
     int height;
+    char* fg_color;
+    char* bg_color;
 };
 typedef struct sprite_t sprite_t;
 
