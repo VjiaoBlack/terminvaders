@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include "game.h"
 
@@ -9,21 +10,85 @@ static void setup(game_t* game) {
     game->lives = 3;
     game->player.point.x = COLS / 2 - 1;
     game->player.point.y = ROWS / 2 - 1;
+    game->player.cooldown = 5;  // Don't accidentally fire when hitting play
+    game->first_bullet = NULL;
     game->num_enemies = 0;
 }
 
 /* Render the current game data. */
 static void render(game_t* game) {
+    bullet_t* bullet = game->first_bullet;
     int i;
+
     clear();
     draw(&(game->player.point), get_sprite(PLAYER));
     for (i = 0; i < game->num_enemies; i++)
         draw(&(game->enemies[i].point), get_sprite(ENEMY));
+    while (bullet) {
+        draw(&(bullet->point), get_sprite(BULLET));
+        bullet = bullet->next;
+    }
     SETPOS(1, 1);
     printf("Score: %s%d%s", XT_CH_YELLOW, game->score, XT_CH_NORMAL);
     SETPOS(2, 1);
     printf("Lives: %s%d%s", XT_CH_YELLOW, game->lives, XT_CH_NORMAL);
     SETPOS(ROWS, COLS);
+}
+
+/* Spawn a bullet in the game. */
+static void spawn_bullet(game_t* game, int x, int y, int fired_by_player) {
+    point_t point = {x, y};
+    bullet_t* bullet = malloc(sizeof(bullet_t));
+    *bullet = (bullet_t) {point, fired_by_player, game->first_bullet};
+    game->first_bullet = bullet;
+}
+
+/* Despawn a bullet in the game. Returns next bullet in linked list. */
+static bullet_t* despawn_bullet(game_t* game, bullet_t* bullet, bullet_t* prev) {
+    bullet_t* next = bullet->next;
+    if (prev)
+        prev->next = next;
+    else
+        game->first_bullet = next;
+    free(bullet);
+    return next;
+}
+
+/* Make the player shoot a bullet. */
+static void player_shoot(game_t* game) {
+    game->player.cooldown = PLAYER_COOLDOWN;
+    spawn_bullet(game, game->player.point.x, game->player.point.y - 4, 1);
+}
+
+/* Do game logic involving bullets. */
+static void do_bullet_logic(game_t* game) {
+    bullet_t* bullet = game->first_bullet;
+    bullet_t* prev = NULL;
+
+    while (bullet) {
+        // bullet impact logic goes here
+        if (bullet->fired_by_player)
+            bullet->point.y--;
+        else
+            bullet->point.y++;
+        if (bullet->point.y < 0 || bullet->point.y >= ROWS)
+            bullet = despawn_bullet(game, bullet, prev);
+        else {
+            prev = bullet;
+            bullet = bullet->next;
+        }
+    }
+}
+
+/* Do game logic, mainly involving bullets and enemy spawning/movement. */
+static void do_logic(game_t* game) {
+    if (game->player.cooldown)
+        game->player.cooldown--;
+    do_bullet_logic(game);
+    if (!game->num_enemies) {
+        game->num_enemies = 1;
+        game->enemies[0] = (enemy_t) {(point_t) {COLS / 2 - 1, 3}};  // ghetto spawn function
+    }
 }
 
 /* Handle user keyboard input during the game. */
@@ -56,6 +121,10 @@ static void handle_input(game_t* game) {
                 if (playerx < COLS - get_sprite(PLAYER)->width / 2 - 1)
                     game->player.point.x++;
                 break;
+            case ' ':
+                if (!game->player.cooldown)
+                    player_shoot(game);
+                break;
         }
     }
 }
@@ -63,6 +132,7 @@ static void handle_input(game_t* game) {
 /* Do a single cycle of game logic: render and handle input. */
 static void update(game_t* game) {
     handle_input(game);
+    do_logic(game);
     render(game);
 }
 
@@ -72,6 +142,6 @@ void play(void) {
     setup(&game);
     while (game.running) {
         update(&game);
-        usleep(US_PER_UPDATE);
+        usleep(1000000 / FPS);
     }
 }
