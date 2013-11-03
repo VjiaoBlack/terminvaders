@@ -1,14 +1,12 @@
 #include <stdio.h>
 #include "terminvaders.h"
 #include "game.h"
-#include "xterm/keyboard.h"
-#include "xterm/xterm_control.h"
 
 /* Clear the screen. */
 void clear(void) {
     int r, c;
     for (r = 1; r <= ROWS; r++) {
-        xt_par2(XT_SET_ROW_COL_POS, r, 1);
+        SETPOS(r, 1);
         for (c = 1; c <= COLS; c++)
             putchar(' ');
     }
@@ -25,40 +23,40 @@ static int menu(void) {
     int key, choice = 0;
     int cursor_r = 1, cursor_c = 1;
     clear();
-    xt_par2(XT_SET_ROW_COL_POS, 1, 1);
+    SETPOS(1, 1);
     while (cursor_c <= COLS) {
         cursor_r = 1;
-        xt_par2(XT_SET_ROW_COL_POS, cursor_r, cursor_c);
+        SETPOS(cursor_r, cursor_c);
         printf("-");
         cursor_r = ROWS;
-        xt_par2(XT_SET_ROW_COL_POS, cursor_r, cursor_c);
+        SETPOS(cursor_r, cursor_c);
         printf("-");
         cursor_c++;
     }
     cursor_r = 2;
     while (cursor_r < ROWS) {
         cursor_c = 1;
-        xt_par2(XT_SET_ROW_COL_POS, cursor_r, cursor_c);
+        SETPOS(cursor_r, cursor_c);
         printf("|");
         cursor_c = COLS;
-        xt_par2(XT_SET_ROW_COL_POS, cursor_r, cursor_c);
+        SETPOS(cursor_r, cursor_c);
         printf("|");
         cursor_r++;
     }
 
-    xt_par2(XT_SET_ROW_COL_POS, ROWS / 4, COLS / 2 - 11);
+    SETPOS(ROWS / 4, COLS / 2 - 11);
     printf("-~<[ terminvaders ]>~-");
 
-    xt_par2(XT_SET_ROW_COL_POS, ROWS / 2, COLS / 2 - 2);
+    SETPOS(ROWS / 2, COLS / 2 - 2);
     printf("Play");
 
-    xt_par2(XT_SET_ROW_COL_POS, 5 * ROWS / 8, COLS / 2 - 4);
+    SETPOS(5 * ROWS / 8, COLS / 2 - 4);
     printf("Settings");
 
-    xt_par2(XT_SET_ROW_COL_POS, 3 * ROWS / 4, COLS / 2 - 2);
+    SETPOS(3 * ROWS / 4, COLS / 2 - 2);
     printf("Quit");
 
-    xt_par2(XT_SET_ROW_COL_POS, ROWS / 2, COLS / 2 - 2);
+    SETPOS(ROWS / 2, COLS / 2 - 2);
     while (1) {
         switch ((key = getkey())) {
             case KEY_UP:
@@ -66,13 +64,13 @@ static int menu(void) {
                 choice = !choice ? 2 : choice - 1;
                 switch (choice) {
                     case 0:
-                        xt_par2(XT_SET_ROW_COL_POS, ROWS / 2, COLS / 2 - 2);
+                        SETPOS(ROWS / 2, COLS / 2 - 2);
                         break;
                     case 1:
-                        xt_par2(XT_SET_ROW_COL_POS, 5 * ROWS / 8, COLS / 2 - 4);
+                        SETPOS(5 * ROWS / 8, COLS / 2 - 4);
                         break;
                     case 2:
-                        xt_par2(XT_SET_ROW_COL_POS, 3 * ROWS / 4, COLS / 2 - 2);
+                        SETPOS(3 * ROWS / 4, COLS / 2 - 2);
                         break;
                 }
                 break;
@@ -81,13 +79,13 @@ static int menu(void) {
                 choice = (choice + 1) % 3;
                 switch (choice) {
                     case 0:
-                        xt_par2(XT_SET_ROW_COL_POS, ROWS / 2, COLS / 2 - 2);
+                        SETPOS(ROWS / 2, COLS / 2 - 2);
                         break;
                     case 1:
-                        xt_par2(XT_SET_ROW_COL_POS, 5 * ROWS / 8, COLS / 2 - 4);
+                        SETPOS(5 * ROWS / 8, COLS / 2 - 4);
                         break;
                     case 2:
-                        xt_par2(XT_SET_ROW_COL_POS, 3 * ROWS / 4, COLS / 2 - 2);
+                        SETPOS(3 * ROWS / 4, COLS / 2 - 2);
                         break;
                 }
                 break;
@@ -118,7 +116,7 @@ static void loop(void) {
 static void finish(void) {
     getkey_terminate();
     xt_par0(XT_CLEAR_SCREEN);
-    xt_par2(XT_SET_ROW_COL_POS, 1, 1);
+    SETPOS(1, 1);
 }
 
 int main(int argc, char* argv[]) {

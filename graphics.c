@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "graphics.h"
-#include "xterm/xterm_control.h"
+#include "terminvaders.h"
 
 static int sprite_init = 0;
 static sprite_t sprite_table[NUM_SPRITES] = {0};
@@ -45,7 +45,7 @@ void draw(point_t* point, sprite_t* sprite) {
     if (sprite->bg_color)
         xt_par0(sprite->bg_color);
     for (row = 0; row < sprite->height; row++) {
-        xt_par2(XT_SET_ROW_COL_POS, row + starty + 1, startx + 1);
+        SETPOS(row + starty + 1, startx + 1);
         for (col = 0; col < sprite->width; col++)
             putchar(sprite->graphic[row][col]);
     }

@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include "game.h"
-#include "xterm/keyboard.h"
-#include "xterm/xterm_control.h"
 
 /* Set up the game. */
 static void setup(game_t* game) {
@@ -16,6 +14,8 @@ static void setup(game_t* game) {
 static void render(game_t* game) {
     clear();
     draw(&(game->player.point), get_sprite(PLAYER));
+    // draw entities
+    SETPOS(1, 1);
 }
 
 /* Handle user keyboard input during the game. */
