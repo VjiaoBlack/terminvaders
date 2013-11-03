@@ -1,7 +1,7 @@
 #include "graphics.h"
 #include "terminvaders.h"
 
-#define PLAYER_LIVES 0
+#define PLAYER_LIVES 3
 #define PLAYER_RESPAWN 20
 #define PLAYER_INVINCIBILITY 60
 #define PLAYER_X_VELOCITY 1
