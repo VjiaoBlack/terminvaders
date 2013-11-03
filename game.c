@@ -216,7 +216,7 @@ static void draw_hud(game_t* game) {
         SETPOS(ROWS + 1, 1);
         printf("----------");
         SETPOS(ROWS + 2, 1);
-        printf("%sDEBUG:%s\t%d enemies\t%d cooldown", XT_CH_INVERSE, XT_CH_NORMAL, enemies, game->spawn_timer);
+        printf("%sDEBUG:%s\t%3d enemies\t%3d timer", XT_CH_INVERSE, XT_CH_NORMAL, enemies, game->spawn_timer);
     /* END DEBUG CODE */
     SETPOS(ROWS, COLS);
 }
