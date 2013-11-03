@@ -10,7 +10,7 @@ build/keyboard.o: xterm/keyboard.c
 build/xterm_control.o: xterm/xterm_control.c
 	$(COMPILE) xterm/xterm_control.c -o build/xterm_control.o
 
-build/game.o: game.c game.h graphics.h terminvaders.h
+build/game.o: game.c game.h graphics.h terminvaders.h settings.h
 	$(COMPILE) game.c -o build/game.o
 
 build/graphics.o: graphics.c graphics.h

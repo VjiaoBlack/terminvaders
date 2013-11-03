@@ -2,8 +2,8 @@
 #include "settings.h"
 #include "terminvaders.h"
 
-    static int rows = 30;
-    static int cols = 80;
+static int rows = 30;
+static int cols = 80;
 
 int get_rows(void) {
     return rows;
@@ -17,9 +17,6 @@ int configloop(void) {
     ///-- here are the variables --//
     char key = ' ';
     int config = 2;
-
-    static int rows = 30;
-    static int cols = 80;
 
     int cursor_r = 1, cursor_c = 1;
     CLRSCRN();

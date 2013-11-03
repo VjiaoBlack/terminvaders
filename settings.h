@@ -5,5 +5,5 @@
 
 int configloop(void);
 
-int get_rows();
-int get_cols();
+int get_rows(void);
+int get_cols(void);
