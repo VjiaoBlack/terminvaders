@@ -19,7 +19,7 @@ static void setup(game_t* game) {
 static enemy_t* spawn_enemy(game_t* game) {
     enemy_t* enemy = malloc(sizeof(enemy_t));
     point_t point = {COLS / 2 - 1, 3};
-    *enemy = (enemy_t) {point, 1, game->first_enemy};
+    *enemy = (enemy_t) {point, 0, 1, game->first_enemy};
     game->first_enemy = enemy;
     return enemy;
 }
@@ -36,10 +36,10 @@ static enemy_t* despawn_enemy(game_t* game, enemy_t* enemy, enemy_t* prev) {
 }
 
 /* Spawn a bullet in the game. Return a pointer to the bullet. */
-static bullet_t* spawn_bullet(game_t* game, int x, int y, int fired_by_player) {
+static bullet_t* spawn_bullet(game_t* game, int x, int y, int velocity, int fired_by_player) {
     bullet_t* bullet = malloc(sizeof(bullet_t));
     point_t point = {x, y};
-    *bullet = (bullet_t) {point, fired_by_player, game->first_bullet};
+    *bullet = (bullet_t) {point, velocity, fired_by_player, game->first_bullet};
     game->first_bullet = bullet;
     return bullet;
 }
@@ -58,7 +58,7 @@ static bullet_t* despawn_bullet(game_t* game, bullet_t* bullet, bullet_t* prev) 
 /* Make the player shoot a bullet. */
 static void player_shoot(game_t* game) {
     game->player.cooldown = PLAYER_COOLDOWN;
-    spawn_bullet(game, game->player.point.x, game->player.point.y - 2, 1);
+    spawn_bullet(game, game->player.point.x, game->player.point.y - 2, PLAYER_BULLET_VELOCITY, 1);
 }
 
 /* Do game logic involving the player. */
@@ -100,13 +100,13 @@ static void do_player_logic(game_t* game) {
     }
 }
 
-/* Test whether a bullet has hit any ships.
-   If so, destroy that ship and return 1. Otherwise return 0. */
-static int bullet_impacts(game_t* game, bullet_t* bullet) {
+/* Player bullet impact test function. See bullet_impacts(). */
+static int player_bullet_impacts(game_t* game, bullet_t* bullet) {
     enemy_t* enemy = game->first_enemy;
     enemy_t* prev = NULL;
     while (enemy) {
         if (collides(&bullet->point, &enemy->point, 1, 1)) {
+            game->score += ENEMY_POINTS;
             despawn_enemy(game, enemy, prev);
             return 1;
         }
@@ -116,6 +116,23 @@ static int bullet_impacts(game_t* game, bullet_t* bullet) {
     return 0;
 }
 
+/* Enemy bullet impact test function. See bullet_impacts(). */
+static int enemy_bullet_impacts(game_t* game, bullet_t* bullet) {
+    if (collides(&bullet->point, &game->player.point, 1, 1)) {
+        game->lives--;  // player dies
+        return 1;
+    }
+    return 0;
+}
+
+/* Test whether a bullet has hit any ships.
+   If so, destroy that ship and return 1. Otherwise return 0. */
+static int bullet_impacts(game_t* game, bullet_t* bullet) {
+    if (bullet->fired_by_player)
+        return player_bullet_impacts(game, bullet);
+    return enemy_bullet_impacts(game, bullet);
+}
+
 /* Do game logic involving bullets. */
 static void do_bullet_logic(game_t* game) {
     bullet_t* bullet = game->first_bullet;
@@ -123,10 +140,7 @@ static void do_bullet_logic(game_t* game) {
 
     while (bullet) {
         // bullet impact logic goes here
-        if (bullet->fired_by_player)
-            bullet->point.y -= BULLET_VELOCITY;
-        else
-            bullet->point.y += BULLET_VELOCITY;
+        bullet->point.y += bullet->velocity;
         if (bullet->point.y < 0 || bullet->point.y >= ROWS || bullet_impacts(game, bullet))
             bullet = despawn_bullet(game, bullet, prev);
         else {
@@ -157,6 +171,12 @@ static void do_enemy_logic(game_t*  game) {
             enemy->point.x = COLS - horiz_radius - 1;
             enemy->velocity = -enemy->velocity;
         }
+        if (!enemy->cooldown) {  // Bullet cooldown timer
+            enemy->cooldown = ENEMY_COOLDOWN;
+            spawn_bullet(game, enemy->point.x, enemy->point.y + 2, ENEMY_BULLET_VELOCITY, 0);
+        }
+        else
+            enemy->cooldown--;
         enemy = enemy->next;
     }
     if (!game->spawn_timer) {
