@@ -6,6 +6,7 @@
 static void setup(game_t* game) {
     game->running = 1;
     game->score = 0;
+    game->lives = 3;
     game->player.point.x = COLS / 2 - 1;
     game->player.point.y = ROWS / 2 - 1;
 }
@@ -16,6 +17,10 @@ static void render(game_t* game) {
     draw(&(game->player.point), get_sprite(PLAYER));
     // draw entities
     SETPOS(1, 1);
+    printf("Score: %s%d%s", XT_CH_YELLOW, game->score, XT_CH_NORMAL);
+    SETPOS(2, 1);
+    printf("Lives: %s%d%s", XT_CH_YELLOW, game->lives, XT_CH_NORMAL);
+    SETPOS(ROWS, COLS);
 }
 
 /* Handle user keyboard input during the game. */

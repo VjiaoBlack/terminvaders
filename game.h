@@ -18,6 +18,7 @@ typedef struct enemy_t enemy_t;
 struct game_t {
     int running;
     int score;
+    int lives;
     player_t player;
     enemy_t* enemies;
 };
