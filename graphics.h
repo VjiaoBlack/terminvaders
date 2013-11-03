@@ -12,8 +12,8 @@
 // Structs
 
 struct point_t {
-    double x;
-    double y;
+    int x;
+    int y;
 };
 typedef struct point_t point_t;
 
