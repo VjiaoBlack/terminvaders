@@ -11,8 +11,8 @@ static void setup(game_t* game) {
     game->player.point.x = COLS / 2 - 1;
     game->player.point.y = ROWS / 2 - 1;
     game->player.cooldown = 0;
+    game->first_enemy = NULL;
     game->first_bullet = NULL;
-    game->num_enemies = 0;
 }
 
 /* Spawn a bullet in the game. */
@@ -65,9 +65,10 @@ static void do_logic(game_t* game) {
     if (game->player.cooldown)
         game->player.cooldown--;
     do_bullet_logic(game);
-    if (!game->num_enemies) {
-        game->num_enemies = 1;
-        game->enemies[0] = (enemy_t) {(point_t) {COLS / 2 - 1, 3}};  // ghetto spawn function
+    if (!game->first_enemy) {
+        enemy_t* enemy = malloc(sizeof(enemy_t));
+        *enemy = (enemy_t) {(point_t) {COLS / 2 - 1, 3}, NULL};
+        game->first_enemy = enemy;
     }
 }
 
@@ -111,13 +112,16 @@ static void handle_input(game_t* game) {
 
 /* Render the current game data. */
 static void render(game_t* game) {
+    enemy_t* enemy = game->first_enemy;
     bullet_t* bullet = game->first_bullet;
     int i;
 
     clear();
     draw(&(game->player.point), get_sprite(PLAYER));
-    for (i = 0; i < game->num_enemies; i++)
-        draw(&(game->enemies[i].point), get_sprite(ENEMY));
+    while (enemy) {
+        draw(&(enemy->point), get_sprite(ENEMY));
+        enemy = enemy->next;
+    }
     while (bullet) {
         draw(&(bullet->point), get_sprite(BULLET));
         bullet = bullet->next;

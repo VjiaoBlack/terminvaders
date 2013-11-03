@@ -2,7 +2,6 @@
 #include "terminvaders.h"
 
 #define PLAYER_COOLDOWN 5
-#define MAX_ENEMIES 100
 #define FPS 15
 
 struct player_t {
@@ -13,6 +12,7 @@ typedef struct player_t player_t;
 
 struct enemy_t {
     point_t point;
+    struct enemy_t* next;
 };
 typedef struct enemy_t enemy_t;
 
@@ -28,9 +28,8 @@ struct game_t {
     int score;
     int lives;
     player_t player;
-    enemy_t enemies[MAX_ENEMIES];
+    enemy_t* first_enemy;
     bullet_t* first_bullet;
-    int num_enemies;
 };
 typedef struct game_t game_t;
 
