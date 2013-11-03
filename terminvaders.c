@@ -44,18 +44,25 @@ static int menu(void) {
         cursor_r++;
     }
 
+    xt_par0(XT_CH_BOLD);
+    xt_par0(XT_CH_YELLOW);
     SETPOS(ROWS / 4, COLS / 2 - 11);
     printf("-~<[ terminvaders ]>~-");
 
+    xt_par0(XT_CH_NORMAL);
+    xt_par0(XT_CH_GREEN);
     SETPOS(ROWS / 2, COLS / 2 - 2);
     printf("Play");
 
+    xt_par0(XT_CH_NORMAL);
     SETPOS(5 * ROWS / 8, COLS / 2 - 4);
     printf("Settings");
 
+    xt_par0(XT_CH_RED);
     SETPOS(3 * ROWS / 4, COLS / 2 - 2);
     printf("Quit");
 
+    xt_par0(XT_CH_NORMAL);
     SETPOS(ROWS / 2, COLS / 2 - 2);
     while (1) {
         switch ((key = getkey())) {
@@ -116,6 +123,7 @@ static void loop(void) {
 static void finish(void) {
     getkey_terminate();
     xt_par0(XT_CLEAR_SCREEN);
+    xt_par0(XT_CH_NORMAL);
     SETPOS(1, 1);
 }
 
