@@ -2,9 +2,10 @@
 #include "settings.h"
 #include "terminvaders.h"
 
-void configloop(void) {
+int configloop(void) {
     ///-- here are the variables --//
-    char up = 'w', down = 's', left = 'a', right = 'd', quit = 'q', shoot = ' ';
+    char key = ' ';
+    char up = 'w', down = 's', left = 'a', right = 'd', Back = 'q', shoot = ' ';
     int config = 0;
 
     int cursor_r = 1, cursor_c = 1;
@@ -36,28 +37,104 @@ void configloop(void) {
     printf("{[ Settings ]}");
     xt_par0(XT_CH_NORMAL);
 
-    SETPOS(ROWS * 2 / 5, COLS / 3 - 3);
-    printf("up : '%c'", up);
+    SETPOS(ROWS / 2, COLS / 2 - 5);
+    printf("Height: '%c'", up);
 
-    SETPOS(ROWS * 8 / 15, COLS / 3 - 5);
-    printf("down : '%c'", down);
+    SETPOS(5 * ROWS / 8, COLS / 2 - 4);
+    printf("Width: '%c'", down);
 
-    SETPOS(ROWS * 2 / 3, COLS / 3 - 5);
-    printf("left : '%c'", left);
+    SETPOS(3 * ROWS / 4, COLS / 2 - 2);
+    printf("Back");
 
-    SETPOS(ROWS * 4 / 5, COLS / 3 - 6);
-    printf("right : '%c'", right);
-
-    SETPOS(ROWS * 8 / 15, COLS * 2 / 3 );
-    printf("quit : '%c'", quit);
-
-    SETPOS(ROWS * 2 / 3, COLS * 2 / 3 - 1);
-    printf("shoot : '%c'", shoot);
-
-    SETPOS(ROWS * 2 / 5, COLS / 3 - 1);
-
-    while(1) {
-
+    while (1) {
+            switch ((key = getkey())) {
+            case KEY_UP:
+            case 'w':
+                xt_par0(XT_CH_NORMAL);
+                xt_par0(XT_CH_WHITE);
+                switch (config) { // makes the previous button 'normal'
+                    case 0:
+                        SETPOS(ROWS / 2, COLS / 2 - 5);
+                        printf("Height: ");
+                        break;
+                    case 1:
+                        SETPOS(5 * ROWS / 8, COLS / 2 - 4);
+                        printf("Width: ");
+                        break;
+                    case 2:
+                        SETPOS(3 * ROWS / 4, COLS / 2 - 2);
+                        printf("Back");
+                        break;
+                }
+                config = !config ? 2 : config - 1;
+                xt_par0(XT_CH_BOLD);
+                xt_par0(XT_CH_INVERSE);
+                switch (config) { // makes the button highlighted
+                    case 0:
+                        SETPOS(ROWS / 2, COLS / 2 - 5);
+                        printf("Height: ");
+                        SETPOS(ROWS, COLS);
+                        break;
+                    case 1:
+                        SETPOS(5 * ROWS / 8, COLS / 2 - 4);
+                        printf("Width: ");
+                        SETPOS(ROWS, COLS);
+                        break;
+                    case 2:
+                        SETPOS(3 * ROWS / 4, COLS / 2 - 2);
+                        printf("Back");
+                        SETPOS(ROWS, COLS);
+                        break;
+                }
+                xt_par0(XT_CH_NORMAL);
+                xt_par0(XT_CH_WHITE);
+                break;
+            case KEY_DOWN:
+            case 's':
+                xt_par0(XT_CH_NORMAL);
+                xt_par0(XT_CH_WHITE);
+                switch (config) { // makes the previous button 'normal'
+                    case 0:
+                        SETPOS(ROWS / 2, COLS / 2 - 5);
+                        printf("Height: ");
+                        break;
+                    case 1:
+                        SETPOS(5 * ROWS / 8, COLS / 2 - 4);
+                        printf("Width: ");
+                        break;
+                    case 2:
+                        SETPOS(3 * ROWS / 4, COLS / 2 - 2);
+                        printf("Back");
+                        break;
+                }
+                config = (config + 1) % 3;
+                xt_par0(XT_CH_BOLD);
+                xt_par0(XT_CH_INVERSE);
+                switch (config) { // makes the button highlighted
+                    case 0:
+                        SETPOS(ROWS / 2, COLS / 2 - 5);
+                        printf("Height: ");
+                        SETPOS(ROWS, COLS);
+                        break;
+                    case 1:
+                        SETPOS(5 * ROWS / 8, COLS / 2 - 4);
+                        printf("Width: ");
+                        SETPOS(ROWS, COLS);
+                        break;
+                    case 2:
+                        SETPOS(3 * ROWS / 4, COLS / 2 - 2);
+                        printf("Back");
+                        SETPOS(ROWS, COLS);
+                        break;
+                }
+                xt_par0(XT_CH_NORMAL);
+                xt_par0(XT_CH_WHITE);
+                break;
+            case KEY_ENTER:
+                return 1;
+            case 'q':
+                return MENU_QUIT;
+        }
     }
 
 

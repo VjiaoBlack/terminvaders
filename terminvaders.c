@@ -67,7 +67,7 @@ static int menu(void) {
 
     SETPOS(ROWS, COLS);
     while (1) {
-        switch ((key = getkey())) {
+            switch ((key = getkey())) {
             case KEY_UP:
             case 'w':
                 xt_par0(XT_CH_DEFAULT);
