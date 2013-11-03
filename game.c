@@ -7,7 +7,7 @@
 static void setup(game_t* game) {
     game->running = 1;
     game->score = 0;
-    game->lives = 3;
+    game->lives = PLAYER_LIVES;
     game->player.point.x = COLS / 2 - 1;
     game->player.point.y = ROWS / 2 - 1;
     game->player.cooldown = 0;
@@ -119,11 +119,28 @@ static void handle_input(game_t* game) {
     while (getkey() != KEY_NOTHING);  // Eat up remaining key events
 }
 
-/* Render the current game data. */
+/* Draw the heads-up display to the screen. */
+static void draw_hud(game_t* game) {
+    int i;
+    SETPOS(1, 1);
+    printf("%sScore:%s %s%d%s", XT_CH_BOLD, XT_CH_NORMAL, XT_CH_YELLOW, game->score, XT_CH_NORMAL);
+    SETPOS(ROWS, 1);
+    printf("%sShips:%s", XT_CH_BOLD, XT_CH_NORMAL);
+    if (game->lives >= 5)
+        printf(" %s^%s x %s%d%s", XT_CH_GREEN, XT_CH_NORMAL, XT_CH_YELLOW, game->lives, XT_CH_NORMAL);
+    else if (game->lives) {
+        for (i = 0; i < game->lives; i++)
+            printf(" %s^%s", XT_CH_GREEN, XT_CH_NORMAL);
+    }
+    else
+        printf(" %s0%s", XT_CH_YELLOW, XT_CH_NORMAL);
+    SETPOS(ROWS, COLS);
+}
+
+/* Render the current game data on-screen. */
 static void render(game_t* game) {
     enemy_t* enemy = game->first_enemy;
     bullet_t* bullet = game->first_bullet;
-    int i;
 
     xt_par0(XT_CLEAR_SCREEN);
     while (enemy) {
@@ -135,11 +152,7 @@ static void render(game_t* game) {
         draw(&(bullet->point), get_sprite(BULLET));
         bullet = bullet->next;
     }
-    SETPOS(1, 1);
-    printf("Score: %s%d%s", XT_CH_YELLOW, game->score, XT_CH_NORMAL);
-    SETPOS(ROWS, 1);
-    printf("Lives: %s%d%s", XT_CH_YELLOW, game->lives, XT_CH_NORMAL);
-    SETPOS(ROWS, COLS);
+    draw_hud(game);
 }
 
 /* Do a single cycle of game logic: render and handle input. */

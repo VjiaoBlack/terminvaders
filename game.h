@@ -1,6 +1,7 @@
 #include "graphics.h"
 #include "terminvaders.h"
 
+#define PLAYER_LIVES 3
 #define PLAYER_VELOCITY 3
 #define PLAYER_COOLDOWN 5
 #define FPS 15
