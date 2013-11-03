@@ -5,7 +5,6 @@
 int configloop(void) {
     ///-- here are the variables --//
     char key = ' ';
-    char up = 'w', down = 's', left = 'a', right = 'd', Back = 'q', shoot = ' ';
     int config = 2;
 
     int cursor_r = 1, cursor_c = 1;
@@ -38,10 +37,10 @@ int configloop(void) {
     xt_par0(XT_CH_NORMAL);
 
     SETPOS(ROWS / 2, COLS / 2 - 5);
-    printf("Height: '%c'", up);
+    printf("Height: '%d'", ROWS);
 
     SETPOS(5 * ROWS / 8, COLS / 2 - 4);
-    printf("Width: '%c'", down);
+    printf("Width: '%d'", COLS);
 
     SETPOS(3 * ROWS / 4, COLS / 2 - 2);
     xt_par0(XT_CH_BOLD);
@@ -138,7 +137,11 @@ int configloop(void) {
             case KEY_ENTER:
                 switch (config) {
                     case 0:
+
+                        // set ROWS = something
                     case 1:
+
+                        // set COLS = something
                     case 2:
                         return 1;
                 }
