@@ -5,6 +5,7 @@
 static void configloop(void) {
     ///-- here are the variables --//
     char up = 'w', down = 's', left = 'a', right = 'd', quit = 'q', shoot = ' ';
+    int config = 0;
 
     int cursor_r = 1, cursor_c = 1;
     clrscrn();
@@ -35,21 +36,33 @@ static void configloop(void) {
     printf("{[ Settings ]}");
     xt_par0(XT_CH_NORMAL);
 
+    SETPOS(ROWS * 2 / 5, COLS / 3 - 3);
+    printf("up : '%c'", up);
+
+    SETPOS(ROWS * 8 / 15, COLS / 3 - 5);
+    printf("down : '%c'", down);
+
+    SETPOS(ROWS * 2 / 3, COLS / 3 - 5);
+    printf("left : '%c'", left);
+
+    SETPOS(ROWS * 4 / 5, COLS / 3 - 6);
+    printf("right : '%c'", right);
+
+    SETPOS(ROWS * 8 / 15, COLS * 2 / 3 );
+    printf("quit : '%c'", quit);
+
+    SETPOS(ROWS * 2 / 3, COLS * 2 / 3 - 1);
+    printf("shoot : '%c'", shoot); 
+
     SETPOS(ROWS * 2 / 5, COLS / 3 - 1);
-    printf("up : %c", up);
 
-    SETPOS(ROWS * 8 / 15, COLS / 3 - 3);
-    printf("down : %c", down);
+    while(1) {
 
-    SETPOS(ROWS * 2 / 3, COLS / 3 - 3);
-    printf("left : %c", left);
+    }
 
-    SETPOS(ROWS * 4 / 5, COLS / 3 - 4);
-    printf("right : %c", right);
 
-    SETPOS(ROWS * 8 / 15, COLS * 2 / 3  - 2);
-    printf("quit : %c", quit);
 
-    SETPOS(ROWS * 2 / 3, COLS * 2 / 3 - 3);
-    printf("shoot : %c", shoot); 
+
+
+
 }
