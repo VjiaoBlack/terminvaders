@@ -20,6 +20,7 @@ typedef struct player_t player_t;
 
 struct enemy_t {
     point_t point;
+    int velocity;
     struct enemy_t* next;
 };
 typedef struct enemy_t enemy_t;
@@ -35,6 +36,7 @@ struct game_t {
     int running;
     int score;
     int lives;
+    int spawn_timer;
     player_t player;
     enemy_t* first_enemy;
     bullet_t* first_bullet;

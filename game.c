@@ -9,17 +9,28 @@ static void setup(game_t* game) {
     game->running = 1;
     game->score = 0;
     game->lives = PLAYER_LIVES;
+    game->spawn_timer = FPS;
     game->player = (player_t) {player_point, 0, 0};
     game->first_enemy = NULL;
     game->first_bullet = NULL;
 }
 
-/* Spawn a bullet in the game. */
-static void spawn_bullet(game_t* game, int x, int y, int fired_by_player) {
+/* Spawn an enemy in the game. Return a pointer to the enemy. */
+static enemy_t* spawn_enemy(game_t* game) {
+    enemy_t* enemy = malloc(sizeof(enemy_t));
+    point_t point = {COLS / 2 - 1, 3};
+    *enemy = (enemy_t) {point, 1, game->first_enemy};
+    game->first_enemy = enemy;
+    return enemy;
+}
+
+/* Spawn a bullet in the game. Return a pointer to the bullet. */
+static bullet_t* spawn_bullet(game_t* game, int x, int y, int fired_by_player) {
     bullet_t* bullet = malloc(sizeof(bullet_t));
     point_t point = {x, y};
     *bullet = (bullet_t) {point, fired_by_player, game->first_bullet};
     game->first_bullet = bullet;
+    return bullet;
 }
 
 /* Despawn a bullet in the game. Returns next bullet in linked list. */
@@ -100,11 +111,33 @@ static void do_bullet_logic(game_t* game) {
 
 /* Do game logic involving the enemy. */
 static void do_enemy_logic(game_t*  game) {
-    if (!game->first_enemy) {
-        enemy_t* enemy = malloc(sizeof(enemy_t));
-        *enemy = (enemy_t) {(point_t) {COLS / 2 - 1, 3}, NULL};
-        game->first_enemy = enemy;
+    static int vertical_radius = 0, horiz_radius = 0;
+    enemy_t* enemy = game->first_enemy;
+
+    if (!vertical_radius) {
+        vertical_radius = get_sprite(ENEMY)->height / 2;
+        horiz_radius = get_sprite(ENEMY)->width / 2;
     }
+    while (enemy) {
+        enemy->point.x += enemy->velocity;
+        if (enemy->velocity < 0) {  // Boundary check
+            if (enemy->point.x < horiz_radius) {
+                enemy->point.x = horiz_radius;
+                enemy->velocity = -enemy->velocity;
+            }
+        }
+        else if (enemy->point.x > COLS - horiz_radius - 1) {
+            enemy->point.x = COLS - horiz_radius - 1;
+            enemy->velocity = -enemy->velocity;
+        }
+        enemy = enemy->next;
+    }
+    if (!game->spawn_timer) {
+        spawn_enemy(game);
+        game->spawn_timer = FPS;
+    }
+    else
+        game->spawn_timer--;
 }
 
 /* Do game logic, mainly involving bullets and enemy spawning/movement. */
@@ -173,6 +206,18 @@ static void draw_hud(game_t* game) {
     }
     else
         printf(" %s0%s", XT_CH_YELLOW, XT_CH_NORMAL);
+    /* START DEBUG CODE */
+        int enemies = 0;
+        enemy_t* enemy = game->first_enemy;
+        while (enemy) {
+            enemies++;
+            enemy = enemy->next;
+        }
+        SETPOS(ROWS + 1, 1);
+        printf("----------");
+        SETPOS(ROWS + 2, 1);
+        printf("%sDEBUG:%s\t%d enemies\t%d cooldown", XT_CH_INVERSE, XT_CH_NORMAL, enemies, game->spawn_timer);
+    /* END DEBUG CODE */
     SETPOS(ROWS, COLS);
 }
 
