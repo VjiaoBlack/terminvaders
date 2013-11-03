@@ -1,10 +1,11 @@
 #include "xterm/keyboard.h"
 #include "xterm/xterm_control.h"
+#include "settings.h"
 
 // Defines
 
-#define ROWS 30
-#define COLS 80
+
+
 
 #define MENU_PLAY     0
 #define MENU_SETTINGS 1

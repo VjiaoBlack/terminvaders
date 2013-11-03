@@ -2,11 +2,24 @@
 #include "settings.h"
 #include "terminvaders.h"
 
+    static int rows = 30;
+    static int cols = 80;
+
+int get_rows(void) {
+    return rows;
+}
+
+int get_cols(void) {
+    return cols;
+}
+
 int configloop(void) {
     ///-- here are the variables --//
     char key = ' ';
-    char up = 'w', down = 's', left = 'a', right = 'd', Back = 'q', shoot = ' ';
     int config = 2;
+
+    static int rows = 30;
+    static int cols = 80;
 
     int cursor_r = 1, cursor_c = 1;
     CLRSCRN();
@@ -38,10 +51,10 @@ int configloop(void) {
     xt_par0(XT_CH_NORMAL);
 
     SETPOS(ROWS / 2, COLS / 2 - 5);
-    printf("Height: '%c'", up);
+    printf("Height: %d", rows);
 
     SETPOS(5 * ROWS / 8, COLS / 2 - 4);
-    printf("Width: '%c'", down);
+    printf("Width: %d", cols);
 
     SETPOS(3 * ROWS / 4, COLS / 2 - 2);
     xt_par0(XT_CH_BOLD);
