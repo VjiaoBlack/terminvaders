@@ -53,20 +53,28 @@ static void do_player_logic(game_t* game) {
     if (player->vertical_accel) {
         player->point.y += player->vertical_accel * PLAYER_Y_VELOCITY;
         if (player->vertical_accel < 0) {  // Boundary check
-            if (player->point.y < vertical_radius)
+            if (player->point.y < vertical_radius) {
                 player->point.y = vertical_radius;
+                player->vertical_accel = 0;
+            }
         }
-        else if (player->point.y > ROWS - vertical_radius - 1)
+        else if (player->point.y > ROWS - vertical_radius - 1) {
             player->point.y = ROWS - vertical_radius - 1;
+            player->vertical_accel = 0;
+        }
     }
     if (player->horiz_accel) {
         player->point.x += player->horiz_accel * PLAYER_X_VELOCITY;
         if (player->horiz_accel < 0) {  // Boundary check
-            if (player->point.x < horiz_radius)
+            if (player->point.x < horiz_radius) {
                 player->point.x = horiz_radius;
+                player->horiz_accel = 0;
+            }
         }
-        else if (player->point.x > COLS - horiz_radius - 1)
+        else if (player->point.x > COLS - horiz_radius - 1) {
             player->point.x = COLS - horiz_radius - 1;
+            player->horiz_accel = 0;
+        }
     }
 }
 
