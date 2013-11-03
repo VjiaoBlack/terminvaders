@@ -54,3 +54,8 @@ void draw(point_t* point, sprite_t* sprite) {
     if (sprite->bg_color)
         xt_par0(XT_BG_DEFAULT);
 }
+
+/* Test whether two points of the given sprite types collide. */
+int collides(point_t* point1, point_t* point2, int fuzzx, int fuzzy) {
+    return 0;
+}

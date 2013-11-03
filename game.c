@@ -24,6 +24,17 @@ static enemy_t* spawn_enemy(game_t* game) {
     return enemy;
 }
 
+/* Despawn an enemy in the game. Returns next enemy in linked list. */
+static enemy_t* despawn_enemy(game_t* game, enemy_t* enemy, enemy_t* prev) {
+    enemy_t* next = enemy->next;
+    if (prev)
+        prev->next = next;
+    else
+        game->first_enemy = next;
+    free(enemy);
+    return next;
+}
+
 /* Spawn a bullet in the game. Return a pointer to the bullet. */
 static bullet_t* spawn_bullet(game_t* game, int x, int y, int fired_by_player) {
     bullet_t* bullet = malloc(sizeof(bullet_t));
@@ -89,6 +100,22 @@ static void do_player_logic(game_t* game) {
     }
 }
 
+/* Test whether a bullet has hit any ships.
+   If so, destroy that ship and return 1. Otherwise return 0. */
+static int bullet_impacts(game_t* game, bullet_t* bullet) {
+    enemy_t* enemy = game->first_enemy;
+    enemy_t* prev = NULL;
+    while (enemy) {
+        if (collides(&bullet->point, &enemy->point, 3, 3)) {
+            despawn_enemy(game, enemy, prev);
+            return 1;
+        }
+        prev = enemy;
+        enemy = enemy->next;
+    }
+    return 0;
+}
+
 /* Do game logic involving bullets. */
 static void do_bullet_logic(game_t* game) {
     bullet_t* bullet = game->first_bullet;
@@ -100,7 +127,7 @@ static void do_bullet_logic(game_t* game) {
             bullet->point.y -= BULLET_VELOCITY;
         else
             bullet->point.y += BULLET_VELOCITY;
-        if (bullet->point.y < 0 || bullet->point.y >= ROWS)
+        if (bullet->point.y < 0 || bullet->point.y >= ROWS || bullet_impacts(game, bullet))
             bullet = despawn_bullet(game, bullet, prev);
         else {
             prev = bullet;
