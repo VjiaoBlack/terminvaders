@@ -44,6 +44,8 @@ int configloop(void) {
     printf("Width: '%c'", down);
 
     SETPOS(3 * ROWS / 4, COLS / 2 - 2);
+    xt_par0(XT_CH_BOLD);
+    xt_par0(XT_CH_INVERSE);
     printf("Back");
 
     while (1) {
