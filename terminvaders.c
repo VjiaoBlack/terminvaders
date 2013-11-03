@@ -35,7 +35,6 @@ int menu(void) {
                 break;
             case KEY_ENTER:
                 return choice;
-            //case KEY_ESC: //error
             case 'q':
                 return MENU_QUIT;
         }
