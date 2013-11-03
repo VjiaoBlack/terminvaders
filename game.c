@@ -5,31 +5,21 @@
 #include "xterm/xterm_control.h"
 
 /* Set up the game. */
-void setup(game_t* game) {
+static void setup(game_t* game) {
     game->running = 1;
     game->score = 0;
-    game->player.point.x = 10;
-    game->player.point.y = 10;
-}
-
-/* Clear the screen. */
-void clear(void) {
-    int r, c;
-    for (r = 1; r <= ROWS; r++) {
-        xt_par2(XT_SET_ROW_COL_POS, r, 1);
-        for (c = 1; c <= COLS; c++)
-            putchar(' ');
-    }
+    game->player.point.x = COLS / 2 - 1;
+    game->player.point.y = ROWS / 2 - 1;
 }
 
 /* Render the current game data. */
-void render(game_t* game) {
+static void render(game_t* game) {
     clear();
     draw(&(game->player.point), get_sprite(PLAYER));
 }
 
 /* Handle user keyboard input during the game. */
-void handle_input(game_t* game) {
+static void handle_input(game_t* game) {
     int key;
     switch ((key = getkey())) {
         case KEY_NOTHING:
@@ -41,7 +31,7 @@ void handle_input(game_t* game) {
 }
 
 /* Do a single cycle of game logic: render and handle input. */
-void update(game_t* game) {
+static void update(game_t* game) {
     handle_input(game);
     render(game);
 }

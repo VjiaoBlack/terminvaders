@@ -24,5 +24,3 @@ struct game_t {
 typedef struct game_t game_t;
 
 void play(void);
-
-// TODO: lives, levels, waves, etc

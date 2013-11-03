@@ -4,16 +4,27 @@
 #include "xterm/keyboard.h"
 #include "xterm/xterm_control.h"
 
-/* Start the game by clearing the screen, etc. */
-void start(void) {
-    setbuf(stdout, NULL);
+/* Clear the screen. */
+void clear(void) {
+    int r, c;
+    for (r = 1; r <= ROWS; r++) {
+        xt_par2(XT_SET_ROW_COL_POS, r, 1);
+        for (c = 1; c <= COLS; c++)
+            putchar(' ');
+    }
+}
+
+/* Set up the game by clearing the screen, etc. */
+static void setup(void) {
+    setbuf(stdout, NULL);  // Turn off stdout buffering
     xt_par0(XT_CLEAR_SCREEN);
 }
 
 /* Main menu: render the menu and return an option selected by the user. */
-int menu(void) {
+static int menu(void) {
     int key, choice = 0;
     int cursor_r = 1, cursor_c = 1;
+    clear();
     xt_par2(XT_SET_ROW_COL_POS, 1, 1);
     while (cursor_c <= COLS) {
         cursor_r = 1;
@@ -46,7 +57,7 @@ int menu(void) {
 
     xt_par2(XT_SET_ROW_COL_POS, 3 * ROWS / 4, COLS / 2 - 2);
     printf("Quit");
-    
+
     xt_par2(XT_SET_ROW_COL_POS, ROWS / 2, COLS / 2 - 2);
     while (1) {
         switch ((key = getkey())) {
@@ -89,7 +100,7 @@ int menu(void) {
 }
 
 /* Main menu loop. */
-void loop(void) {
+static void loop(void) {
     int option;
     while (1) {
         switch ((option = menu())) {
@@ -104,14 +115,14 @@ void loop(void) {
 }
 
 /* Reset the keyboard and screen. */
-void finish(void) {
+static void finish(void) {
     getkey_terminate();
     xt_par0(XT_CLEAR_SCREEN);
     xt_par2(XT_SET_ROW_COL_POS, 1, 1);
 }
 
 int main(int argc, char* argv[]) {
-    start();
+    setup();
     loop();
     finish();
     return 0;
