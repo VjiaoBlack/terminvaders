@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <unistd.h>
 #include "game.h"
 #include "xterm/keyboard.h"
@@ -11,8 +12,19 @@ void setup(game_t* game) {
     game->player.point.y = 10;
 }
 
+/* Clear the screen. */
+void clear(void) {
+    int r, c;
+    for (r = 1; r <= ROWS; r++) {
+        xt_par2(XT_SET_ROW_COL_POS, r, 1);
+        for (c = 1; c <= COLS; c++)
+            putchar(' ');
+    }
+}
+
 /* Render the current game data. */
 void render(game_t* game) {
+    clear();
     draw(&(game->player.point), get_sprite(PLAYER));
 }
 
