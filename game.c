@@ -106,7 +106,7 @@ static int bullet_impacts(game_t* game, bullet_t* bullet) {
     enemy_t* enemy = game->first_enemy;
     enemy_t* prev = NULL;
     while (enemy) {
-        if (collides(&bullet->point, &enemy->point, 3, 3)) {
+        if (collides(&bullet->point, &enemy->point, 1, 1)) {
             despawn_enemy(game, enemy, prev);
             return 1;
         }
@@ -161,7 +161,7 @@ static void do_enemy_logic(game_t*  game) {
     }
     if (!game->spawn_timer) {
         spawn_enemy(game);
-        game->spawn_timer = FPS;
+        game->spawn_timer = FPS * 5;
     }
     else
         game->spawn_timer--;

@@ -57,5 +57,6 @@ void draw(point_t* point, sprite_t* sprite) {
 
 /* Test whether two points of the given sprite types collide. */
 int collides(point_t* point1, point_t* point2, int fuzzx, int fuzzy) {
-    return 0;
+    return (point1->x + fuzzx >= point2->x) && (point1->x - fuzzx <= point2->x) &&
+           (point1->y + fuzzy >= point2->y) && (point1->y - fuzzy <= point2->y);
 }
