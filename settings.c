@@ -17,12 +17,11 @@ void load_rc(void) {
     FILE *fp;
     if (!(fp = fopen("preferences.txt", "r"))) {
         fp = fopen("preferences.txt", "w");
-        fputs("030080", fp);
+        fputs("30:80", fp);
         fclose(fp);
         fp = fopen("preferences.txt", "r");
     }
-    rows = 100 * (fgetc(fp) - '0') + 10 * (fgetc(fp) - '0') + (fgetc(fp) - '0');
-    cols = 100 * (fgetc(fp) - '0') + 10 * (fgetc(fp) - '0') + (fgetc(fp) - '0');
+    fscanf(fp, "%d:%d", &rows, &cols);
     fclose(fp);
     return;
 }
@@ -106,12 +105,7 @@ static int read_int(void) {
 
 static void write_preferences(void) {
     FILE *fp = fopen("preferences.txt", "w");
-    fputc((char) (rows / 100 + '0'), fp);
-    fputc((char) (rows % 100 / 10 + '0'), fp);
-    fputc((char) (rows % 10 + '0'), fp);
-    fputc((char) (cols / 100 + '0'), fp);
-    fputc((char) (cols % 100 / 10 + '0'), fp);
-    fputc((char) (cols % 10 + '0'), fp);
+    fprintf(fp, "%d:%d", rows, cols);
     fclose(fp);
 }
 
