@@ -125,7 +125,7 @@ static int player_bullet_impacts(game_t* game, bullet_t* bullet) {
     enemy_t* enemy = game->first_enemy;
     enemy_t* prev = NULL;
     while (enemy) {
-        if (collides(&bullet->point, &enemy->point, 1, 1)) {
+        if (collides(&bullet->point, &enemy->point, 2, 1)) {
             game->score += ENEMY_POINTS;
             despawn_enemy(game, enemy, prev);
             return 1;
