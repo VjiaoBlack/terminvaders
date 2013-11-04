@@ -51,3 +51,25 @@ correctly. You can solve this with `rm preferences.txt`.
 
 2. The game might have strange glitches on certain terminals (`iTerm 2` is
 known to cause problems; `Terminal.app` works).
+
+Technical
+---------
+
+We used a linked list to keep track of enemies (we'd pop them off the list 
+whenever one died), and an array to hold the explosions.
+
+We used structs to hold enemies, the player, (along with sprites, bullets, 
+and almost everything else) and the game itself. This let us be able to 
+more easily create lots of them, which keeps the game simple even if there's
+a lot of enemies on the screen.
+
+To do the preferences (height and width) of the game, we would write and 
+read info from a file, preferences.txt. 
+
+To do all the graphics, we basically had strings/chars that we would printf()
+or putchar() onto the screen, and everything displayed on the screen at 20fps.
+
+To adjust for screen text char dimensions, we implemented a integer by-1 velocity
+scheme for horizontal movement, and floating-point velocity (that we rounded off
+for coordinates) for the vertical movements, and it would be at about half of the
+horizontal velocity. 
