@@ -202,13 +202,7 @@ int configloop(void) {
                             break;
                         case 2:
                             return 1;
-                }
-        }
+                    }
+            }
     }
-
-
-
-
-
-
 }
