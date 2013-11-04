@@ -3,30 +3,18 @@
 #include <unistd.h>
 #include "game.h"
 
-static void spawn_player(game_t*);
-
-/* Set up the game. */
-static void setup(game_t* game) {
-    game->running = 1;
-    game->score = 0;
-    game->lives = PLAYER_LIVES;
-    game->over = 0;
-    game->spawn_timer = FPS;
-    game->first_enemy = NULL;
-    game->first_bullet = NULL;
-    spawn_player(game);
-}
-
 /* Spawn the player in the game. */
 static void spawn_player(game_t* game) {
-    point_t player_point = {COLS / 2 - 1, ROWS - 5};
-    game->player = (player_t) {player_point, 0, PLAYER_INVINCIBILITY, 0, 0};
+    point_t point = {COLS / 2 - 1, ROWS - 5};
+    game->player = (player_t) {point, 0, PLAYER_INVINCIBILITY, 0, 0};
 }
 
 /* Spawn an enemy in the game. Return a pointer to the enemy. */
 static enemy_t* spawn_enemy(game_t* game) {
     enemy_t* enemy = malloc(sizeof(enemy_t));
-    point_t point = {COLS / 2 - 1, 3};
+    point_t point;
+    point.x = rand() % 2 ? 3 : COLS - 3;
+    point.y = 3;
     *enemy = (enemy_t) {point, 0, 1, game->first_enemy};
     game->first_enemy = enemy;
     return enemy;
@@ -225,6 +213,11 @@ static void do_logic(game_t* game) {
     do_player_logic(game);
     do_bullet_logic(game);
     do_enemy_logic(game);
+    if (game->over) {
+        game->over--;
+        if (!game->over)
+            game->running = 0;
+    }
 }
 
 /* Handle user keyboard input during the game. */
@@ -299,9 +292,6 @@ static void draw_hud(game_t* game) {
     if (game->over) {
         SETPOS(ROWS / 2, COLS / 2 - 4);
         printf("%sGAME OVER%s", XT_CH_BOLD, XT_CH_NORMAL);
-        game->over--;
-        if (!game->over)
-            game->running = 0;
     }
     SETPOS(ROWS, COLS);
 }
@@ -323,6 +313,18 @@ static void render(game_t* game) {
         bullet = bullet->next;
     }
     draw_hud(game);
+}
+
+/* Set up the game. */
+static void setup(game_t* game) {
+    game->running = 1;
+    game->score = 0;
+    game->lives = PLAYER_LIVES;
+    game->over = 0;
+    game->spawn_timer = FPS;
+    game->first_enemy = NULL;
+    game->first_bullet = NULL;
+    spawn_player(game);
 }
 
 /* Do a single cycle of game logic: render and handle input. */

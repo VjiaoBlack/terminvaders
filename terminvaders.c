@@ -1,10 +1,13 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 #include "terminvaders.h"
 #include "game.h"
 #include "settings.h"
 
 /* Set up the game by clearing the screen, etc. */
 static void setup(void) {
+    srand(time(NULL));
     setbuf(stdout, NULL);  // Turn off stdout buffering
     xt_par0(XT_CLEAR_SCREEN);
 }
