@@ -13,11 +13,13 @@ static void spawn_player(game_t* game) {
 static enemy_t* spawn_enemy(game_t* game) {
     enemy_t* enemy = malloc(sizeof(enemy_t));
     point_t point;
-    double velocity = ((rand() % 9) + 5) / 10.,
-           bullet_velocity = ((rand() % 3) + 1) * .5;
+    double velocity = ((rand() % 11) + 5) / 10.,       // Between 0.5 and 1.5
+           bullet_velocity = ((rand() % 3) + 1) * .5;  // Between 0.5 and 1.5
+    int score = (velocity + bullet_velocity) * 100;    // Between 100 and 300
+
     point.x = rand() % 2 ? 3 : COLS - 3;
     point.y = rand() % 10 + 2;
-    *enemy = (enemy_t) {point, 0, velocity, bullet_velocity, game->first_enemy};
+    *enemy = (enemy_t) {point, score, 0, velocity, bullet_velocity, game->first_enemy};
     game->first_enemy = enemy;
     return enemy;
 }
@@ -126,7 +128,7 @@ static int player_bullet_impacts(game_t* game, bullet_t* bullet) {
     enemy_t* prev = NULL;
     while (enemy) {
         if (collides(&bullet->point, &enemy->point, 2, 1)) {
-            game->score += ENEMY_POINTS;
+            game->score += enemy->score;
             despawn_enemy(game, enemy, prev);
             return 1;
         }
