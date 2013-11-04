@@ -3,7 +3,7 @@
 #include "terminvaders.h"
 
 static int sprite_init = 0;
-static sprite_t sprite_table[NUM_SPRITES] = {0};
+static sprite_t sprite_table[NUM_SPRITES] = {{{0}}};
 
 /* Initialize the sprites table. */
 static void init_sprites(void) {
