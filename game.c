@@ -244,12 +244,15 @@ static void do_enemy_logic(game_t* game) {
             enemy->cooldown--;
         enemy = enemy->next;
     }
-    if (!game->spawn_timer) {
+    if (!game->until_spawn) {
         spawn_enemy(game);
-        game->spawn_timer = FPS * 5;
+        game->until_spawn = game->spawn_timer;
+        game->spawn_timer -= SPAWN_TIMER_DECREASE;
+        if (game->spawn_timer < MIN_SPAWN_TIMER)
+            game->spawn_timer = MIN_SPAWN_TIMER;
     }
     else
-        game->spawn_timer--;
+        game->until_spawn--;
 }
 
 /* Do game logic involving explosions. */
@@ -393,7 +396,8 @@ static void setup(game_t* game) {
     game->score = 0;
     game->lives = PLAYER_LIVES;
     game->over = 0;
-    game->spawn_timer = FPS;
+    game->until_spawn = FPS;  // Wait one second for first enemy
+    game->spawn_timer = MAX_SPAWN_TIMER;
     game->first_enemy = NULL;
     game->first_bullet = NULL;
     game->first_explosion = NULL;

@@ -1,6 +1,8 @@
 #include "graphics.h"
 #include "terminvaders.h"
 
+#define FPS 20
+
 #define PLAYER_LIVES 3
 #define PLAYER_RESPAWN 20
 #define PLAYER_INVINCIBILITY 60
@@ -10,8 +12,10 @@
 #define PLAYER_COOLDOWN 5
 
 #define EXPLOSION_STEPS_PER_SPRITE 2
-#define GAME_OVER_TIMER 60
-#define FPS 20
+#define MAX_SPAWN_TIMER (FPS * 5)
+#define MIN_SPAWN_TIMER (FPS * 2)
+#define SPAWN_TIMER_DECREASE 5
+#define GAME_OVER_TIMER (FPS * 3)
 
 struct player_t {
     point_t point;
@@ -55,6 +59,7 @@ struct game_t {
     int score;
     int lives;
     int over;
+    int until_spawn;
     int spawn_timer;
     player_t player;
     enemy_t* first_enemy;
