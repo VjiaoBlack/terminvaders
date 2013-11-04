@@ -27,6 +27,19 @@ void load_rc(void) {
     return;
 }
 
+static int read_int(void) {
+    char key;
+    int result = 0;
+
+    while (1) {
+        while ((key = getkey()) == KEY_NOTHING);
+        if (key < '0' || key > '9')
+            return result;
+        putchar(key);
+        result = (result * 10) + (key - '0');
+    }
+}
+
 static void write_preferences(void) {
     FILE *fp = fopen("preferences.txt", "w");
     fputc((char) (rows / 100 + '0'), fp);
@@ -42,7 +55,6 @@ void configloop(void) {
     ///-- here are the variables --//
     char key = ' ';
     int config = 2;
-    char a, b, c;
 
     int cursor_r = 1, cursor_c = 1;
     CLRSCRN();
@@ -177,25 +189,13 @@ void configloop(void) {
                 switch (config) {
                     case 0:
                         SETPOS(ROWS / 2, COLS / 2 + 3);
-                        while ( (a = getkey()) == KEY_NOTHING);
-                        printf("%c", a);
-                        while ( (b = getkey()) == KEY_NOTHING);
-                        printf("%c", b);
-                        while ( (c = getkey()) == KEY_NOTHING);
-                        printf("%c", c);
-                        rows = 100 * (a - '0') + 10 * (b - '0') + (c - '0');
+                        rows = read_int();
                         write_preferences();
                         SETPOS(ROWS / 2, COLS / 2 - 5);
                         break;
                     case 1:
                         SETPOS(5 * ROWS / 8, COLS / 2 + 3);
-                        while ( (a = getkey()) == KEY_NOTHING);
-                        printf("%c", a);
-                        while ( (b = getkey()) == KEY_NOTHING);
-                        printf("%c", b);
-                        while ( (c = getkey()) == KEY_NOTHING);
-                        printf("%c", c);
-                        cols = 100 * (a - '0') + 10 * (b - '0') + (c - '0');
+                        cols = read_int();
                         write_preferences();
                         SETPOS(5 * ROWS / 8, COLS / 2 - 4);
                         break;
