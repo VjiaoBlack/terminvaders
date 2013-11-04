@@ -14,9 +14,7 @@ int get_cols(void) {
 }
 
 void load_rc(void) {
-    int a = 0, b = 0, c = 0;
     FILE *fp;
-
     if (!(fp = fopen("preferences.txt", "r"))) {
         fp = fopen("preferences.txt", "w");
         fputs("030080", fp);
@@ -25,6 +23,7 @@ void load_rc(void) {
     }
     rows = 100 * (fgetc(fp) - '0') + 10 * (fgetc(fp) - '0') + (fgetc(fp) - '0');
     cols = 100 * (fgetc(fp) - '0') + 10 * (fgetc(fp) - '0') + (fgetc(fp) - '0');
+    fclose(fp);
     return;
 }
 
@@ -32,6 +31,8 @@ int configloop(void) {
     ///-- here are the variables --//
     char key = ' ';
     int config = 2;
+    FILE *fp;
+    char a, b, c;
 
     int cursor_r = 1, cursor_c = 1;
     CLRSCRN();
@@ -160,15 +161,34 @@ int configloop(void) {
                 xt_par0(XT_CH_NORMAL);
                 xt_par0(XT_CH_WHITE);
                 break;
+            case 'q':
+                return MENU_QUIT;
             case KEY_ENTER:
+                fp = fopen("preferences.txt", "w");
                 switch (config) {
                     case 0:
+                        SETPOS(ROWS / 2, COLS / 2 + 3);
+                        while ( (a = getkey()) == KEY_NOTHING);
+                        printf("%c", a);
+                        while ( (b = getkey()) == KEY_NOTHING);
+                        printf("%c", b);
+                        while ( (c = getkey()) == KEY_NOTHING);
+                        printf("%c", c);     
+                        rows = 100 * a + 10 * b + c;   
+                        break;
                     case 1:
+                        SETPOS(5 * ROWS / 8, COLS / 2 + 3);
+                        while ( (a = getkey()) == KEY_NOTHING);
+                        printf("%c", a);
+                        while ( (b = getkey()) == KEY_NOTHING);
+                        printf("%c", b);
+                        while ( (c = getkey()) == KEY_NOTHING);
+                        printf("%c", c);     
+                        cols = 100 * a + 10 * b + c; 
+                        break;
                     case 2:
                         return 1;
                 }
-            case 'q':
-                return MENU_QUIT;
         }
     }
 
