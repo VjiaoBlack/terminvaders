@@ -10,7 +10,6 @@
 #define PLAYER_COOLDOWN 5
 
 #define ENEMY_POINTS 100
-#define ENEMY_BULLET_VELOCITY 1
 #define ENEMY_COOLDOWN 10
 
 #define GAME_OVER_TIMER 60
@@ -29,14 +28,15 @@ typedef struct player_t player_t;
 struct enemy_t {
     point_t point;
     int cooldown;
-    int velocity;
+    double velocity;
+    double bullet_velocity;
     struct enemy_t* next;
 };
 typedef struct enemy_t enemy_t;
 
 struct bullet_t {
     point_t point;
-    int velocity;
+    double velocity;
     int fired_by_player;
     struct bullet_t* next;
 };

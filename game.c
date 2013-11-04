@@ -13,9 +13,11 @@ static void spawn_player(game_t* game) {
 static enemy_t* spawn_enemy(game_t* game) {
     enemy_t* enemy = malloc(sizeof(enemy_t));
     point_t point;
+    double velocity = ((rand() % 9) + 5) / 10.,
+           bullet_velocity = ((rand() % 3) + 1) * .5;
     point.x = rand() % 2 ? 3 : COLS - 3;
-    point.y = 3;
-    *enemy = (enemy_t) {point, 0, 1, game->first_enemy};
+    point.y = rand() % 10 + 2;
+    *enemy = (enemy_t) {point, 0, velocity, bullet_velocity, game->first_enemy};
     game->first_enemy = enemy;
     return enemy;
 }
@@ -32,7 +34,7 @@ static enemy_t* despawn_enemy(game_t* game, enemy_t* enemy, enemy_t* prev) {
 }
 
 /* Spawn a bullet in the game. Return a pointer to the bullet. */
-static bullet_t* spawn_bullet(game_t* game, int x, int y, int velocity, int fired_by_player) {
+static bullet_t* spawn_bullet(game_t* game, int x, int y, double velocity, int fired_by_player) {
     bullet_t* bullet = malloc(sizeof(bullet_t));
     point_t point = {x, y};
     *bullet = (bullet_t) {point, velocity, fired_by_player, game->first_bullet};
@@ -194,7 +196,7 @@ static void do_enemy_logic(game_t*  game) {
         }
         if (!enemy->cooldown) {  // Bullet cooldown timer
             enemy->cooldown = ENEMY_COOLDOWN;
-            spawn_bullet(game, enemy->point.x, enemy->point.y + 2, ENEMY_BULLET_VELOCITY, 0);
+            spawn_bullet(game, enemy->point.x, enemy->point.y + 2, enemy->bullet_velocity, 0);
         }
         else
             enemy->cooldown--;
