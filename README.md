@@ -43,6 +43,34 @@ press Q to exit.
   - A: That's not really a question, but don't worry, for updates shall be
 forthcoming!
 
+Technical
+---------
+
+We use a linked list to keep track of enemies, bullets, and explosions. When
+one spawns, we make it the first element in the list and have its `next`
+pointer point to the previous first element. When one despawns, we deallocate
+it and adjust the previous entity's `next` to point to the dying entity's
+`next`. This ensures the list is efficient for adding, iterating, and removal.
+
+We use structs to store data on single enemies, the player, bullets,
+explosions, sprites, points, and the game itself. A point is stored within all
+of the "entity" structs, and the game struct contains pointers to various
+entity structs.
+
+To store game preferences (window height and width), we write and read from a
+file, `preferences.txt`. The file format is `<int>:<int>`, with the first int
+being the number of rows and the second the number of columns.
+
+To handle graphics, we have an array of sprite structs, with each one storing
+an array of strings, a width, a height, and color data. The index of a sprite
+in the array corresponds to the type, so `sprite_table[ENEMY]` is the enemy
+ship sprite. The `draw` function takes a sprite struct and a point, rendering
+the sprite centered around that point using the width/height data.
+
+To adjust for the width of a printed character being less than its height, we
+scale the player ship's vertical velocity to be half its horizontal velocity.
+Coordinates are stored as doubles which are truncated when drawing.
+
 Caveats
 -------
 
@@ -52,24 +80,5 @@ correctly. You can solve this with `rm preferences.txt`.
 2. The game might have strange glitches on certain terminals (`iTerm 2` is
 known to cause problems; `Terminal.app` works).
 
-Technical
----------
-
-We used a linked list to keep track of enemies (we'd pop them off the list 
-whenever one died), and an array to hold the explosions.
-
-We used structs to hold enemies, the player, (along with sprites, bullets, 
-and almost everything else) and the game itself. This let us be able to 
-more easily create lots of them, which keeps the game simple even if there's
-a lot of enemies on the screen.
-
-To do the preferences (height and width) of the game, we would write and 
-read info from a file, preferences.txt. 
-
-To do all the graphics, we basically had strings/chars that we would printf()
-or putchar() onto the screen, and everything displayed on the screen at 20fps.
-
-To adjust for screen text char dimensions, we implemented a integer by-1 velocity
-scheme for horizontal movement, and floating-point velocity (that we rounded off
-for coordinates) for the vertical movements, and it would be at about half of the
-horizontal velocity. 
+3. `game.c` contains most of the important code, and it can be a bit confusing
+to read as a result.
