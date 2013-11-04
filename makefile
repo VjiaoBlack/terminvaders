@@ -1,6 +1,9 @@
 COMPILE=gcc -g -O2 -Wall -c
 LINK=gcc -g -O2 -Wall
 
+all: terminvaders
+	rm -f preferences.txt
+
 terminvaders: build build/keyboard.o build/xterm_control.o build/game.o build/graphics.o build/terminvaders.o build/settings.o
 	$(LINK) build/keyboard.o build/xterm_control.o build/game.o build/graphics.o build/terminvaders.o build/settings.o -o terminvaders
 
@@ -26,4 +29,4 @@ build:
 	mkdir build
 
 clean:
-	rm -rf build terminvaders
+	rm -rf build terminvaders preferences.txt
