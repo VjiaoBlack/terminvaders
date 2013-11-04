@@ -31,20 +31,20 @@ static int menu(void) {
     while (cursor_c <= COLS) {
         cursor_r = 1;
         SETPOS(cursor_r, cursor_c);
-        printf("-");
+        printf("~");
         cursor_r = ROWS;
         SETPOS(cursor_r, cursor_c);
-        printf("-");
+        printf("~");
         cursor_c++;
     }
     cursor_r = 2;
     while (cursor_r < ROWS) {
         cursor_c = 1;
         SETPOS(cursor_r, cursor_c);
-        printf("|");
+        printf("#");
         cursor_c = COLS;
         SETPOS(cursor_r, cursor_c);
-        printf("|");
+        printf("#");
         cursor_r++;
     }
 
