@@ -27,35 +27,7 @@ void load_rc(void) {
     return;
 }
 
-static int read_int(void) {
-    char key;
-    int result = 0;
-
-    while (1) {
-        while ((key = getkey()) == KEY_NOTHING);
-        if (key < '0' || key > '9')
-            return result;
-        putchar(key);
-        result = (result * 10) + (key - '0');
-    }
-}
-
-static void write_preferences(void) {
-    FILE *fp = fopen("preferences.txt", "w");
-    fputc((char) (rows / 100 + '0'), fp);
-    fputc((char) (rows % 100 / 10 + '0'), fp);
-    fputc((char) (rows % 10 + '0'), fp);
-    fputc((char) (cols / 100 + '0'), fp);
-    fputc((char) (cols % 100 / 10 + '0'), fp);
-    fputc((char) (cols % 10 + '0'), fp);
-    fclose(fp);
-}
-
-void configloop(void) {
-    ///-- here are the variables --//
-    char key = ' ';
-    int config = 2;
-
+static void draw_menu(int config) {
     int cursor_r = 1, cursor_c = 1;
     CLRSCRN();
     SETPOS(1, 1);
@@ -86,102 +58,78 @@ void configloop(void) {
     xt_par0(XT_CH_NORMAL);
 
     SETPOS(ROWS / 2, COLS / 2 - 5);
-    printf("Height: %d", rows);
+    if (config == 0) {
+        xt_par0(XT_CH_BOLD);
+        xt_par0(XT_CH_INVERSE);
+        printf("Height: ");
+        xt_par0(XT_CH_NORMAL);
+    }
+    else
+        printf("Height: ");
+    printf("%d", rows);
 
     SETPOS(5 * ROWS / 8, COLS / 2 - 4);
-    printf("Width: %d", cols);
+    if (config == 1) {
+        xt_par0(XT_CH_BOLD);
+        xt_par0(XT_CH_INVERSE);
+        printf("Width: ");
+        xt_par0(XT_CH_NORMAL);
+    }
+    else
+        printf("Width: ");
+    printf("%d", cols);
 
     SETPOS(3 * ROWS / 4, COLS / 2 - 2);
-    xt_par0(XT_CH_BOLD);
-    xt_par0(XT_CH_WHITE);
-    xt_par0(XT_CH_INVERSE);
-    printf("Back");
+    if (config == 2) {
+        xt_par0(XT_CH_BOLD);
+        xt_par0(XT_CH_INVERSE);
+        printf("Back");
+        xt_par0(XT_CH_NORMAL);
+    }
+    else
+        printf("Back");
     SETPOS(ROWS, COLS);
-    xt_par0(XT_CH_NORMAL);
+}
+
+static int read_int(void) {
+    char key;
+    int result = 0;
 
     while (1) {
-        switch ((key = getkey())) {
+        while ((key = getkey()) == KEY_NOTHING);
+        if (key < '0' || key > '9')
+            return result;
+        putchar(key);
+        result = (result * 10) + (key - '0');
+    }
+}
+
+static void write_preferences(void) {
+    FILE *fp = fopen("preferences.txt", "w");
+    fputc((char) (rows / 100 + '0'), fp);
+    fputc((char) (rows % 100 / 10 + '0'), fp);
+    fputc((char) (rows % 10 + '0'), fp);
+    fputc((char) (cols / 100 + '0'), fp);
+    fputc((char) (cols % 100 / 10 + '0'), fp);
+    fputc((char) (cols % 10 + '0'), fp);
+    fclose(fp);
+}
+
+void configloop(void) {
+    ///-- here are the variables --//
+    char key = ' ';
+    int config = 2;
+    while (1) {
+        draw_menu(config);
+        while ((key = getkey()) == KEY_NOTHING);
+        switch (key) {
             case KEY_UP:
             case 'w':
-                xt_par0(XT_CH_NORMAL);
-                xt_par0(XT_CH_WHITE);
-                switch (config) { // makes the previous button 'normal'
-                    case 0:
-                        SETPOS(ROWS / 2, COLS / 2 - 5);
-                        printf("Height: ");
-                        break;
-                    case 1:
-                        SETPOS(5 * ROWS / 8, COLS / 2 - 4);
-                        printf("Width: ");
-                        break;
-                    case 2:
-                        SETPOS(3 * ROWS / 4, COLS / 2 - 2);
-                        printf("Back");
-                        break;
-                }
                 config = !config ? 2 : config - 1;
-                xt_par0(XT_CH_BOLD);
-                xt_par0(XT_CH_INVERSE);
-                switch (config) { // makes the button highlighted
-                    case 0:
-                        SETPOS(ROWS / 2, COLS / 2 - 5);
-                        printf("Height: ");
-                        SETPOS(ROWS, COLS);
-                        break;
-                    case 1:
-                        SETPOS(5 * ROWS / 8, COLS / 2 - 4);
-                        printf("Width: ");
-                        SETPOS(ROWS, COLS);
-                        break;
-                    case 2:
-                        SETPOS(3 * ROWS / 4, COLS / 2 - 2);
-                        printf("Back");
-                        SETPOS(ROWS, COLS);
-                        break;
-                }
-                xt_par0(XT_CH_NORMAL);
-                xt_par0(XT_CH_WHITE);
                 break;
             case KEY_DOWN:
             case 's':
-                xt_par0(XT_CH_NORMAL);
-                xt_par0(XT_CH_WHITE);
-                switch (config) { // makes the previous button 'normal'
-                    case 0:
-                        SETPOS(ROWS / 2, COLS / 2 - 5);
-                        printf("Height: ");
-                        break;
-                    case 1:
-                        SETPOS(5 * ROWS / 8, COLS / 2 - 4);
-                        printf("Width: ");
-                        break;
-                    case 2:
-                        SETPOS(3 * ROWS / 4, COLS / 2 - 2);
-                        printf("Back");
-                        break;
-                }
                 config = (config + 1) % 3;
-                xt_par0(XT_CH_BOLD);
-                xt_par0(XT_CH_INVERSE);
-                switch (config) { // makes the button highlighted
-                    case 0:
-                        SETPOS(ROWS / 2, COLS / 2 - 5);
-                        printf("Height: ");
-                        SETPOS(ROWS, COLS);
-                        break;
-                    case 1:
-                        SETPOS(5 * ROWS / 8, COLS / 2 - 4);
-                        printf("Width: ");
-                        SETPOS(ROWS, COLS);
-                        break;
-                    case 2:
-                        SETPOS(3 * ROWS / 4, COLS / 2 - 2);
-                        printf("Back");
-                        SETPOS(ROWS, COLS);
-                        break;
-                }
-                xt_par0(XT_CH_NORMAL);
-                xt_par0(XT_CH_WHITE);
                 break;
             case 'q':
                 return;
