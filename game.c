@@ -341,21 +341,25 @@ static void handle_input(game_t* game) {
 /* Draw the heads-up display to the screen. */
 static void draw_hud(game_t* game) {
     int i;
-    SETPOS(1, 1);
-    printf("%sScore:%s %s%d%s", XT_CH_BOLD, XT_CH_NORMAL, XT_CH_YELLOW, game->score, XT_CH_NORMAL);
-    SETPOS(ROWS, 1);
-    printf("%sShips:%s", XT_CH_BOLD, XT_CH_NORMAL);
-    if (game->lives >= 5)
-        printf(" %s^%s x %s%d%s", XT_CH_GREEN, XT_CH_NORMAL, XT_CH_YELLOW, game->lives, XT_CH_NORMAL);
-    else if (game->lives) {
-        for (i = 0; i < game->lives; i++)
-            printf(" %s^%s", XT_CH_GREEN, XT_CH_NORMAL);
+    if (!game->over) {
+        SETPOS(1, 1);
+        printf("%sScore:%s %s%d%s", XT_CH_BOLD, XT_CH_NORMAL, XT_CH_YELLOW, game->score, XT_CH_NORMAL);
+        SETPOS(ROWS, 1);
+        printf("%sShips:%s", XT_CH_BOLD, XT_CH_NORMAL);
+        if (game->lives >= 5)
+            printf(" %s^%s x %s%d%s", XT_CH_GREEN, XT_CH_NORMAL, XT_CH_YELLOW, game->lives, XT_CH_NORMAL);
+        else if (game->lives) {
+            for (i = 0; i < game->lives; i++)
+                printf(" %s^%s", XT_CH_GREEN, XT_CH_NORMAL);
+        }
+        else
+            printf(" %s0%s", XT_CH_YELLOW, XT_CH_NORMAL);
     }
-    else
-        printf(" %s0%s", XT_CH_YELLOW, XT_CH_NORMAL);
-    if (game->over) {
+    else {
         SETPOS(ROWS / 2, COLS / 2 - 2);
         printf("%sGAME OVER%s", XT_CH_BOLD, XT_CH_NORMAL);
+        SETPOS(ROWS / 2 + 1, COLS / 2 - 6);
+        printf("%sYOUR SCORE:%s %s%5d%s", XT_CH_BOLD, XT_CH_NORMAL, XT_CH_YELLOW, game->score, XT_CH_NORMAL);
     }
     SETPOS(ROWS, COLS);
 }

@@ -15,7 +15,7 @@
 #define MAX_SPAWN_TIMER (FPS * 4)
 #define MIN_SPAWN_TIMER (FPS * 2)
 #define SPAWN_TIMER_DECREASE 3
-#define GAME_OVER_TIMER (FPS * 3)
+#define GAME_OVER_TIMER (FPS * 4)
 
 struct player_t {
     point_t point;
