@@ -71,6 +71,7 @@ static int menu(void) {
 
     SETPOS(ROWS, COLS);
     while (1) {
+            
             switch ((key = getkey())) {
             case KEY_UP:
             case 'w':
