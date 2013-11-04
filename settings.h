@@ -3,7 +3,7 @@
 #define ROWS get_rows()
 #define COLS get_cols()
 
-int configloop(void);
+void configloop(void);
 
 int get_rows(void);
 int get_cols(void);

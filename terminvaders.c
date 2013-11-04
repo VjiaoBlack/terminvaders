@@ -182,7 +182,7 @@ static void loop(void) {
                 break;
             case MENU_SETTINGS:
                 configloop();
-                    break;
+                break;
             case MENU_QUIT:
                 return;
         }
