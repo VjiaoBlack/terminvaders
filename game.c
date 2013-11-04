@@ -136,6 +136,25 @@ static void do_player_movement_logic(game_t* game) {
     }
 }
 
+/* Test whether the player is colliding with any enemy ships. If so, destroy both. */
+static void do_player_enemy_collision(game_t* game) {
+    player_t* player = &game->player;
+    enemy_t* enemy = game->first_enemy;
+    enemy_t* prev = NULL;
+    while (enemy) {
+        if (collides(&player->point, &enemy->point, 3, 3)) {
+            game->score += COLLISION_POINTS;
+            despawn_enemy(game, enemy, prev);
+            despawn_player(game);
+            spawn_explosion(game, enemy->point.x, enemy->point.y, COLLISION_POINTS);
+            spawn_explosion(game, player->point.x, player->point.y, 0);
+            return;
+        }
+        prev = enemy;
+        enemy = enemy->next;
+    }
+}
+
 /* Do game logic involving the player. */
 static void do_player_logic(game_t* game) {
     player_t* player = &game->player;
@@ -157,7 +176,11 @@ static void do_player_logic(game_t* game) {
     }
     if (player->cooldown)  // Bullet cooldown timer
         player->cooldown--;
-    do_player_movement_logic(game);
+    if (!player->respawning && !player->invincible)
+        do_player_enemy_collision(game);
+    if (!player->respawning) {
+        do_player_movement_logic(game);
+    }
 }
 
 /* Player bullet impact test function. See bullet_impacts(). */
