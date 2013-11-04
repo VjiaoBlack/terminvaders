@@ -86,7 +86,7 @@ void draw(point_t* point, sprite_t* sprite) {
         xt_par0(XT_BG_DEFAULT);
 }
 
-/* Test whether two points of the given sprite types collide. */
+/* Test whether two points are within the given distance. */
 int collides(point_t* point1, point_t* point2, int fuzzx, int fuzzy) {
     return (point1->x + fuzzx >= point2->x) && (point1->x - fuzzx <= point2->x) &&
            (point1->y + fuzzy >= point2->y) && (point1->y - fuzzy <= point2->y);
