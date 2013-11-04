@@ -1,5 +1,5 @@
-COMPILE=gcc -g -O2 -c
-LINK=gcc -g -O2
+COMPILE=gcc -g -O2 -Wall -c
+LINK=gcc -g -O2 -Wall
 
 terminvaders: build build/keyboard.o build/xterm_control.o build/game.o build/graphics.o build/terminvaders.o build/settings.o
 	$(LINK) build/keyboard.o build/xterm_control.o build/game.o build/graphics.o build/terminvaders.o build/settings.o -o terminvaders
