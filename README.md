@@ -28,7 +28,7 @@ FAQ
 
 - Q: How do I change the screen size? Can I change the screen size?
   - A: Sure you can! On the main menu, go down to Settings and press Enter.
-Then, (using the W/S keys or Up/Down arrow keys) highlight the parameter you
+Then, using the W/S keys or Up/Down arrow keys, highlight the parameter you
 want to change, press Enter, type in the parameter size and press Enter again.
 To go back to the main menu, highlight Back, and press Enter. Your settings are
 saved automatically in `preferences.txt`, so there's no need to constantly
@@ -42,10 +42,6 @@ press Q to exit.
 - Q: dis gaem sux0rs
   - A: That's not really a question, but don't worry, for updates shall be
 forthcoming!
-
-- Q: Wow, this game is really cool! I really want to see more!
-  - A: Thanks! Ben Kurtovic is currently accepting donations! You can find him
-in room 301 during 10th period every day.
 
 Caveats
 -------
