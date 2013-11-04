@@ -9,8 +9,6 @@
 #define PLAYER_BULLET_VELOCITY -2
 #define PLAYER_COOLDOWN 5
 
-#define ENEMY_COOLDOWN 10
-
 #define GAME_OVER_TIMER 60
 #define FPS 20
 
@@ -28,6 +26,7 @@ struct enemy_t {
     point_t point;
     int score;
     int cooldown;
+    int max_cooldown;
     double velocity;
     double bullet_velocity;
     struct enemy_t* next;

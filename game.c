@@ -13,13 +13,16 @@ static void spawn_player(game_t* game) {
 static enemy_t* spawn_enemy(game_t* game) {
     enemy_t* enemy = malloc(sizeof(enemy_t));
     point_t point;
-    double velocity = ((rand() % 11) + 5) / 10.,       // Between 0.5 and 1.5
-           bullet_velocity = ((rand() % 3) + 1) * .5;  // Between 0.5 and 1.5
-    int score = (velocity + bullet_velocity) * 100;    // Between 100 and 300
+    double velocity = ((rand() % 11) + 5) / 10.,      // Between 0.5 and 1.5
+           bullet_velocity = ((rand() % 3) + 1) * .5; // Between 0.5 and 1.5
+    int max_cooldown = (rand() % 11) + 5;             // Between 5 and 15
+    // Final score is between 50 and 200
+    int score = (velocity + bullet_velocity + (max_cooldown / 10.)) * 50 - 24.5;
 
     point.x = rand() % 2 ? 3 : COLS - 3;
     point.y = rand() % 10 + 2;
-    *enemy = (enemy_t) {point, score, 0, velocity, bullet_velocity, game->first_enemy};
+    *enemy = (enemy_t) {point, score, 0, max_cooldown, velocity,
+                        bullet_velocity, game->first_enemy};
     game->first_enemy = enemy;
     return enemy;
 }
@@ -197,7 +200,7 @@ static void do_enemy_logic(game_t*  game) {
             enemy->velocity = -enemy->velocity;
         }
         if (!enemy->cooldown) {  // Bullet cooldown timer
-            enemy->cooldown = ENEMY_COOLDOWN;
+            enemy->cooldown = enemy->max_cooldown;
             spawn_bullet(game, enemy->point.x, enemy->point.y + 2, enemy->bullet_velocity, 0);
         }
         else
