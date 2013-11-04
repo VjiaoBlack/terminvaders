@@ -13,6 +13,21 @@ int get_cols(void) {
     return cols;
 }
 
+void load_rc(void) {
+    int a = 0, b = 0, c = 0;
+    FILE *fp;
+
+    if (!(fp = fopen("preferences.txt", "r"))) {
+        fp = fopen("preferences.txt", "w");
+        fputs("030080", fp);
+        fclose(fp);
+        fp = fopen("preferences.txt", "r");
+    }
+    rows = 100 * (fgetc(fp) - '0') + 10 * (fgetc(fp) - '0') + (fgetc(fp) - '0');
+    cols = 100 * (fgetc(fp) - '0') + 10 * (fgetc(fp) - '0') + (fgetc(fp) - '0');
+    return;
+}
+
 int configloop(void) {
     ///-- here are the variables --//
     char key = ' ';

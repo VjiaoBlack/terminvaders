@@ -7,3 +7,4 @@ int configloop(void);
 
 int get_rows(void);
 int get_cols(void);
+void load_rc(void);
