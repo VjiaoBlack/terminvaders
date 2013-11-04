@@ -174,17 +174,31 @@ int configloop(void) {
                         printf("%c", b);
                         while ( (c = getkey()) == KEY_NOTHING);
                         printf("%c", c);     
-                        rows = 100 * a + 10 * b + c;   
+                        rows = 100 * (a - '0') + 10 * (b - '0') + (c - '0');  
+                        fputc(a, fp);
+                        fputc(b, fp);
+                        fputc(c, fp);
+                        fputc((char)(cols / 100 + '0'), fp);
+                        fputc((char)(cols % 100 / 10 + '0'), fp);
+                        fputc((char)(cols % 10 + '0'), fp);
+
                         break;
                     case 1:
                         SETPOS(5 * ROWS / 8, COLS / 2 + 3);
+
                         while ( (a = getkey()) == KEY_NOTHING);
                         printf("%c", a);
                         while ( (b = getkey()) == KEY_NOTHING);
                         printf("%c", b);
                         while ( (c = getkey()) == KEY_NOTHING);
                         printf("%c", c);     
-                        cols = 100 * a + 10 * b + c; 
+                        cols = 100 * (a - '0') + 10 * (b - '0') + (c - '0');   
+                        fputc((char)(rows / 100 + '0'), fp);
+                        fputc((char)(rows % 100 / 10 + '0'), fp);
+                        fputc((char)(rows % 10 + '0'), fp);
+                        fputc(a, fp);
+                        fputc(b, fp);
+                        fputc(c, fp);
                         break;
                     case 2:
                         return 1;
