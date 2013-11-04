@@ -25,8 +25,36 @@ static void init_sprites(void) {
     sprite_table[BULLET] = (sprite_t) {{"."}, 1, 1};
     sprite_table[CANNON] = (sprite_t) {{"o"}, 1, 1};
     sprite_table[LASER]  = (sprite_t) {{"|"}, 1, 1};
-    sprite_table[EXPLOSION] = (sprite_t) {
 
+    sprite_table[EXPLOSION]     = (sprite_t) {
+        {"*"}, 1, 1, XT_CH_YELLOW
+    };
+    sprite_table[EXPLOSION + 1] = (sprite_t) {
+        {"-*-"}, 3, 1, XT_CH_YELLOW
+    };
+    sprite_table[EXPLOSION + 2] = (sprite_t) {
+        {
+            "  |  ",
+            "- * -",
+            "  |  "
+        }, 5, 3, XT_CH_YELLOW
+    };
+    sprite_table[EXPLOSION + 3] = (sprite_t) {
+        {
+            "  \\|/  ",
+            "-  *  -",
+            "  /|\\  "
+        }, 7, 3, XT_CH_YELLOW
+    };
+    sprite_table[EXPLOSION + 4] = (sprite_t) {
+        {
+            "  \\   /  ",
+            "-       -",
+            "  /   \\  "
+        }, 9, 3, XT_CH_YELLOW
+    };
+    sprite_table[EXPLOSION + 5] = (sprite_t) {
+        {"-         -"}, 11, 1, XT_CH_YELLOW
     };
 }
 

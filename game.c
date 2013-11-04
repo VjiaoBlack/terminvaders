@@ -3,25 +3,15 @@
 #include <unistd.h>
 #include "game.h"
 
-/* Spawn an explosion in the game. Returns a pointer to the explosion. */
-static explosion_t* spawn_explosion(game_t* game, int x, int y, int score) {
-    explosion_t* explosion = malloc(sizeof(explosion_t));
-    point_t point = {x, y};
-    *explosion = (explosion_t) {point, 0, score, game->first_explosion};
-    game->first_explosion = explosion;
-    return explosion;
-}
-
-/* Despawn an explosion in the game. Returns next explosion in linked list. */
-static explosion_t* despawn_explosion(game_t* game, explosion_t* explosion, explosion_t* prev) {
-    explosion_t* next = explosion->next;
-    if (prev)
-        prev->next = next;
-    else
-        game->first_explosion = next;
-    free(explosion);
-    return next;
-}
+/* Some function headers. */
+static void spawn_player(game_t*);
+static void despawn_player(game_t*);
+static enemy_t* spawn_enemy(game_t*);
+static enemy_t* despawn_enemy(game_t*, enemy_t*, enemy_t*);
+static bullet_t* spawn_bullet(game_t*, int, int, double, int);
+static bullet_t* despawn_bullet(game_t*, bullet_t*, bullet_t*);
+static explosion_t* spawn_explosion(game_t*, int, int, int);
+static explosion_t* despawn_explosion(game_t*, explosion_t*, explosion_t*);
 
 /* Spawn the player in the game. */
 static void spawn_player(game_t* game) {
@@ -80,6 +70,26 @@ static bullet_t* despawn_bullet(game_t* game, bullet_t* bullet, bullet_t* prev) 
     else
         game->first_bullet = next;
     free(bullet);
+    return next;
+}
+
+/* Spawn an explosion in the game. Returns a pointer to the explosion. */
+static explosion_t* spawn_explosion(game_t* game, int x, int y, int score) {
+    explosion_t* explosion = malloc(sizeof(explosion_t));
+    point_t point = {x, y};
+    *explosion = (explosion_t) {point, 0, score, game->first_explosion};
+    game->first_explosion = explosion;
+    return explosion;
+}
+
+/* Despawn an explosion in the game. Returns next explosion in linked list. */
+static explosion_t* despawn_explosion(game_t* game, explosion_t* explosion, explosion_t* prev) {
+    explosion_t* next = explosion->next;
+    if (prev)
+        prev->next = next;
+    else
+        game->first_explosion = next;
+    free(explosion);
     return next;
 }
 
@@ -155,9 +165,10 @@ static int player_bullet_impacts(game_t* game, bullet_t* bullet) {
     enemy_t* enemy = game->first_enemy;
     enemy_t* prev = NULL;
     while (enemy) {
-        if (collides(&bullet->point, &enemy->point, 2, 1)) {
+        if (collides(&bullet->point, &enemy->point, 3, 1)) {
             game->score += enemy->score;
             despawn_enemy(game, enemy, prev);
+            spawn_explosion(game, enemy->point.x, enemy->point.y, enemy->score);
             return 1;
         }
         prev = enemy;
@@ -170,8 +181,9 @@ static int player_bullet_impacts(game_t* game, bullet_t* bullet) {
 static int enemy_bullet_impacts(game_t* game, bullet_t* bullet) {
     player_t* player = &game->player;
     if (!player->respawning && !player->invincible) {
-        if (collides(&bullet->point, &player->point, 1, 1)) {
+        if (collides(&bullet->point, &player->point, 2, 1)) {
             despawn_player(game);
+            spawn_explosion(game, player->point.x, player->point.y, 0);
             return 1;
         }
     }
@@ -203,8 +215,8 @@ static void do_bullet_logic(game_t* game) {
     }
 }
 
-/* Do game logic involving the enemy. */
-static void do_enemy_logic(game_t*  game) {
+/* Do game logic involving enemies. */
+static void do_enemy_logic(game_t* game) {
     static int vertical_radius = 0, horiz_radius = 0;
     enemy_t* enemy = game->first_enemy;
 
@@ -240,11 +252,28 @@ static void do_enemy_logic(game_t*  game) {
         game->spawn_timer--;
 }
 
+/* Do game logic involving explosions. */
+static void do_explosion_logic(game_t* game) {
+    explosion_t* explosion = game->first_explosion;
+    explosion_t* prev = NULL;
+
+    while (explosion) {
+        explosion->step++;
+        if (explosion->step > EXPLOSIONS * EXPLOSION_STEPS_PER_SPRITE)
+            explosion = despawn_explosion(game, explosion, prev);
+        else {
+            prev = explosion;
+            explosion = explosion->next;
+        }
+    }
+}
+
 /* Do game logic, mainly involving bullets and enemy spawning/movement. */
 static void do_logic(game_t* game) {
     do_player_logic(game);
     do_bullet_logic(game);
     do_enemy_logic(game);
+    do_explosion_logic(game);
     if (game->over) {
         game->over--;
         if (!game->over)
@@ -322,7 +351,7 @@ static void draw_hud(game_t* game) {
     else
         printf(" %s0%s", XT_CH_YELLOW, XT_CH_NORMAL);
     if (game->over) {
-        SETPOS(ROWS / 2, COLS / 2 - 4);
+        SETPOS(ROWS / 2, COLS / 2 - 2);
         printf("%sGAME OVER%s", XT_CH_BOLD, XT_CH_NORMAL);
     }
     SETPOS(ROWS, COLS);
@@ -332,8 +361,13 @@ static void draw_hud(game_t* game) {
 static void render(game_t* game) {
     enemy_t* enemy = game->first_enemy;
     bullet_t* bullet = game->first_bullet;
+    explosion_t* explosion = game->first_explosion;
 
     xt_par0(XT_CLEAR_SCREEN);
+    while (explosion) {
+        draw(&(explosion->point), get_sprite(EXPLOSION + (explosion->step / EXPLOSION_STEPS_PER_SPRITE)));
+        explosion = explosion->next;
+    }
     while (enemy) {
         draw(&(enemy->point), get_sprite(ENEMY));
         enemy = enemy->next;
