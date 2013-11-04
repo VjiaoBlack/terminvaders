@@ -362,10 +362,16 @@ static void render(game_t* game) {
     enemy_t* enemy = game->first_enemy;
     bullet_t* bullet = game->first_bullet;
     explosion_t* explosion = game->first_explosion;
+    int explosion_num = 0;
 
     xt_par0(XT_CLEAR_SCREEN);
     while (explosion) {
         draw(&(explosion->point), get_sprite(EXPLOSION + (explosion->step / EXPLOSION_STEPS_PER_SPRITE)));
+        if (explosion->score) {
+            SETPOS(2 + explosion_num, 7);
+            printf("%s+%d%s", XT_CH_YELLOW, explosion->score, XT_CH_NORMAL);
+            explosion_num++;
+        }
         explosion = explosion->next;
     }
     while (enemy) {
