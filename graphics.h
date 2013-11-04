@@ -1,12 +1,13 @@
 // Defines
 
-#define PLAYER 0
-#define ENEMY  1
-#define BULLET 2
-#define CANNON 3
-#define LASER  4
+#define PLAYER    0
+#define ENEMY     1
+#define BULLET    2
+#define CANNON    3
+#define LASER     4
+#define EXPLOSION 5
 
-#define NUM_SPRITES 5
+#define NUM_SPRITES 6
 #define MAX_SPRITE_HEIGHT 64
 
 // Structs

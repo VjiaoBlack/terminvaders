@@ -41,6 +41,14 @@ struct bullet_t {
 };
 typedef struct bullet_t bullet_t;
 
+struct explosion_t {
+    point_t point;
+    int step;
+    int score;
+    struct explosion_t* next;
+};
+typedef struct explosion_t explosion_t;
+
 struct game_t {
     int running;
     int score;
@@ -50,6 +58,7 @@ struct game_t {
     player_t player;
     enemy_t* first_enemy;
     bullet_t* first_bullet;
+    explosion_t* first_explosion;
 };
 typedef struct game_t game_t;
 

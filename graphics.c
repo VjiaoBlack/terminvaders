@@ -25,6 +25,9 @@ static void init_sprites(void) {
     sprite_table[BULLET] = (sprite_t) {{"."}, 1, 1};
     sprite_table[CANNON] = (sprite_t) {{"o"}, 1, 1};
     sprite_table[LASER]  = (sprite_t) {{"|"}, 1, 1};
+    sprite_table[EXPLOSION] = (sprite_t) {
+
+    };
 }
 
 /* Get a pointer to a sprite given its index. */

@@ -3,19 +3,44 @@
 #include <unistd.h>
 #include "game.h"
 
+/* Spawn an explosion in the game. Returns a pointer to the explosion. */
+static explosion_t* spawn_explosion(game_t* game, int x, int y, int score) {
+    explosion_t* explosion = malloc(sizeof(explosion_t));
+    point_t point = {x, y};
+    *explosion = (explosion_t) {point, 0, score, game->first_explosion};
+    game->first_explosion = explosion;
+    return explosion;
+}
+
+/* Despawn an explosion in the game. Returns next explosion in linked list. */
+static explosion_t* despawn_explosion(game_t* game, explosion_t* explosion, explosion_t* prev) {
+    explosion_t* next = explosion->next;
+    if (prev)
+        prev->next = next;
+    else
+        game->first_explosion = next;
+    free(explosion);
+    return next;
+}
+
 /* Spawn the player in the game. */
 static void spawn_player(game_t* game) {
     point_t point = {COLS / 2 - 1, ROWS - 5};
     game->player = (player_t) {point, 0, PLAYER_INVINCIBILITY, 0, 0};
 }
 
-/* Spawn an enemy in the game. Return a pointer to the enemy. */
+/* Despawn the player in the game. */
+static void despawn_player(game_t* game) {
+    game->player.respawning = PLAYER_RESPAWN;
+}
+
+/* Spawn an enemy in the game. Returns a pointer to the enemy. */
 static enemy_t* spawn_enemy(game_t* game) {
     enemy_t* enemy = malloc(sizeof(enemy_t));
     point_t point;
-    double velocity = ((rand() % 11) + 5) / 10.,      // Between 0.5 and 1.5
-           bullet_velocity = ((rand() % 3) + 1) * .5; // Between 0.5 and 1.5
-    int max_cooldown = (rand() % 11) + 5;             // Between 5 and 15
+    double velocity = ((rand() % 11) + 5) / 10.,       // Between 0.5 and 1.5
+           bullet_velocity = ((rand() % 3) + 1) * .5;  // Between 0.5 and 1.5
+    int max_cooldown = (rand() % 11) + 5;              // Between 5 and 15
     // Final score is between 50 and 200
     int score = (velocity + bullet_velocity + (max_cooldown / 10.)) * 50 - 24.5;
 
@@ -38,7 +63,7 @@ static enemy_t* despawn_enemy(game_t* game, enemy_t* enemy, enemy_t* prev) {
     return next;
 }
 
-/* Spawn a bullet in the game. Return a pointer to the bullet. */
+/* Spawn a bullet in the game. Returns a pointer to the bullet. */
 static bullet_t* spawn_bullet(game_t* game, int x, int y, double velocity, int fired_by_player) {
     bullet_t* bullet = malloc(sizeof(bullet_t));
     point_t point = {x, y};
@@ -146,7 +171,7 @@ static int enemy_bullet_impacts(game_t* game, bullet_t* bullet) {
     player_t* player = &game->player;
     if (!player->respawning && !player->invincible) {
         if (collides(&bullet->point, &player->point, 1, 1)) {
-            player->respawning = PLAYER_RESPAWN;
+            despawn_player(game);
             return 1;
         }
     }
@@ -331,6 +356,7 @@ static void setup(game_t* game) {
     game->spawn_timer = FPS;
     game->first_enemy = NULL;
     game->first_bullet = NULL;
+    game->first_explosion = NULL;
     spawn_player(game);
 }
 
