@@ -188,7 +188,9 @@ static int player_bullet_impacts(game_t* game, bullet_t* bullet) {
     enemy_t* enemy = game->first_enemy;
     enemy_t* prev = NULL;
     while (enemy) {
-        if (collides(&bullet->point, &enemy->point, 3, 1)) {
+        //-------------------------------------------------------------------------------
+        if (collides(&bullet->point, &enemy->point, 3/*needs to change*/, 2)) {
+        //------------------------------------------------------------------------------------
             game->score += enemy->score;
             despawn_enemy(game, enemy, prev);
             spawn_explosion(game, enemy->point.x, enemy->point.y, enemy->score);
@@ -411,7 +413,10 @@ static void render(game_t* game) {
     if (!game->player.respawning && !(game->player.invincible % 2))
         draw(&(game->player.point), get_sprite(PLAYER));
     while (bullet) {
-        draw(&(bullet->point), get_sprite(BULLET));
+        if (bullet->fired_by_player)
+            draw(&(bullet->point), get_sprite(LASER));
+        else
+            draw(&(bullet->point), get_sprite(BULLET));
         bullet = bullet->next;
     }
     draw_hud(game);

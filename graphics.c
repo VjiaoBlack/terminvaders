@@ -22,9 +22,20 @@ static void init_sprites(void) {
             "  n  "
         }, 5, 3, XT_CH_RED
     };
-    sprite_table[BULLET] = (sprite_t) {{"."}, 1, 1};
-    sprite_table[CANNON] = (sprite_t) {{"o"}, 1, 1};
-    sprite_table[LASER]  = (sprite_t) {{"|"}, 1, 1};
+    sprite_table[BULLET] = (sprite_t) {{"."}, 1, 1, XT_CH_BOLD};
+    sprite_table[CANNON] = (sprite_t) {{"0"}, 1, 1};
+    sprite_table[LASER]  = (sprite_t) {
+        {
+            "|",
+            "|",
+            "|",
+            "|",
+            "|",
+            "|",
+            "|"
+        }, 1, 7, XT_CH_BOLD
+    };
+    //(sprite_t) {{"|"}, 1, 1};
 
     sprite_table[EXPLOSION]     = (sprite_t) {
         {"*"}, 1, 1, XT_CH_YELLOW

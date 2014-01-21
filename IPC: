@@ -1,0 +1,14 @@
+IPC:
+pipe, fifo, signal, semaphore, message queue, shared memory, sockets.
+
+signals are usually interruptions, and thus are usually fatal errors. i.e. ctrl+c during a program's runtime.
+You can do four things with this signal:
+1) it kills u cuz u didnt expect it :P the process closes instantly without cleaning up (files will be closed, and yeah).
+2) ctrlz is also a signal
+3) signals are asynchronous
+
+4) yolo..oOOo..oOOo..oOOo..oOOo..oOOo..oOO
+   ****00*''*OO*''*OO*''*OO*''*OO*''*OO*
+
+
+sockets: intermachine networking. Communicate between machines and between processes on different machines.
