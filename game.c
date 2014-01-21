@@ -16,7 +16,7 @@ static explosion_t* despawn_explosion(game_t*, explosion_t*, explosion_t*);
 /* Spawn the player in the game. */
 static void spawn_player(game_t* game) {
     point_t point = {COLS / 2 - 1, ROWS - 5};
-    game->player = (player_t) {point, 0, PLAYER_INVINCIBILITY, 0, 0, 0, 4};
+    game->player = (player_t) {point, 0, PLAYER_INVINCIBILITY, 0, 0, 0, 2};
 }
 
 /* Despawn the player in the game. */
@@ -31,7 +31,7 @@ static enemy_t* spawn_enemy(game_t* game) {
     double velocity = ((rand() % 11) + 5) / 10.,       // Between 0.5 and 1.5
            bullet_velocity = ((rand() % 3) + 1) * .5;  // Between 0.5 and 1.5
     int max_cooldown = (rand() % 11) + 5;              // Between 5 and 15
-    // Final score is between 50 and 200
+    // Final score is between 50 and 200x
     int score = (velocity + bullet_velocity + (max_cooldown / 10.)) * 50 - 24.5;
 
     point.x = rand() % 2 ? 3 : COLS - 3;
@@ -189,10 +189,10 @@ static int player_bullet_impacts(game_t* game, bullet_t* bullet) {
     enemy_t* prev = NULL;
     while (enemy) {
 
-        int fuzzy = get_sprite(bullet->type)->height;
+        int fuzzy = get_sprite(bullet->type)->height / 2;
 
         //-------------------------------------------------------------------------------
-        if (collides(&bullet->point, &enemy->point, 2, fuzzy)) {
+        if (collides(&bullet->point, &enemy->point, 3, fuzzy)) {
         //------------------------------------------------------------------------------------
             game->score += enemy->score;
             despawn_enemy(game, enemy, prev);
@@ -410,10 +410,7 @@ static void render(game_t* game) {
         explosion = explosion->next;
     }
     while (bullet) {
-        if (bullet->fired_by_player)
-            draw(&(bullet->point), get_sprite(LASER));
-        else
-            draw(&(bullet->point), get_sprite(BULLET));
+        draw(&(bullet->point), get_sprite(bullet->type));
         bullet = bullet->next;
     }
     while (enemy) {
