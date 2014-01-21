@@ -25,6 +25,7 @@ struct player_t {
     int cooldown;
     int vertical_accel;
     int horiz_accel;
+    int bullet_type;
 };
 typedef struct player_t player_t;
 
@@ -43,6 +44,7 @@ struct bullet_t {
     point_t point;
     double velocity;
     int fired_by_player;
+    int type; // 2 for normal, 3 for laser, 4 for cannon
     struct bullet_t* next;
 };
 typedef struct bullet_t bullet_t;

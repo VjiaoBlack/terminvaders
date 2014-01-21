@@ -8,7 +8,7 @@ static void spawn_player(game_t*);
 static void despawn_player(game_t*);
 static enemy_t* spawn_enemy(game_t*);
 static enemy_t* despawn_enemy(game_t*, enemy_t*, enemy_t*);
-static bullet_t* spawn_bullet(game_t*, int, int, double, int);
+static bullet_t* spawn_bullet(game_t*, int, int, double, int, int);
 static bullet_t* despawn_bullet(game_t*, bullet_t*, bullet_t*);
 static explosion_t* spawn_explosion(game_t*, int, int, int);
 static explosion_t* despawn_explosion(game_t*, explosion_t*, explosion_t*);
@@ -16,7 +16,7 @@ static explosion_t* despawn_explosion(game_t*, explosion_t*, explosion_t*);
 /* Spawn the player in the game. */
 static void spawn_player(game_t* game) {
     point_t point = {COLS / 2 - 1, ROWS - 5};
-    game->player = (player_t) {point, 0, PLAYER_INVINCIBILITY, 0, 0, 0};
+    game->player = (player_t) {point, 0, PLAYER_INVINCIBILITY, 0, 0, 0, 4};
 }
 
 /* Despawn the player in the game. */
@@ -54,10 +54,10 @@ static enemy_t* despawn_enemy(game_t* game, enemy_t* enemy, enemy_t* prev) {
 }
 
 /* Spawn a bullet in the game. Returns a pointer to the bullet. */
-static bullet_t* spawn_bullet(game_t* game, int x, int y, double velocity, int fired_by_player) {
+static bullet_t* spawn_bullet(game_t* game, int x, int y, double velocity, int fired_by_player, int type) {
     bullet_t* bullet = malloc(sizeof(bullet_t));
     point_t point = {x, y};
-    *bullet = (bullet_t) {point, velocity, fired_by_player, game->first_bullet};
+    *bullet = (bullet_t) {point, velocity, fired_by_player, type, game->first_bullet};
     game->first_bullet = bullet;
     return bullet;
 }
@@ -96,7 +96,7 @@ static explosion_t* despawn_explosion(game_t* game, explosion_t* explosion, expl
 /* Make the player shoot a bullet. */
 static void player_shoot(game_t* game) {
     game->player.cooldown = PLAYER_COOLDOWN;
-    spawn_bullet(game, game->player.point.x, game->player.point.y - 2, PLAYER_BULLET_VELOCITY, 1);
+    spawn_bullet(game, game->player.point.x, game->player.point.y - 2, PLAYER_BULLET_VELOCITY, 1, game->player.bullet_type);
 }
 
 /* Do game logic involving moving the player. */
@@ -188,8 +188,11 @@ static int player_bullet_impacts(game_t* game, bullet_t* bullet) {
     enemy_t* enemy = game->first_enemy;
     enemy_t* prev = NULL;
     while (enemy) {
+
+        int fuzzy = get_sprite(bullet->type)->height;
+
         //-------------------------------------------------------------------------------
-        if (collides(&bullet->point, &enemy->point, 3/*needs to change*/, 2)) {
+        if (collides(&bullet->point, &enemy->point, 2, fuzzy)) {
         //------------------------------------------------------------------------------------
             game->score += enemy->score;
             despawn_enemy(game, enemy, prev);
@@ -263,7 +266,7 @@ static void do_enemy_logic(game_t* game) {
         }
         if (!enemy->cooldown) {  // Bullet cooldown timer
             enemy->cooldown = enemy->max_cooldown;
-            spawn_bullet(game, enemy->point.x, enemy->point.y + 2, enemy->bullet_velocity, 0);
+            spawn_bullet(game, enemy->point.x, enemy->point.y + 2, enemy->bullet_velocity, 0, 2);
         }
         else
             enemy->cooldown--;
@@ -406,12 +409,6 @@ static void render(game_t* game) {
         }
         explosion = explosion->next;
     }
-    while (enemy) {
-        draw(&(enemy->point), get_sprite(ENEMY));
-        enemy = enemy->next;
-    }
-    if (!game->player.respawning && !(game->player.invincible % 2))
-        draw(&(game->player.point), get_sprite(PLAYER));
     while (bullet) {
         if (bullet->fired_by_player)
             draw(&(bullet->point), get_sprite(LASER));
@@ -419,6 +416,12 @@ static void render(game_t* game) {
             draw(&(bullet->point), get_sprite(BULLET));
         bullet = bullet->next;
     }
+    while (enemy) {
+        draw(&(enemy->point), get_sprite(ENEMY));
+        enemy = enemy->next;
+    }
+    if (!game->player.respawning && !(game->player.invincible % 2))
+        draw(&(game->player.point), get_sprite(PLAYER));
     draw_hud(game);
 }
 
