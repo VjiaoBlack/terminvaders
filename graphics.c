@@ -26,14 +26,14 @@ static void init_sprites(void) {
     sprite_table[CANNON] = (sprite_t) {{"0"}, 1, 1};
     sprite_table[LASER]  = (sprite_t) {
         {
-            "|",
-            "|",
-            "|",
-            "|",
-            "|",
-            "|",
-            "|"
-        }, 1, 7, XT_CH_BOLD
+            " ",
+            " ",
+            " ",
+            " ",
+            " ",
+            " ",
+            " "
+        }, 1, 7, XT_CH_INVERSE
     };
     //(sprite_t) {{"|"}, 1, 1};
 

@@ -16,7 +16,7 @@ static explosion_t* despawn_explosion(game_t*, explosion_t*, explosion_t*);
 /* Spawn the player in the game. */
 static void spawn_player(game_t* game) {
     point_t point = {COLS / 2 - 1, ROWS - 5};
-    game->player = (player_t) {point, 0, PLAYER_INVINCIBILITY, 0, 0, 0, 2};
+    game->player = (player_t) {point, 0, PLAYER_INVINCIBILITY, 0, 0, 0, 3};
 }
 
 /* Despawn the player in the game. */
@@ -57,6 +57,10 @@ static enemy_t* despawn_enemy(game_t* game, enemy_t* enemy, enemy_t* prev) {
 static bullet_t* spawn_bullet(game_t* game, int x, int y, double velocity, int fired_by_player, int type) {
     bullet_t* bullet = malloc(sizeof(bullet_t));
     point_t point = {x, y};
+    //------- change speed for cannons 
+    if (type == 3) {
+        velocity = velocity * 3/4;
+    }
     *bullet = (bullet_t) {point, velocity, fired_by_player, type, game->first_bullet};
     game->first_bullet = bullet;
     return bullet;
@@ -191,6 +195,8 @@ static int player_bullet_impacts(game_t* game, bullet_t* bullet) {
 
         int fuzzy = get_sprite(bullet->type)->height / 2;
 
+        fuzzy += 2;
+
         //-------------------------------------------------------------------------------
         if (collides(&bullet->point, &enemy->point, 3, fuzzy)) {
         //------------------------------------------------------------------------------------
@@ -234,7 +240,7 @@ static void do_bullet_logic(game_t* game) {
     while (bullet) {
         // bullet impact logic goes here
         bullet->point.y += bullet->velocity;
-        if (bullet->point.y < 0 || bullet->point.y >= ROWS || bullet_impacts(game, bullet))
+        if (bullet->point.y < 0 || bullet->point.y >= ROWS || (bullet_impacts(game, bullet) && bullet->type != 3)) // cannons go thru ships
             bullet = despawn_bullet(game, bullet, prev);
         else {
             prev = bullet;

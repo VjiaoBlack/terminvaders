@@ -44,7 +44,7 @@ struct bullet_t {
     point_t point;
     double velocity;
     int fired_by_player;
-    int type; // 2 for normal, 3 for laser, 4 for cannon
+    int type; // 2 for normal, 4 for laser, 3 for cannon
     struct bullet_t* next;
 };
 typedef struct bullet_t bullet_t;
