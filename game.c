@@ -16,7 +16,7 @@ static explosion_t* despawn_explosion(game_t*, explosion_t*, explosion_t*);
 /* Spawn the player in the game. */
 static void spawn_player(game_t* game) {
     point_t point = {COLS / 2 - 1, ROWS - 5};
-    game->player = (player_t) {point, 0, PLAYER_INVINCIBILITY, 0, 0, 0, 3};
+    game->player = (player_t) {point, 0, PLAYER_INVINCIBILITY, 0, 0, 0, 4};
 }
 
 /* Despawn the player in the game. */
@@ -99,8 +99,18 @@ static explosion_t* despawn_explosion(game_t* game, explosion_t* explosion, expl
 
 /* Make the player shoot a bullet. */
 static void player_shoot(game_t* game) {
+    double velocity = PLAYER_BULLET_VELOCITY;
     game->player.cooldown = PLAYER_COOLDOWN;
-    spawn_bullet(game, game->player.point.x, game->player.point.y - 2, PLAYER_BULLET_VELOCITY, 1, game->player.bullet_type);
+    if (game->player.bullet_type == 3) {
+        game->player.cooldown = PLAYER_COOLDOWN * 3;
+        velocity = velocity * 3 / 4;
+    }
+    if (game->player.bullet_type == 4) {
+        game->player.cooldown = PLAYER_COOLDOWN * 3;
+        velocity *= 2;
+    }
+
+    spawn_bullet(game, game->player.point.x, game->player.point.y - 2, velocity, 1, game->player.bullet_type);
 }
 
 /* Do game logic involving moving the player. */
@@ -323,6 +333,15 @@ static void handle_input(game_t* game) {
     int key;
     while ((key = getkey()) != KEY_NOTHING) {
         switch (key) {
+            case '1':  
+                game->player.bullet_type = 2;
+                break;
+            case '2':
+                game->player.bullet_type = 3;
+                break;
+            case '3':
+                game->player.bullet_type = 4;
+                break;
             case 'q':
                 game->running = 0;
                 break;
