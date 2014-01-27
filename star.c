@@ -39,7 +39,7 @@ int calculate_wait(int, int);
 void dispframe();
 
 int main(int argc, char* argv[]) {
-    setbuf(stdout, NULL); //turns off buffering
+    //setbuf(stdout, NULL); //turns off buffering
 
     int running = 1;
 
@@ -124,13 +124,35 @@ void display(star_t* stars) {
 
     for (int i = 0; i < numstars; ++i) {
         SETPOS(stars[i].y, stars[i].x);
-        if (abs(stars[i].x - COLS / 2) + abs(stars[i].y - ROWS / 2) > 30) 
-            putchar('*');
-        else 
+
+        if (abs(stars[i].x - COLS / 2) + 2 * abs(stars[i].y - ROWS / 2) > 45) {
+            if (abs((stars[i].x - COLS / 2) - 2 * (stars[i].y - ROWS / 2)) < 12) 
+                putchar('\\');
+            else if (abs((stars[i].x - COLS / 2) + 2 * (stars[i].y - ROWS / 2)) < 12) 
+                putchar('/');
+            else if (abs(stars[i].x - COLS / 2) < 20) {
+                putchar('|');
+            }
+            else if (abs(stars[i].y - ROWS / 2 ) < 20) {
+                putchar('_');
+            }
+            //else
+            //    putchar('#');
+        }
+        //else if (abs(stars[i].x - COLS / 2) + 2 * abs(stars[i].y - ROWS / 2) > 30) {
+        //    putchar('*');
+        //}
+        else {
+
             putchar('.');
+        }
+
+        fflush(stdout);
     }
+
     dispframe();
-}
+
+}   
 
 void dispframe(){
     
@@ -144,7 +166,7 @@ void dispframe(){
         SETPOS(cursor_r, cursor_c);
         putchar('-');
         cursor_c++;
-        usleep(1);
+        fflush(stdout);
     }
     cursor_r = 2;
     while (cursor_r <= ROWS) {
@@ -155,7 +177,7 @@ void dispframe(){
         SETPOS(cursor_r, cursor_c);
         putchar('|');
         cursor_r++;
-        usleep(1);
+        fflush(stdout);
     }
 }
 
@@ -173,11 +195,14 @@ int handle_input(int running) {
 
 int calculate_wait(int is_horiz, int r) {
     int w;
-    if (is_horiz)
+    if (is_horiz){
         w = COLS;
-    else 
+    }
+    else {
         w = ROWS;
+        r *= 2;
+    }
 
-    int f = ( ((do + xo)*(do + xo)*(do + xo)) / (vo * r * r * w * theta) ) / 20;
+    int f = ( ((do + xo)*(do + xo)) / (vo * r * w * theta) );
     return f;   
 }
