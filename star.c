@@ -6,7 +6,7 @@
 #include "xterm/keyboard.c"
 #include "xterm/xterm_control.c"
 
-#define FPS 60
+#define FPS 200
 #define ROWS 44
 #define COLS 160
 
@@ -24,6 +24,8 @@ struct star_t {
     int y;
     int xwait;
     int ywait;
+    int xwaited;
+    int ywaited;
     int roy;
     int rox;
     int d;
@@ -35,7 +37,7 @@ typedef struct star_t star_t;
 void update(star_t*);
 void display(star_t*);
 int handle_input(int);
-int calculate_wait(int, int);
+int calculate_wait(int, int, int);
 void dispframe();
 
 int main(int argc, char* argv[]) {
@@ -50,17 +52,19 @@ int main(int argc, char* argv[]) {
         int rox = 0;
         int roy = 0;
         while (!rox) 
-            rox = rand() % 150 - 75;
+            rox = rand() % 400 - 200;
         while (!roy) 
-            roy = rand() % 150 - 75;
+            roy = rand() % 200 - 100;
 
         int x = ( (rox * xo) / (do + xo) ) + COLS / 2; //( (rox * sqrt(3)) / (do + xo)) * COLS + (COLS / 2);
         int y = ( (roy * xo) / (do + xo) ) + ROWS / 2; //( (roy * sqrt(3)) / (do + xo)) * ROWS + (ROWS / 2);
 
-        int xwait = calculate_wait(1, rox);
-        int ywait = calculate_wait(0, roy);
+        int xwait = calculate_wait(1, rox, roy);
+        int ywait = calculate_wait(0, rox, roy);
 
-        stars[i] = (star_t) {x, y, xwait, ywait, rox, roy, do};
+        int d = sqrt((x - COLS / 2) * (x - COLS / 2) + (y - ROWS / 2) * (y - ROWS / 2) * 4);
+
+        stars[i] = (star_t) {x, y, xwait, ywait, 0, 0, rox, roy, d};
     }
 
     while(running) {
@@ -76,44 +80,69 @@ void update(star_t* stars) {
 
     for (int i = 0; i < numstars; ++i) {
 
-        if (stars[i].xwait <= 0) {
-            stars[i].xwait = calculate_wait(1, abs(stars[i].x - COLS / 2));
-            if (stars[i].x > COLS / 2)
+        stars[i].d = sqrt((stars[i].x - COLS / 2) * (stars[i].x - COLS / 2) + (stars[i].y - ROWS / 2) * (stars[i].y - ROWS / 2 ) * 4);
+
+        if (stars[i].xwait - stars[i].xwaited <= 0) {
+            stars[i].xwaited = 0;
+            stars[i].xwait = calculate_wait(1, abs(stars[i].x - COLS / 2), abs(stars[i].y - ROWS / 2));
+            stars[i].ywait = calculate_wait(0, abs(stars[i].x - COLS / 2), abs(stars[i].y - ROWS / 2));
+            /*
+            if (stars[i].ywait <= 1) {
+                stars[i].ywait = calculate_wait(0, abs(stars[i].x - COLS / 2), abs(stars[i].y - ROWS / 2));
+                if (stars[i].y > ROWS / 2)
+                    stars[i].y = stars[i].y + 1;
+                else
+                    stars[i].y = stars[i].y - 1;
+            }
+
+            else*/ if (stars[i].x > COLS / 2)
                 stars[i].x = stars[i].x + 1;
             else
                 stars[i].x = stars[i].x - 1;
 
         } else {
-            stars[i].xwait--;
+            stars[i].xwaited++;
         }
-        if (stars[i].ywait <= 0) {
-            stars[i].ywait = calculate_wait(0, abs(stars[i].y - ROWS / 2));
+        if (stars[i].ywait - stars[i].ywaited <= 0) {
+            stars[i].ywaited = 0;
+            stars[i].xwait = calculate_wait(1, abs(stars[i].x - COLS / 2), abs(stars[i].y - ROWS / 2));
+            stars[i].ywait = calculate_wait(0, abs(stars[i].x - COLS / 2), abs(stars[i].y - ROWS / 2));
 
-            if (stars[i].y > ROWS / 2)
+            /*
+            if (stars[i].xwait <= 1) {
+                stars[i].xwait = calculate_wait(1, abs(stars[i].x - COLS / 2), abs(stars[i].y - ROWS / 2));
+
+                if (stars[i].x > COLS / 2)
+                    stars[i].x = stars[i].x + 1;
+                else
+                    stars[i].x = stars[i].x - 1;
+            }
+
+            else */ if (stars[i].y > ROWS / 2)
                 stars[i].y = stars[i].y + 1;
             else
                 stars[i].y = stars[i].y - 1;
             
 
         } else {
-            stars[i].ywait--;
+            stars[i].ywaited++;
         }
 
         if (stars[i].x >= COLS || stars[i].x <= 0 || stars[i].y >= ROWS || stars[i].y <= 0){
             int rox = 0;
             int roy = 0;
             while (!rox) 
-                rox = rand() % 150 - 75;
+                rox = rand() % 400 - 200;
             while (!roy) 
-                roy = rand() % 150 - 75;
+                roy = rand() % 200 - 100;
 
             int x = ( (rox * xo) / (do + xo) ) + COLS / 2; //( (rox * sqrt(3)) / (do + xo)) * COLS + (COLS / 2);
             int y = ( (roy * xo) / (do + xo) ) + ROWS / 2; //( (roy * sqrt(3)) / (do + xo)) * ROWS + (ROWS / 2);
 
-            int xwait = calculate_wait(1, rox);
-            int ywait = calculate_wait(0, roy);
+            int xwait = calculate_wait(1, abs(rox), abs(roy));
+            int ywait = calculate_wait(0, abs(rox), abs(roy));
 
-            stars[i] = (star_t) {x, y, xwait, ywait, rox, roy, do};
+            stars[i] = (star_t) {x, y, xwait, ywait, 0, 0, rox, roy, do};
         }
 
     }
@@ -121,31 +150,28 @@ void update(star_t* stars) {
 
 void display(star_t* stars) {
     CLRSCRN();
-
+    
     for (int i = 0; i < numstars; ++i) {
         SETPOS(stars[i].y, stars[i].x);
-
-        if (abs(stars[i].x - COLS / 2) + 2 * abs(stars[i].y - ROWS / 2) > 45) {
+        
+        if (abs(stars[i].x - COLS / 2) + 2 * abs(stars[i].y - ROWS / 2) > 60) {
+            putchar('#');
+        } else if (abs(stars[i].x - COLS / 2) + 2 * abs(stars[i].y - ROWS / 2) > 35) {
             if (abs((stars[i].x - COLS / 2) - 2 * (stars[i].y - ROWS / 2)) < 12) 
                 putchar('\\');
             else if (abs((stars[i].x - COLS / 2) + 2 * (stars[i].y - ROWS / 2)) < 12) 
                 putchar('/');
             else if (abs(stars[i].x - COLS / 2) < 20) {
                 putchar('|');
-            }
-            else if (abs(stars[i].y - ROWS / 2 ) < 20) {
+            } else if (abs(stars[i].y - ROWS / 2 ) < 20) {
                 putchar('_');
             }
-            //else
-            //    putchar('#');
-        }
-        //else if (abs(stars[i].x - COLS / 2) + 2 * abs(stars[i].y - ROWS / 2) > 30) {
-        //    putchar('*');
-        //}
-        else {
-
+        } else {
             putchar('.');
         }
+        xt_par0(XT_CH_NORMAL);
+        
+        //printf("%d", stars[i].ywait - stars[i].ywaited);
 
         fflush(stdout);
     }
@@ -193,16 +219,37 @@ int handle_input(int running) {
     return running;
 }
 
-int calculate_wait(int is_horiz, int r) {
-    int w;
+int calculate_wait(int is_horiz, int x, int y) { // x and y are displacements from center.
+    /*int w;
+    int r;
     if (is_horiz){
+        r = x;
         w = COLS;
     }
     else {
         w = ROWS;
+        r = y;
+        y = y / 20;
+    }
+    */
+
+    double d = sqrt(x * x / 16 + y * y / 8) + 5;
+    double r;
+    if (is_horiz) {
+        r =  ((double)y / (double)x) + .1;
         r *= 2;
+    } else {
+        r =  ((double)x / (double)y) + .1;
     }
 
+    int fd = 2000 / (d * d);
+
+    return (r * fd);
+
+
+    /*
     int f = ( ((do + xo)*(do + xo)) / (vo * r * w * theta) );
-    return f;   
+
+    return f; */
 }
+
