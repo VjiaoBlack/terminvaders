@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include "settings.h"
 #include "terminvaders.h"
+#include "star.h"
 
-static int rows = 30;
-static int cols = 80;
+static int rows = 44;
+static int cols = 180;
 
 int get_rows(void) {
     return rows;
@@ -17,7 +18,7 @@ void load_rc(void) {
     FILE *fp;
     if (!(fp = fopen("preferences.txt", "r"))) {
         fp = fopen("preferences.txt", "w");
-        fputs("30:80", fp);
+        fputs("44:180", fp);
         fclose(fp);
         fp = fopen("preferences.txt", "r");
     }
@@ -28,7 +29,6 @@ void load_rc(void) {
 
 static void draw_menu(int config) {
     int cursor_r = 1, cursor_c = 1;
-    CLRSCRN();
     SETPOS(1, 1);
     while (cursor_c <= COLS) {
         cursor_r = 1;
@@ -38,6 +38,7 @@ static void draw_menu(int config) {
         SETPOS(cursor_r, cursor_c);
         printf("-");
         cursor_c++;
+        fflush(stdout);
     }
     cursor_r = 2;
     while (cursor_r < ROWS) {
@@ -48,6 +49,7 @@ static void draw_menu(int config) {
         SETPOS(cursor_r, cursor_c);
         printf("|");
         cursor_r++;
+        fflush(stdout);
     }
 
     SETPOS(ROWS / 4, COLS / 2 - 7);
@@ -55,6 +57,7 @@ static void draw_menu(int config) {
     xt_par0(XT_CH_BOLD);
     printf("{[ Settings ]}");
     xt_par0(XT_CH_NORMAL);
+    fflush(stdout);
 
     SETPOS(ROWS / 2, COLS / 2 - 5);
     if (config == 0) {
@@ -66,7 +69,7 @@ static void draw_menu(int config) {
     else
         printf("Height: ");
     printf("%d", rows);
-
+    fflush(stdout);
     SETPOS(5 * ROWS / 8, COLS / 2 - 4);
     if (config == 1) {
         xt_par0(XT_CH_BOLD);
@@ -88,6 +91,7 @@ static void draw_menu(int config) {
     else
         printf("Back");
     SETPOS(ROWS, COLS);
+    fflush(stdout);
 }
 
 static int read_int(void) {
@@ -113,37 +117,52 @@ void configloop(void) {
     ///-- here are the variables --//
     char key = ' ';
     int config = 2;
+
+    dispframe();
+
+    star_t* stars = malloc(sizeof(star_t) * numstars);
+    init(stars);
+
     while (1) {
+        update(stars);
+        display(stars);
         draw_menu(config);
-        while ((key = getkey()) == KEY_NOTHING);
-        switch (key) {
-            case KEY_UP:
-            case 'w':
-                config = !config ? 2 : config - 1;
-                break;
-            case KEY_DOWN:
-            case 's':
-                config = (config + 1) % 3;
-                break;
-            case 'q':
-                return;
-            case KEY_ENTER:
-                switch (config) {
-                    case 0:
-                        SETPOS(ROWS / 2, COLS / 2 + 3);
-                        rows = read_int();
-                        write_preferences();
-                        SETPOS(ROWS / 2, COLS / 2 - 5);
-                        break;
-                    case 1:
-                        SETPOS(5 * ROWS / 8, COLS / 2 + 3);
-                        cols = read_int();
-                        write_preferences();
-                        SETPOS(5 * ROWS / 8, COLS / 2 - 4);
-                        break;
-                    case 2:
-                        return;
-                }
+        usleep(1000000/fps);
+
+        while ((key = getkey()) != KEY_NOTHING){
+            update(stars);
+            display(stars);
+            draw_menu(config);
+            usleep(1000000/fps);
+            switch (key) {
+                case KEY_UP:
+                case 'w':
+                    config = !config ? 2 : config - 1;  
+                    break;
+                case KEY_DOWN:
+                case 's':
+                    config = (config + 1) % 3;
+                    break;
+                case 'q':
+                    return;
+                case KEY_ENTER:
+                    switch (config) {
+                        case 0:
+                            SETPOS(ROWS / 2, COLS / 2 + 3);
+                            rows = read_int();
+                            write_preferences();
+                            SETPOS(ROWS / 2, COLS / 2 - 5);
+                            break;
+                        case 1:
+                            SETPOS(5 * ROWS / 8, COLS / 2 + 3);
+                            cols = read_int();
+                            write_preferences();
+                            SETPOS(5 * ROWS / 8, COLS / 2 - 4);
+                            break;
+                        case 2:
+                            return;
+                    }
             }
+        }
     }
 }

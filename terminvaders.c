@@ -4,11 +4,12 @@
 #include "terminvaders.h"
 #include "game.h"
 #include "settings.h"
+#include "star.h"  
 
 /* Set up the game by clearing the screen, etc. */
 static void setup(void) {
     srand(time(NULL));
-    setbuf(stdout, NULL);  // Turn off stdout buffering
+    //setbuf(stdout, NULL);  // Turn off stdout buffering
     xt_par0(XT_CLEAR_SCREEN);
     load_rc();
 }
@@ -24,10 +25,9 @@ static void clear(void) {
 }
 
 /* Main menu: render the menu and return an option selected by the user. */
-static int menu(void) {
-    int key, choice = 0;
+
+static void drawmenu(int choice) {
     int cursor_r = 1, cursor_c = 1;
-    clear();
     SETPOS(1, 1);
     while (cursor_c <= COLS) {
         cursor_r = 1;
@@ -37,6 +37,7 @@ static int menu(void) {
         SETPOS(cursor_r, cursor_c);
         printf("~");
         cursor_c++;
+        fflush(stdout);
     }
     cursor_r = 2;
     while (cursor_r < ROWS) {
@@ -47,6 +48,7 @@ static int menu(void) {
         SETPOS(cursor_r, cursor_c);
         printf("#");
         cursor_r++;
+        fflush(stdout);
     }
 
     xt_par0(XT_CH_BOLD);
@@ -68,99 +70,149 @@ static int menu(void) {
     xt_par0(XT_CH_RED);
     SETPOS(3 * ROWS / 4, COLS / 2 - 2);
     printf("Quit");
+    fflush(stdout);
 
+    xt_par0(XT_CH_DEFAULT);
+
+    SETPOS(ROWS / 2, COLS / 2 - 2);
+    xt_par0(XT_CH_GREEN);
+    printf("Play");
+
+    SETPOS(5 * ROWS / 8, COLS / 2 - 4);
+    xt_par0(XT_CH_WHITE);
+    printf("Settings");
+
+    SETPOS(3 * ROWS / 4, COLS / 2 - 2);
+    xt_par0(XT_CH_RED);
+    printf("Quit");
+
+    xt_par0(XT_CH_BOLD);
+    xt_par0(XT_CH_INVERSE);
+    switch (choice) { // makes the button highlighted
+        case 0:
+            SETPOS(ROWS / 2, COLS / 2 - 2);
+            xt_par0(XT_CH_GREEN);
+            printf("Play");
+            SETPOS(ROWS, COLS);
+            break;
+        case 1:
+            SETPOS(5 * ROWS / 8, COLS / 2 - 4);
+            xt_par0(XT_CH_WHITE);
+            xt_par0(XT_CH_BOLD);
+            printf("Settings");
+            SETPOS(ROWS, COLS);
+            break;
+        case 2:
+            SETPOS(3 * ROWS / 4, COLS / 2 - 2);
+            xt_par0(XT_CH_RED);
+            printf("Quit");
+            SETPOS(ROWS, COLS);
+            break;
+    }
+    xt_par0(XT_CH_NORMAL);
+}
+static int menu(void) {
+    clear();
+    drawmenu(0);
+    star_t* stars = malloc(sizeof(star_t) * numstars);
+    init(stars);
+
+    int key, choice = 0;
     SETPOS(ROWS, COLS);
     while (1) {
-            switch ((key = getkey())) {
-            case KEY_UP:
-            case 'w':
-                xt_par0(XT_CH_DEFAULT);
-                switch (choice) { // makes the previous button 'normal'
-                    case 0:
-                        SETPOS(ROWS / 2, COLS / 2 - 2);
-                        xt_par0(XT_CH_GREEN);
-                        printf("Play");
-                        break;
-                    case 1:
-                        SETPOS(5 * ROWS / 8, COLS / 2 - 4);
-                        xt_par0(XT_CH_WHITE);
-                        printf("Settings");
-                        break;
-                    case 2:
-                        SETPOS(3 * ROWS / 4, COLS / 2 - 2);
-                        xt_par0(XT_CH_RED);
-                        printf("Quit");
-                        break;
-                }
-                choice = !choice ? 2 : choice - 1;
-                xt_par0(XT_CH_BOLD);
-                xt_par0(XT_CH_INVERSE);
-                switch (choice) { // makes the button highlighted
-                    case 0:
-                        SETPOS(ROWS / 2, COLS / 2 - 2);
-                        xt_par0(XT_CH_GREEN);
-                        printf("Play");
-                        SETPOS(ROWS, COLS);
-                        break;
-                    case 1:
-                        SETPOS(5 * ROWS / 8, COLS / 2 - 4);
-                        xt_par0(XT_CH_WHITE);
-                        xt_par0(XT_CH_BOLD);
-                        printf("Settings");
-                        SETPOS(ROWS, COLS);
-                        break;
-                    case 2:
-                        SETPOS(3 * ROWS / 4, COLS / 2 - 2);
-                        xt_par0(XT_CH_RED);
-                        printf("Quit");
-                        SETPOS(ROWS, COLS);
-                        break;
-                }
-                xt_par0(XT_CH_NORMAL);
-                break;
-            case KEY_DOWN:
-            case 's':
-                xt_par0(XT_CH_DEFAULT);
-                switch (choice) { // makes the previous button 'normal'
-                    case 0:
-                        SETPOS(ROWS / 2, COLS / 2 - 2);
-                        xt_par0(XT_CH_GREEN);
-                        printf("Play");
-                        break;
-                    case 1:
-                        SETPOS(5 * ROWS / 8, COLS / 2 - 4);
-                        xt_par0(XT_CH_WHITE);
-                        printf("Settings");
-                        break;
-                    case 2:
-                        SETPOS(3 * ROWS / 4, COLS / 2 - 2);
-                        xt_par0(XT_CH_RED);
-                        printf("Quit");
-                        break;
-                }
-                choice = (choice + 1) % 3;
-                xt_par0(XT_CH_BOLD);
-                xt_par0(XT_CH_INVERSE);
-                switch (choice) { // makes the button highlighted
-                    case 0:
-                        SETPOS(ROWS / 2, COLS / 2 - 2);
-                        xt_par0(XT_CH_GREEN);
-                        printf("Play");
-                        SETPOS(ROWS, COLS);
-                        break;
-                    case 1:
-                        SETPOS(5 * ROWS / 8, COLS / 2 - 4);
-                        xt_par0(XT_CH_WHITE);
-                        xt_par0(XT_CH_BOLD);
-                        printf("Settings");
-                        SETPOS(ROWS, COLS);
-                        break;
-                    case 2:
-                        SETPOS(3 * ROWS / 4, COLS / 2 - 2);
-                        xt_par0(XT_CH_RED);
-                        printf("Quit");
-                        SETPOS(ROWS, COLS);
-                        break;
+        update(stars);
+        display(stars);
+        drawmenu(choice);
+        switch ((key = getkey())) {
+        case KEY_UP:
+        case 'w':
+            xt_par0(XT_CH_DEFAULT);
+            switch (choice) { // makes the previous button 'normal'
+                case 0:
+                    SETPOS(ROWS / 2, COLS / 2 - 2);
+                    xt_par0(XT_CH_GREEN);
+                    printf("Play");
+                    break;
+                case 1:
+                    SETPOS(5 * ROWS / 8, COLS / 2 - 4);
+                    xt_par0(XT_CH_WHITE);
+                    printf("Settings");
+                    break;
+                case 2:
+                    SETPOS(3 * ROWS / 4, COLS / 2 - 2);
+                    xt_par0(XT_CH_RED);
+                    printf("Quit");
+                    break;
+            }
+            choice = !choice ? 2 : choice - 1;
+            xt_par0(XT_CH_BOLD);
+            xt_par0(XT_CH_INVERSE);
+            switch (choice) { // makes the button highlighted
+                case 0:
+                    SETPOS(ROWS / 2, COLS / 2 - 2);
+                    xt_par0(XT_CH_GREEN);
+                    printf("Play");
+                    SETPOS(ROWS, COLS);
+                    break;
+                case 1:
+                    SETPOS(5 * ROWS / 8, COLS / 2 - 4);
+                    xt_par0(XT_CH_WHITE);
+                    xt_par0(XT_CH_BOLD);
+                    printf("Settings");
+                    SETPOS(ROWS, COLS);
+                    break;
+                case 2:
+                    SETPOS(3 * ROWS / 4, COLS / 2 - 2);
+                    xt_par0(XT_CH_RED);
+                    printf("Quit");
+                    SETPOS(ROWS, COLS);
+                    break;
+            }
+            xt_par0(XT_CH_NORMAL);
+            break;
+        case KEY_DOWN:
+        case 's':
+            xt_par0(XT_CH_DEFAULT);
+            switch (choice) { // makes the previous button 'normal'
+                case 0:
+                    SETPOS(ROWS / 2, COLS / 2 - 2);
+                    xt_par0(XT_CH_GREEN);
+                    printf("Play");
+                    break;
+                case 1:
+                    SETPOS(5 * ROWS / 8, COLS / 2 - 4);
+                    xt_par0(XT_CH_WHITE);
+                    printf("Settings");
+                    break;
+                case 2:
+                    SETPOS(3 * ROWS / 4, COLS / 2 - 2);
+                    xt_par0(XT_CH_RED);
+                    printf("Quit");
+                    break;
+            }
+            choice = (choice + 1) % 3;
+            xt_par0(XT_CH_BOLD);
+            xt_par0(XT_CH_INVERSE);
+            switch (choice) { // makes the button highlighted
+                case 0:
+                    SETPOS(ROWS / 2, COLS / 2 - 2);
+                    xt_par0(XT_CH_GREEN);
+                    printf("Play");
+                    SETPOS(ROWS, COLS);
+                    break;
+                case 1:
+                    SETPOS(5 * ROWS / 8, COLS / 2 - 4);
+                    xt_par0(XT_CH_WHITE);
+                    xt_par0(XT_CH_BOLD);
+                    printf("Settings");
+                    SETPOS(ROWS, COLS);
+                    break;
+                case 2:
+                    SETPOS(3 * ROWS / 4, COLS / 2 - 2);
+                    xt_par0(XT_CH_RED);
+                    printf("Quit");
+                    SETPOS(ROWS, COLS);
+                    break;
                 }
                 xt_par0(XT_CH_NORMAL);
                 break;
@@ -169,6 +221,8 @@ static int menu(void) {
             case 'q':
                 return MENU_QUIT;
         }
+        usleep(1000000/fps);
+        fflush(stdout);
     }
 }
 
