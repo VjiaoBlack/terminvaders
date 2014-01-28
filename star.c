@@ -1,3 +1,8 @@
+
+// following is code for solo usage
+
+// NOTE: BUFFER ERRORS APLENTY
+
 /*
 #include <stdio.h>
 #include <stdlib.h>
