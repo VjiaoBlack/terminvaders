@@ -9,8 +9,6 @@
 #include "terminvaders.h"
 
 #define fps 200
-#define _rows_ 44
-#define _cols_ 180
 
 #define vo 10
 #define xo 50

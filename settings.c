@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <math.h>
 #include "settings.h"
 #include "terminvaders.h"
 #include "star.h"
@@ -94,12 +95,66 @@ static void draw_menu(int config) {
     fflush(stdout);
 }
 
-static int read_int(void) {
+static int read_int(int rows) {
     char key;
     int result = 0;
+    char* data = malloc(sizeof(char) * 4); // no HD displays here; fourth is a "\0"
+    int pos = 0;
+
+    int cols = COLS / 2 + 3;
+
+    data[0] = data[1] = data[2] = data[3] = '\0';
 
     while (1) {
         while ((key = getkey()) == KEY_NOTHING);
+        if ((key < '0' || key > '9') && pos < 3){
+            SETPOS(rows, ++cols);
+            putchar(key);
+            for(int i = 1; i <= pos; i--) {
+                data[i+1] = data[i];
+            }
+            data[pos] = key;
+            pos++;
+
+        } else switch (key) {
+            case KEY_LEFT:
+                if (pos > 0)
+                    pos--;
+                SETPOS(rows, --cols);
+                break;
+            case KEY_RIGHT:
+                if (pos < 3)
+                    pos++;
+                SETPOS(rows, ++cols);
+                break;
+            case KEY_BACKSPACE:
+                if (pos > 0) {
+                    for (int i = pos - 1; i <= 2; i++) {
+                        data[i] = data[i+1];
+                    }
+                    pos--;
+                    SETPOS(rows, --cols);
+                }
+                break;
+            case KEY_DELETE:
+                if (pos < 3) {
+                    for (int i = pos; i <= 2; i++) {
+                        data[i] = data[i+1];
+                    }
+                }   
+                break;
+            case KEY_ENTER:
+                for (int i = 0; i < 3; i++) {
+                    if (data[i] != '\0')
+                        result += pow(10, i) * (data[i] - 0);
+                    else
+                        break;
+                }
+                return result;
+        }
+
+
+
         if (key < '0' || key > '9')
             return result;
         putchar(key);
@@ -149,13 +204,13 @@ void configloop(void) {
                     switch (config) {
                         case 0:
                             SETPOS(ROWS / 2, COLS / 2 + 3);
-                            rows = read_int();
+                            rows = read_int(ROWS / 2);
                             write_preferences();
                             SETPOS(ROWS / 2, COLS / 2 - 5);
                             break;
                         case 1:
                             SETPOS(5 * ROWS / 8, COLS / 2 + 3);
-                            cols = read_int();
+                            cols = read_int(5 * ROWS / 8);
                             write_preferences();
                             SETPOS(5 * ROWS / 8, COLS / 2 - 4);
                             break;
