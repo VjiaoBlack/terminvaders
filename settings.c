@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 #include "settings.h"
 #include "terminvaders.h"
@@ -31,6 +32,8 @@ void load_rc(void) {
 static void draw_menu(int config) {
     int cursor_r = 1, cursor_c = 1;
     SETPOS(1, 1);
+    int test = 0;
+    int lim = 3;
     while (cursor_c <= COLS) {
         cursor_r = 1;
         SETPOS(cursor_r, cursor_c);
@@ -39,7 +42,11 @@ static void draw_menu(int config) {
         SETPOS(cursor_r, cursor_c);
         printf("-");
         cursor_c++;
-        //fflush(stdout);
+        if (test == lim){
+            fflush(stdout);
+            test = 0;
+        }
+        test++;
     }
     cursor_r = 2;
     while (cursor_r < ROWS) {
@@ -50,7 +57,11 @@ static void draw_menu(int config) {
         SETPOS(cursor_r, cursor_c);
         printf("|");
         cursor_r++;
-        //fflush(stdout);
+        if (test == lim){
+            fflush(stdout);
+            test = 0;
+        }
+        test++;
     }
 
     SETPOS(ROWS / 4, COLS / 2 - 7);
@@ -92,7 +103,7 @@ static void draw_menu(int config) {
     else
         printf("Back");
     SETPOS(ROWS, COLS);
-    //fflush(stdout);
+    fflush(stdout);
 }
 
 static int read_int(int rows) {
@@ -103,19 +114,27 @@ static int read_int(int rows) {
 
     int cols = COLS / 2 + 3;
 
+    if (rows == ROWS / 2) { // then its height
+        sprintf(data,"%d",get_rows());
+    } else {
+        sprintf(data,"%d",get_cols());
+    }
+
     data[0] = data[1] = data[2] = data[3] = '\0';
 
     while (1) {
+
         while ((key = getkey()) == KEY_NOTHING);
-        if ((key < '0' || key > '9') && pos < 3){
+        /*
+        if ((key > '0' || key < '9') && pos < 3){
             SETPOS(rows, ++cols);
-            putcharflush(key);
+            putchar(key);
             for(int i = 1; i <= pos; i--) {
                 data[i+1] = data[i];
             }
+            printf("  %s", data);
             data[pos] = key;
             pos++;
-
         } else switch (key) {
             case KEY_LEFT:
                 if (pos > 0)
@@ -151,13 +170,17 @@ static int read_int(int rows) {
                         break;
                 }
                 return result;
+            default: 
+                while(1)
+                    putchar('3');
+                break;
         }
 
 
-
+        */
         if (key < '0' || key > '9')
             return result;
-        putcharflush(key);
+        putchar(key);
         result = (result * 10) + (key - '0');
     }
 }

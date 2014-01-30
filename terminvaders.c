@@ -20,7 +20,7 @@ static void clear(void) {
     for (r = 1; r <= ROWS; r++) {
         SETPOS(r, 1);
         for (c = 1; c <= COLS; c++)
-            putcharflush(' ');
+            putchar(' ');
     }
 }
 
@@ -29,6 +29,8 @@ static void clear(void) {
 static void drawmenu(int choice) {
     int cursor_r = 1, cursor_c = 1;
     SETPOS(1, 1);
+    int test = 0;
+    int lim = 3;
     while (cursor_c <= COLS) {
         cursor_r = 1;
         SETPOS(cursor_r, cursor_c);
@@ -37,7 +39,12 @@ static void drawmenu(int choice) {
         SETPOS(cursor_r, cursor_c);
         printf("~");
         cursor_c++;
-        //fflush(stdout);
+
+        if (test == lim){
+            fflush(stdout);
+            test = 0;
+        }
+        test++;
     }
     cursor_r = 2;
     while (cursor_r < ROWS) {
@@ -48,7 +55,11 @@ static void drawmenu(int choice) {
         SETPOS(cursor_r, cursor_c);
         printf("#");
         cursor_r++;
-        //fflush(stdout);
+        if (test == lim){
+            fflush(stdout);
+            test = 0;
+        }
+        test++;
     }
 
     xt_par0(XT_CH_BOLD);
@@ -111,7 +122,7 @@ static void drawmenu(int choice) {
     }
     xt_par0(XT_CH_NORMAL);
 
-    //fflush(stdout);
+    fflush(stdout);
 }
 static int menu(void) {
     clear();

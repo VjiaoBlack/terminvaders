@@ -165,19 +165,19 @@ void display(star_t* stars) {
         SETPOS(stars[i].y, stars[i].x);
         
         if (abs(stars[i].x - get_cols() / 2) + 2 * abs(stars[i].y - get_rows() / 2) > 60) {
-            putcharflush('#');
+            putchar('#');
         } else if (abs(stars[i].x - get_cols() / 2) + 2 * abs(stars[i].y - get_rows() / 2) > 35) {
             if (abs((stars[i].x - get_cols() / 2) - 2 * (stars[i].y - get_rows() / 2)) < 12) 
-                putcharflush('\\');
+                putchar('\\');
             else if (abs((stars[i].x - get_cols() / 2) + 2 * (stars[i].y - get_rows() / 2)) < 12) 
-                putcharflush('/');
+                putchar('/');
             else if (abs(stars[i].x - get_cols() / 2) < 20) {
-                putcharflush('|');
+                putchar('|');
             } else if (abs(stars[i].y - get_rows() / 2 ) < 20) {
-                putcharflush('_');
+                putchar('_');
             }
         } else {
-            putcharflush('.');
+            putchar('.');
         }
         xt_par0(XT_CH_NORMAL);
         
@@ -197,10 +197,10 @@ void dispframe(){
     while (cursor_c <= get_cols()) {
         cursor_r = 1;
         SETPOS(cursor_r, cursor_c);
-        putcharflush('-');
+        putchar('-');
         cursor_r = get_rows();
         SETPOS(cursor_r, cursor_c);
-        putcharflush('-');
+        putchar('-');
         cursor_c++;
         //fflush(stdout);
     }
@@ -208,10 +208,10 @@ void dispframe(){
     while (cursor_r <= get_rows()) {
         cursor_c = 1;
         SETPOS(cursor_r, cursor_c);
-        putcharflush('|');
+        putchar('|');
         cursor_c = get_cols();
         SETPOS(cursor_r, cursor_c);
-        putcharflush('|');
+        putchar('|');
         cursor_r++;
         //fflush(stdout);
     }
@@ -355,22 +355,22 @@ void display(star_t* stars) {
         SETPOS(stars[i].y, stars[i].x);
         
         if (abs(stars[i].x - get_cols() / 2) + 2 * abs(stars[i].y - get_rows() / 2) > 60) {
-            putcharflush('#');
+            putchar('#');
         } else if (abs(stars[i].x - get_cols() / 2) + 2 * abs(stars[i].y - get_rows() / 2) > 35) {
             if (abs((stars[i].x - get_cols() / 2) - 2 * (stars[i].y - get_rows() / 2)) < 12) {
-                putcharflush('\\');
+                putchar('\\');
             }   
             else if (abs((stars[i].x - get_cols() / 2) + 2 * (stars[i].y - get_rows() / 2)) < 12) {
-                putcharflush('/');
+                putchar('/');
             }
             else if (abs(stars[i].x - get_cols() / 2) < 20) {
-                putcharflush('|');
+                putchar('|');
             } 
             else if (abs(stars[i].y - get_rows() / 2 ) < 20) {
-                putcharflush('_');
+                putchar('_');
             }
         } else {
-            putcharflush('.');
+            putchar('.');
         }
         xt_par0(XT_CH_NORMAL);
 
@@ -386,10 +386,10 @@ void dispframe(){
     while (cursor_c <= get_cols()) {
         cursor_r = 1;
         SETPOS(cursor_r, cursor_c);
-        putcharflush('-');
+        putchar('-');
         cursor_r = get_rows();
         SETPOS(cursor_r, cursor_c);
-        putcharflush('-');
+        putchar('-');
         cursor_c++;
         //fflush(stdout);
     }
@@ -397,10 +397,10 @@ void dispframe(){
     while (cursor_r <= get_rows()) {
         cursor_c = 1;
         SETPOS(cursor_r, cursor_c);
-        putcharflush('|');
+        putchar('|');
         cursor_c = get_cols();
         SETPOS(cursor_r, cursor_c);
-        putcharflush('|');
+        putchar('|');
         cursor_r++;
         //fflush(stdout);
     }
