@@ -376,8 +376,6 @@ void display(star_t* stars) {
         fflush(stdout);
     }
 
-    dispframe();
-
 }   
 
 void dispframe(){
