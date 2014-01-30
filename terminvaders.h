@@ -11,3 +11,4 @@
 // Macros
 
 #define SETPOS(x, y) xt_par2(XT_SET_ROW_COL_POS, (x), (y))
+#define putcharflush(x) putchar(x); fflush(stdout);

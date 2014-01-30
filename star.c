@@ -165,25 +165,25 @@ void display(star_t* stars) {
         SETPOS(stars[i].y, stars[i].x);
         
         if (abs(stars[i].x - get_cols() / 2) + 2 * abs(stars[i].y - get_rows() / 2) > 60) {
-            putchar('#');
+            putcharflush('#');
         } else if (abs(stars[i].x - get_cols() / 2) + 2 * abs(stars[i].y - get_rows() / 2) > 35) {
             if (abs((stars[i].x - get_cols() / 2) - 2 * (stars[i].y - get_rows() / 2)) < 12) 
-                putchar('\\');
+                putcharflush('\\');
             else if (abs((stars[i].x - get_cols() / 2) + 2 * (stars[i].y - get_rows() / 2)) < 12) 
-                putchar('/');
+                putcharflush('/');
             else if (abs(stars[i].x - get_cols() / 2) < 20) {
-                putchar('|');
+                putcharflush('|');
             } else if (abs(stars[i].y - get_rows() / 2 ) < 20) {
-                putchar('_');
+                putcharflush('_');
             }
         } else {
-            putchar('.');
+            putcharflush('.');
         }
         xt_par0(XT_CH_NORMAL);
         
         //printf("%d", stars[i].ywait - stars[i].ywaited);
 
-        fflush(stdout);
+        //fflush(stdout);
     }
 
     dispframe();
@@ -197,23 +197,23 @@ void dispframe(){
     while (cursor_c <= get_cols()) {
         cursor_r = 1;
         SETPOS(cursor_r, cursor_c);
-        putchar('-');
+        putcharflush('-');
         cursor_r = get_rows();
         SETPOS(cursor_r, cursor_c);
-        putchar('-');
+        putcharflush('-');
         cursor_c++;
-        fflush(stdout);
+        //fflush(stdout);
     }
     cursor_r = 2;
     while (cursor_r <= get_rows()) {
         cursor_c = 1;
         SETPOS(cursor_r, cursor_c);
-        putchar('|');
+        putcharflush('|');
         cursor_c = get_cols();
         SETPOS(cursor_r, cursor_c);
-        putchar('|');
+        putcharflush('|');
         cursor_r++;
-        fflush(stdout);
+        //fflush(stdout);
     }
 }
 
@@ -355,25 +355,26 @@ void display(star_t* stars) {
         SETPOS(stars[i].y, stars[i].x);
         
         if (abs(stars[i].x - get_cols() / 2) + 2 * abs(stars[i].y - get_rows() / 2) > 60) {
-            putchar('#');
+            putcharflush('#');
         } else if (abs(stars[i].x - get_cols() / 2) + 2 * abs(stars[i].y - get_rows() / 2) > 35) {
-            if (abs((stars[i].x - get_cols() / 2) - 2 * (stars[i].y - get_rows() / 2)) < 12) 
-                putchar('\\');
-            else if (abs((stars[i].x - get_cols() / 2) + 2 * (stars[i].y - get_rows() / 2)) < 12) 
-                putchar('/');
+            if (abs((stars[i].x - get_cols() / 2) - 2 * (stars[i].y - get_rows() / 2)) < 12) {
+                putcharflush('\\');
+            }   
+            else if (abs((stars[i].x - get_cols() / 2) + 2 * (stars[i].y - get_rows() / 2)) < 12) {
+                putcharflush('/');
+            }
             else if (abs(stars[i].x - get_cols() / 2) < 20) {
-                putchar('|');
-            } else if (abs(stars[i].y - get_rows() / 2 ) < 20) {
-                putchar('_');
+                putcharflush('|');
+            } 
+            else if (abs(stars[i].y - get_rows() / 2 ) < 20) {
+                putcharflush('_');
             }
         } else {
-            putchar('.');
+            putcharflush('.');
         }
         xt_par0(XT_CH_NORMAL);
-        
-        //printf("%d", stars[i].ywait - stars[i].ywaited);
 
-        fflush(stdout);
+        //fflush(stdout);
     }
 
 }   
@@ -385,23 +386,23 @@ void dispframe(){
     while (cursor_c <= get_cols()) {
         cursor_r = 1;
         SETPOS(cursor_r, cursor_c);
-        putchar('-');
+        putcharflush('-');
         cursor_r = get_rows();
         SETPOS(cursor_r, cursor_c);
-        putchar('-');
+        putcharflush('-');
         cursor_c++;
-        fflush(stdout);
+        //fflush(stdout);
     }
     cursor_r = 2;
     while (cursor_r <= get_rows()) {
         cursor_c = 1;
         SETPOS(cursor_r, cursor_c);
-        putchar('|');
+        putcharflush('|');
         cursor_c = get_cols();
         SETPOS(cursor_r, cursor_c);
-        putchar('|');
+        putcharflush('|');
         cursor_r++;
-        fflush(stdout);
+        //fflush(stdout);
     }
 }
 

@@ -39,7 +39,7 @@ static void draw_menu(int config) {
         SETPOS(cursor_r, cursor_c);
         printf("-");
         cursor_c++;
-        fflush(stdout);
+        //fflush(stdout);
     }
     cursor_r = 2;
     while (cursor_r < ROWS) {
@@ -50,7 +50,7 @@ static void draw_menu(int config) {
         SETPOS(cursor_r, cursor_c);
         printf("|");
         cursor_r++;
-        fflush(stdout);
+        //fflush(stdout);
     }
 
     SETPOS(ROWS / 4, COLS / 2 - 7);
@@ -58,7 +58,7 @@ static void draw_menu(int config) {
     xt_par0(XT_CH_BOLD);
     printf("{[ Settings ]}");
     xt_par0(XT_CH_NORMAL);
-    fflush(stdout);
+    //fflush(stdout);
 
     SETPOS(ROWS / 2, COLS / 2 - 5);
     if (config == 0) {
@@ -70,7 +70,7 @@ static void draw_menu(int config) {
     else
         printf("Height: ");
     printf("%d", rows);
-    fflush(stdout);
+    //fflush(stdout);
     SETPOS(5 * ROWS / 8, COLS / 2 - 4);
     if (config == 1) {
         xt_par0(XT_CH_BOLD);
@@ -92,7 +92,7 @@ static void draw_menu(int config) {
     else
         printf("Back");
     SETPOS(ROWS, COLS);
-    fflush(stdout);
+    //fflush(stdout);
 }
 
 static int read_int(int rows) {
@@ -109,7 +109,7 @@ static int read_int(int rows) {
         while ((key = getkey()) == KEY_NOTHING);
         if ((key < '0' || key > '9') && pos < 3){
             SETPOS(rows, ++cols);
-            putchar(key);
+            putcharflush(key);
             for(int i = 1; i <= pos; i--) {
                 data[i+1] = data[i];
             }
@@ -157,7 +157,7 @@ static int read_int(int rows) {
 
         if (key < '0' || key > '9')
             return result;
-        putchar(key);
+        putcharflush(key);
         result = (result * 10) + (key - '0');
     }
 }

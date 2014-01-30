@@ -89,7 +89,7 @@ void draw(point_t* point, sprite_t* sprite) {
     for (row = 0; row < sprite->height; row++) {
         SETPOS(row + starty + 1, startx + 1);
         for (col = 0; col < sprite->width; col++)
-            putchar(sprite->graphic[row][col]);
+            putcharflush(sprite->graphic[row][col]);
     }
     if (sprite->fg_color)
         xt_par0(XT_CH_NORMAL);
