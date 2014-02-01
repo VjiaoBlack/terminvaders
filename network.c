@@ -60,8 +60,10 @@ int receive(int sockfd, int* command, char** data) {
     if (sscanf(buffer, "%d|%d|", command, &datalen) < 2)
         return -1;
     *data = malloc(sizeof(char) * datalen);
-    offset = strcspn(buffer + strcspn(buffer, "|") + 1, "|") + 1;
+    offset = strcspn(buffer, "|") + 1;
+    offset += strcspn(buffer + offset, "|") + 1;
     strncpy(*data, buffer + offset, datalen);
+
     if (nread < offset + datalen) {  /* We need to read more. */
         remainder = offset + datalen - nread;
         tempbuf = malloc(sizeof(char) * remainder);

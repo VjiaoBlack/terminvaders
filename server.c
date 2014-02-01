@@ -175,6 +175,25 @@ static void get_status_data(char* databuf) {
              n_connecting, n_idle, n_waiting, n_in_game);
 }
 
+/* Put encoded lobby info into databuf. */
+static void encode_lobby_info(char** buffer_ptr) {
+    int id, status, pos, bufsize = (MAX_CLIENTS + MAX_GAMES) * (NAME_LEN + 20);
+    char* buffer = malloc(sizeof(char) * bufsize);
+
+    *buffer_ptr = buffer;
+    strcpy(buffer, "[");
+    pos = 1;
+    for (id = 0; id < MAX_CLIENTS; id++) {
+        status = clients[id].status;
+        if (status == CLIENT_FREE || status == CLIENT_CONNECTING)
+            continue;
+        pos += snprintf(buffer + pos, bufsize - pos, "{%d.%d.%s}", id, status, clients[id].name);
+    }
+    pos += snprintf(buffer + pos, bufsize - pos, "][");
+    // game data
+    pos += snprintf(buffer + pos, bufsize - pos, "]");
+}
+
 /* Handle a connection with a client. */
 static void* handle_client(void* arg) {
     char* buffer, databuf[1024];
@@ -192,6 +211,7 @@ static void* handle_client(void* arg) {
             }
             strcpy(clients[id].name, buffer);
             free(buffer);
+            clients[id].status = CLIENT_IDLE;
             break;
         case CMD_GETPID:
             free(buffer);
@@ -221,9 +241,13 @@ static void* handle_client(void* arg) {
         if (receive(sockfd, &command, &buffer) < 0)
             goto cleanup;
         switch (command) {
-            // remember to use the mutex before sending!
-            // case CMD_UPDATE:
-            //     break;
+            case CMD_LOBBYINFO:
+                free(buffer);
+                encode_lobby_info(&buffer);
+                pthread_mutex_lock(&clients[id].mutex);
+                transmit(sockfd, CMD_LOBBYINFO, buffer);
+                pthread_mutex_unlock(&clients[id].mutex);
+                break;
             default:
                 free(buffer);
                 transmit(sockfd, CMD_QUIT, ERR_INVALID);

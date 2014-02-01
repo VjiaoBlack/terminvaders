@@ -6,6 +6,7 @@
 /* Defines */
 
 #define MAX_CLIENTS 64
+#define MAX_GAMES 32
 
 #define CLIENT_FREE 0
 #define CLIENT_CONNECTING 1
