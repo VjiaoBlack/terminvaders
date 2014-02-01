@@ -37,10 +37,13 @@ int make_connection(char* name) {
 
 /* Send a client->server or server->client message via sockfd. */
 int transmit(int sockfd, int command, char* data) {
-    int datalen = strlen(data) + 1, retval;
+    int datalen = (data ? strlen(data) : 0) + 1, retval;
     char* encoded = malloc(sizeof(char) * (datalen + 16));
 
-    snprintf(encoded, datalen + 16, "%d|%d|%s", command, datalen, data);
+    if (datalen == 1)
+        snprintf(encoded, 16, "%d|%d|", command, 1);
+    else
+        snprintf(encoded, datalen + 16, "%d|%d|%s", command, datalen, data);
     retval = write(sockfd, encoded, strlen(encoded) + 1);
     free(encoded);
     return retval;
