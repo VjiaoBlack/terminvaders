@@ -8,7 +8,6 @@ static int cols = 180;
 int get_rows(void) {
     return rows;
 }
-
 int get_cols(void) {
     return cols;
 }
@@ -28,6 +27,7 @@ int main() {
         switch(option = lobby()) {
             drawlobby(option);
             case MENU_QUIT:
+                xt_par0(XT_CH_NORMAL);
                 getkey_terminate();
                 return 0;
         }
@@ -36,6 +36,38 @@ int main() {
 }
 
 void drawlobby(int choice) {
+    int numusers = 6;
+    user_t *users = malloc(sizeof(user_t) * 6);
+    *users = (user_t) {"Earwig"};
+    *(++users) = (user_t) {"VjiaoBlack"};
+    *(++users) = (user_t) {"jeuwshuawakeup"};
+    *(++users) = (user_t) {"Infernous"};
+    *(++users) = (user_t) {"Agnok"};
+    *(++users) = (user_t) {"Xx.DarkLord.xX"};
+    users -= 5;
+
+
+    user_t *users1 = malloc(sizeof(user_t) * 4);
+    users1[0] = users[0];
+    users1[1] = users[1];
+    users1[2] = users[3];
+    users1[3] = users[2];
+
+    user_t *users2 = malloc(sizeof(user_t) * 2);
+    users2[0] = users[4];
+    users2[1] = users[5];
+
+    user_t *users3 = malloc(sizeof(user_t) * 1);
+    users3[0] = users[5];
+
+
+    lobby_t current_lobby = (lobby_t) {"join this room if you have swag", 10, 4, 2, users1, NULL, NULL};
+    
+    current_lobby.next = &((lobby_t) {"join this room if you dont have swag :(", 4, 1, 1, users2, NULL, &current_lobby});
+
+    current_lobby.next->next = &((lobby_t) {"pls dont join this room ty", 2, 1, 0, users3, NULL, current_lobby.next});
+
+
     int cursor_r = 1, cursor_c = 1;
     SETPOS(1, 1);
     int test = 0;
@@ -76,20 +108,95 @@ void drawlobby(int choice) {
 
     SETPOS(2, COLS - 18);
     printf("Who's Online");
-    SETPOS(4, COLS - 18);
-    printf("Earwig");
-    SETPOS(5, COLS - 18);
-    printf("VjiaoBlack");
-    SETPOS(6, COLS - 18);
-    printf("jeuwshuawakeup");
-    SETPOS(7, COLS - 18);
-    printf("Infernous");
-    SETPOS(8, COLS - 18);
-    printf("Agnok");
-    SETPOS(9, COLS - 18);
-    printf("Xx.DarkLord.xX");
+    
+    for (int i = 0; i < numusers; i++) {
+        SETPOS(4 + i, COLS - 18);
+        printf("%s", users[i].username);
+    }
+
+    //this prints stuff before the current
+    int current_pos = 0;
+    lobby_t head;
+    lobby_t iterator = current_lobby;
+    while (iterator.previous != NULL) {
+        iterator = *(iterator.previous);
+        current_pos++;
+    }
+    head = iterator;
+
+    int i = 0;
+    while (current_pos > 0) {
+        SETPOS(6 + 2 * i, 6);
+        printf("%s (%d/%d)", iterator.name, iterator.current_users, iterator.max_users);
+
+        SETPOS(6 + 2 * i, COLS - 30);
+        switch(iterator.type){
+            case 0:
+                printf("Duel");
+                break;
+            case 1:
+                printf("Team");
+                break;
+            case 2:
+                printf("Blitz");
+                break;
+        }
+
+        iterator = *(iterator.next);
+        i++;
+    }
+
+    //prints current
+    SETPOS(6 + 2 * i, 4);
+    printf("> %s (%d/%d)", current_lobby.name, current_lobby.current_users, current_lobby.max_users);
+
+    SETPOS(6 + 2 * i, COLS - 30);
+    switch(iterator.type){
+        case 0:
+            printf("Duel");
+            break;
+        case 1:
+            printf("Team");
+            break;
+        case 2:
+            printf("Blitz");
+            break;
+    }
+    int useroffset = 1;
+    while (useroffset <= current_lobby.current_users){
+        SETPOS(6 + 2 * i + useroffset, 8);
+        printf("%s", current_lobby.users[useroffset-1].username);
+        useroffset++;
+    }
+
+    i++;
 
 
+
+
+    //this prints stuff after the current
+    iterator = current_lobby;
+    while (iterator.next != NULL) {
+
+        SETPOS(6 + 2 * i + useroffset, 6);
+        printf("%s (%d/%d)", iterator.name, iterator.current_users, iterator.max_users);
+
+        SETPOS(6 + 2 * i + useroffset, COLS - 30);
+        switch(iterator.type){
+            case 0:
+                printf("Duel");
+                break;
+            case 1:
+                printf("Team");
+                break;
+            case 2:
+                printf("Blitz");
+                break;
+        }
+
+        iterator = *(iterator.next);
+        i++;
+    }
 
     SETPOS(2, 3);
     printf("Open Lobbies (Up/Down to select, %sJ%soin, %sC%sreate, %sS%start, %sH%selp)", XT_CH_UNDERLINE, XT_CH_NORMAL, XT_CH_UNDERLINE, XT_CH_NORMAL, XT_CH_UNDERLINE, XT_CH_NORMAL, XT_CH_UNDERLINE, XT_CH_NORMAL);
@@ -104,6 +211,8 @@ void drawlobby(int choice) {
     xt_par0(XT_CH_RED);
     printf("Quit");
 
+
+    /*
     //display lobbys here
 
     xt_par0(XT_CH_NORMAL);
@@ -127,7 +236,7 @@ void drawlobby(int choice) {
 
     xt_par0(XT_CH_NORMAL);
     SETPOS(12, 8);
-    printf("join this room if you dont have swag :( (1/4)");
+    printf("join this room if you dont have swag :( (2/4)");
     SETPOS(12, COLS - 30);
     printf("Team");
 
