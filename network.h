@@ -1,12 +1,13 @@
 /* Defines */
 
-#define PORT 1300
+#define PORT 6413
 #define PROTOCOL_VER 1
 #define NAME_LEN 32
 
 #define CMD_QUIT 0
 #define CMD_CONNECT 1
 #define CMD_GETPID 2
+#define CMD_STATUS 3
 
 #define ERR_FULL "The server is full."
 #define ERR_SERVER_STOPPING "The server is shutting down."

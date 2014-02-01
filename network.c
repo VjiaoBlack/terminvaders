@@ -41,7 +41,7 @@ int transmit(int sockfd, int command, char* data) {
     char* encoded = malloc(sizeof(char) * (datalen + 16));
 
     if (datalen == 1)
-        snprintf(encoded, 16, "%d|%d|", command, 1);
+        snprintf(encoded, datalen + 16, "%d|%d|", command, 1);
     else
         snprintf(encoded, datalen + 16, "%d|%d|%s", command, datalen, data);
     retval = write(sockfd, encoded, strlen(encoded) + 1);

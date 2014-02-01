@@ -12,6 +12,7 @@
 
 /* --------------------------- Global Variables ---------------------------- */
 
+int master_sockfd;
 client_t clients[MAX_CLIENTS];
 
 /* --------------------------- Helper Functions ---------------------------- */
@@ -56,7 +57,8 @@ static void stop_server(int retval) {
                 pthread_mutex_unlock(&clients[id].mutex);
         }
     }
-    _exit(retval);
+    close(master_sockfd);
+    exit(retval);
 }
 
 /* Catch signals in order to safely close client connections. */
@@ -66,7 +68,7 @@ static void catch_signal(int sig) {
 }
 
 /* Set up the server connection but do not enter the main loop. */
-static int start_server(void) {
+static void start_server(void) {
     int sockfd, id;
     struct sockaddr_in serv_addr;
 
@@ -98,7 +100,7 @@ static int start_server(void) {
         printf("Error: couldn't attach a signal handler.\n");
         exit(1);
     }
-    return sockfd;
+    master_sockfd = sockfd;
 }
 
 /* Daemonize the current running process, for after starting the server. */
@@ -146,9 +148,36 @@ static int is_local_client(int id) {
     return strcmp(cname, "127.0.0.1") == 0;
 }
 
+/* Put some status information into databuf. */
+static void get_status_data(char* databuf) {
+    int id, n_clients = 0, n_connecting = 0, n_idle = 0, n_waiting = 0, n_in_game = 0;
+
+    for (id = 0; id < MAX_CLIENTS; id++) {
+        if (clients[id].status != CLIENT_FREE)
+            n_clients++;
+        switch (clients[id].status) {
+            case CLIENT_CONNECTING:
+                n_connecting++; break;
+            case CLIENT_IDLE:
+                n_idle++;       break;
+            case CLIENT_WAITING:
+                n_waiting++;    break;
+            case CLIENT_IN_GAME:
+                n_in_game++;    break;
+        }
+    }
+
+    /* This will include the client asking for data, which is bad. */
+    n_clients--;
+    n_connecting--;
+
+    snprintf(databuf, 1024, "%d/%d (%d/%d/%d/%d)", n_clients, MAX_CLIENTS,
+             n_connecting, n_idle, n_waiting, n_in_game);
+}
+
 /* Handle a connection with a client. */
 static void* handle_client(void* arg) {
-    char* buffer;
+    char* buffer, databuf[1024];
     int id = *((int*) arg), sockfd = clients[id].sockfd, command;
 
     if (receive(sockfd, &command, &buffer) < 0)
@@ -167,9 +196,17 @@ static void* handle_client(void* arg) {
         case CMD_GETPID:
             free(buffer);
             if (is_local_client(id)) {
-                char pidbuf[16];
-                snprintf(pidbuf, 16, "%d", getpid());
-                write(sockfd, pidbuf, 16);
+                snprintf(databuf, 1024, "%d", getpid());
+                write(sockfd, databuf, strlen(databuf));
+            }
+            else
+                transmit(sockfd, CMD_QUIT, ERR_UNAUTHORIZED);
+            goto cleanup;
+        case CMD_STATUS:
+            free(buffer);
+            if (is_local_client(id)) {
+                get_status_data(databuf);
+                write(sockfd, databuf, strlen(databuf));
             }
             else
                 transmit(sockfd, CMD_QUIT, ERR_UNAUTHORIZED);
@@ -202,7 +239,7 @@ static void* handle_client(void* arg) {
 }
 
 /* Main server loop which listens for and handles connections. */
-static void serve(int sockfd) {
+static void serve() {
     struct sockaddr_in client_addr;
     socklen_t client_len;
     int client_fd, id;
@@ -210,8 +247,8 @@ static void serve(int sockfd) {
 
     client_len = sizeof(client_addr);
     while (1) {
-        if ((client_fd = accept(sockfd, (struct sockaddr*) &client_addr, &client_len)) < 0) {
-            close(sockfd);
+        if ((client_fd = accept(master_sockfd, (struct sockaddr*) &client_addr, &client_len)) < 0) {
+            close(master_sockfd);
             stop_server(1);
         }
         if ((id = get_free_client_id()) < 0) {
@@ -229,7 +266,7 @@ static void serve(int sockfd) {
             pthread_attr_destroy(&attr);
             transmit(client_fd, CMD_QUIT, ERR_SERVER_STOPPING);
             clients[id].status = CLIENT_FREE;
-            close(sockfd);
+            close(master_sockfd);
             stop_server(1);
         }
         pthread_attr_destroy(&attr);
@@ -243,26 +280,46 @@ static void do_help(char* name) {
 }
 
 static void do_status(void) {
+    int sockfd = make_connection("localhost");
+    int n_clients, n_max, n_connecting, n_idle, n_waiting, n_in_game;
+    char resp[1024];
+
     printf("Terminvaders server: ");
-    if (!is_running())
+    if (sockfd < 0) {
         printf("offline.\n");
-    else
-        printf("running on port %d.\n", PORT);
+        return;
+    }
+    printf("running on port %d.\n", PORT);
+
+    if (transmit(sockfd, CMD_STATUS, NULL) < 0)
+        return;
+    read(sockfd, resp, 1024);
+    close(sockfd);
+    sscanf(resp, "%d/%d (%d/%d/%d/%d)", &n_clients, &n_max, &n_connecting,
+           &n_idle, &n_waiting, &n_in_game);
+
+    printf("%d users connected (%d max)\n", n_clients, n_max);
+    if (n_connecting > 0)
+        printf("  %d users connecting\n", n_connecting);
+    if (n_idle > 0)
+        printf("  %d users idling in the lobby\n", n_idle);
+    if (n_waiting > 0)
+        printf("  %d users waiting for a game to start\n", n_waiting);
+    if (n_in_game > 0)
+        printf("  %d users in a game\n", n_in_game);
 }
 
 static void do_start(void) {
-    int sockfd;
-
     if (is_running()) {
         printf("Error: the server is already running!\n");
         exit(1);
     }
-    sockfd = start_server();
+    start_server();
     printf("Terminvaders server listening on port %d.\n", PORT);
     printf("Daemonizing... ");
     fflush(stdout);
     daemonize();
-    serve(sockfd);
+    serve();
 }
 
 static void do_stop(void) {
