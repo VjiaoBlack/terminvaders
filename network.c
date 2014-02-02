@@ -8,6 +8,9 @@
 #include <netdb.h>
 #include "network.h"
 
+#define HEADER_SIZE 8
+#define HEADER_FMT "%02d%06d"
+
 /* Make a connection to a server. Return the FD or -1 if there was an error. */
 int make_connection(char* name) {
     int sockfd;
@@ -37,40 +40,62 @@ int make_connection(char* name) {
 
 /* Send a client->server or server->client message via sockfd. */
 int transmit(int sockfd, int command, char* data) {
-    int datalen = (data ? strlen(data) : 0) + 1, retval;
-    char* encoded = malloc(sizeof(char) * (datalen + 16));
+    int datalen = (data ? strlen(data) : 0) + 1, retval, remainder;
+    char *encoded = malloc(sizeof(char) * (HEADER_SIZE + datalen)), *unsent;
 
-    if (datalen == 1)
-        snprintf(encoded, datalen + 16, "%d|%d|", command, 1);
-    else
-        snprintf(encoded, datalen + 16, "%d|%d|%s", command, datalen, data);
-    retval = write(sockfd, encoded, strlen(encoded) + 1);
+    /* Encode data into a message for sending. */
+    snprintf(encoded, HEADER_SIZE + 1, HEADER_FMT, command, datalen);
+    if (datalen > 1)
+        snprintf(encoded + HEADER_SIZE, datalen, "%s", data);
+
+    /* write() remaining encoded data until all is sent, or we get an error. */
+    remainder = HEADER_SIZE + datalen;
+    unsent = encoded;
+    while (remainder) {
+        retval = write(sockfd, unsent, remainder);
+        if (retval < 0)
+            goto cleanup;
+        remainder -= retval;
+        unsent += retval;
+    }
+
+    cleanup:
     free(encoded);
     return retval;
 }
 
 /* Receive a client->server or server->client message via sockfd. */
 int receive(int sockfd, int* command, char** data) {
-    char buffer[1024], *tempbuf;
-    int nread, datalen, offset, remainder;
+    char header[HEADER_SIZE];
+    int nread, datalen, remainder;
 
-    nread = read(sockfd, buffer, 1024);
-    if (nread < 0)
-        return -1;
-    if (sscanf(buffer, "%d|%d|", command, &datalen) < 2)
+    /* read() until we get the whole header, or an error. */
+    remainder = HEADER_SIZE;
+    while (remainder) {
+        nread = read(sockfd, header + HEADER_SIZE - remainder, remainder);
+        if (nread < 1)
+            return -1;
+        remainder -= nread;
+    }
+
+    /* Process the header and malloc() enough to hold the data segment. */
+    if (sscanf(header, HEADER_FMT, command, &datalen) < 2)
         return -1;
     *data = malloc(sizeof(char) * datalen);
-    offset = strcspn(buffer, "|") + 1;
-    offset += strcspn(buffer + offset, "|") + 1;
-    strncpy(*data, buffer + offset, datalen);
 
-    if (nread < offset + datalen) {  /* We need to read more. */
-        remainder = offset + datalen - nread;
-        tempbuf = malloc(sizeof(char) * remainder);
-        if (read(sockfd, tempbuf, remainder) < 0)
+    /* Handle the no-data case for certain commands (CMD_STATUS, ...). */
+    if (datalen == 1) {
+        *data[0] = '\0';
+        return 0;
+    }
+
+    /* read() until we get all data, or an error. */
+    remainder = datalen;
+    while (remainder) {
+        nread = read(sockfd, *data + datalen - remainder, remainder);
+        if (nread < 1)
             return -1;
-        strncpy(*data + nread - offset, tempbuf, remainder);
-        free(tempbuf);
+        remainder -= nread;
     }
     return 0;
 }
