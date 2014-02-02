@@ -5,6 +5,11 @@
 static int rows = 44;
 static int cols = 180;
 
+//ben, this should be coming from your server instead of these variables
+static game_t* games;
+static user_t* users;
+static int numusers;
+
 int get_rows(void) {
     return rows;
 }
@@ -13,31 +18,8 @@ int get_cols(void) {
 }
 
 int main() {
-    int option;
-    FILE *fp;
-    if (!(fp = fopen("preferences.txt", "r"))) {
-        fp = fopen("preferences.txt", "w");
-        fputs("44:180", fp);
-        fclose(fp);
-        fp = fopen("preferences.txt", "r");
-    }
-    fscanf(fp, "%d:%d", &rows, &cols);
-    fclose(fp);
-    while (1){
-        switch(option = lobby()) {
-            drawlobby(option);
-            case MENU_QUIT:
-                xt_par0(XT_CH_NORMAL);
-                getkey_terminate();
-                return 0;
-        }
-    }
-
-}
-
-void drawlobby(int choice) {
-    int numusers = 6;
-    user_t *users = malloc(sizeof(user_t) * 6);
+    numusers = 6;
+    users = malloc(sizeof(user_t) * 6);
     *users = (user_t) {"Earwig"};
     *(++users) = (user_t) {"VjiaoBlack"};
     *(++users) = (user_t) {"jeuwshuawakeup"};
@@ -45,7 +27,6 @@ void drawlobby(int choice) {
     *(++users) = (user_t) {"Agnok"};
     *(++users) = (user_t) {"Xx.DarkLord.xX"};
     users -= 5;
-
 
     user_t *users1 = malloc(sizeof(user_t) * 4);
     users1[0] = users[0];
@@ -60,14 +41,280 @@ void drawlobby(int choice) {
     user_t *users3 = malloc(sizeof(user_t) * 1);
     users3[0] = users[5];
 
+    games = malloc(sizeof(game_t) * MAX_GAMES);
+    games[0] = (game_t) {1,"join this room if you have swag", 10, 4, 2, users1};//lobby_t current_lobby = (lobby_t) {"join this room if you have swag", 10, 4, 2, users1, NULL, NULL};
+    games[1] = (game_t) {1,"join this room if you dont have swag :(", 4, 1, 1, users2};//current_lobby.next = &((lobby_t) {"join this room if you dont have swag :(", 4, 1, 1, users2, NULL, &current_lobby});
+    games[2] = (game_t) {1,"pls dont join this room ty", 2, 1, 0, users3};
+    for (int i = 3; i < 10; i++) {
+        games[i] = (game_t){1,"testtesttest", i, 4, 0, users1};
+    }
+    for (int i = 10; i < MAX_GAMES; i++) {
+        games[i] = (game_t) {0};
+    }
 
-    lobby_t current_lobby = (lobby_t) {"join this room if you have swag", 10, 4, 2, users1, NULL, NULL};
+    int option;
+    FILE *fp;
+    if (!(fp = fopen("preferences.txt", "r"))) {
+        fp = fopen("preferences.txt", "w");
+        fputs("44:180", fp);
+        fclose(fp);
+        fp = fopen("preferences.txt", "r");
+    }
+    fscanf(fp, "%d:%d", &rows, &cols);
+    fclose(fp);
+    while (1){
+        switch(option = game()) {
+            case MENU_QUIT:
+                xt_par0(XT_CH_NORMAL);
+                getkey_terminate();
+                return 0;
+        }
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+void drawgame(int pos) {
+    int selected_game = 0;
+
+    int key = 0;
+    //data stuff that shud b replaced by the working server
+
+    user_t *users1 = malloc(sizeof(user_t) * 4);
+
+    users1[0] = users[0];
+    users1[1] = users[1];
+    users1[2] = users[3];
+    users1[3] = users[2];
+
+    user_t *users2 = malloc(sizeof(user_t) * 2);
+    users2[0] = users[4];
+    users2[1] = users[5];
+
+    user_t *users3 = malloc(sizeof(user_t) * 1);
+    users3[0] = users[5];
+
+    //--------------------------------------------------------
+    if (pos > -1) {
+        selected_game = pos;
+    }
+
+    dispframe();
+
+    xt_par0(XT_CH_NORMAL);
+    SETPOS(2, COLS - 18);
+    printf("Who's Online");
+
+    for (int i = 0; i < numusers; i++) {
+        SETPOS(4 + i, COLS - 18);
+        printf("%s", users[i].username);
+    }
+    // this should be scrollable too. Prob with <, > or 1, 0, or something. 
+
+    //this prints stuff before the current-----------
+    int i = selected_game - 3;
+    if (i < 0) i = 0;
+    int ioffset = 0;
+    while (i < selected_game) {
+        printgame(6 + 2 * ioffset, 0, games[i]);
+        i++;
+        ioffset++;
+        fflush(stdout);
+    }
+
+    //prints current ---------------
+    i = selected_game; // should be redundant. this is a safety catch.
+    printgame(6 + 2 * ioffset, 1, games[i]);
+    int useroffset = 1;
+    while (useroffset <= games[i].current_users){
+        SETPOS(6 + 2 * ioffset + useroffset, 8);
+        printf("%s", games[i].users[useroffset-1].username);
+        useroffset++;
+        fflush(stdout);
+    }
+    i++;
+    ioffset++;
+
+    //this prints stuff after the current
+    while (i < 64 && games[i].valid != 0 && 2 * ioffset + useroffset < ROWS - 8) {      
+        printgame(6 + 2 * ioffset + useroffset, 0, games[i]);
+        i++;
+        ioffset++;
+        fflush(stdout);
+    }
+
+    SETPOS(2, 3);
+    printf("Open Lobbies (Up/Down to select, %sJ%soin, %sC%sreate, %sQ%suit, %sH%selp)", XT_CH_UNDERLINE, XT_CH_NORMAL, XT_CH_UNDERLINE, XT_CH_NORMAL, XT_CH_UNDERLINE, XT_CH_NORMAL, XT_CH_UNDERLINE, XT_CH_NORMAL);
+
+    xt_par0(XT_CH_BOLD);
+    SETPOS(3, 3);
+    printf("terminvaders MuLtIpLaYeR Lobby");
+
+    xt_par0(XT_CH_DEFAULT);
+
+    SETPOS(3 * ROWS / 4, COLS / 2 - 2);
+    xt_par0(XT_CH_RED);
+    printf("Quit");
+
+
+    fflush(stdout);
+
+}
+
+
+
+void printgame(int row, int is_selected, game_t game) {
+    SETPOS(row, 4);
+    if (is_selected)
+        printf("> %s (%d/%d)", game.name, game.current_users, game.max_users);
+    else
+        printf("  %s (%d/%d)", game.name, game.current_users, game.max_users);
+    SETPOS(row, COLS - 30);
+    switch(game.type){
+        case 0:
+            printf("Duel");
+            break;
+        case 1:
+            printf("Team");
+            break;
+        case 2:
+            printf("Blitz");
+            break;
+    }
+}
+
+
+
+
+
+
+
+int game() {
+    int selected_game;
+
+    xt_par0(XT_CLEAR_SCREEN);
+    drawgame(0);
+    int key;
+    while(1) {
+        while((key = getkey()) == KEY_NOTHING);
+        switch(key) {
+            case 'q':
+            case 'Q':
+                xt_par0(XT_CLEAR_SCREEN);
+                SETPOS(0,0);
+                return MENU_QUIT; 
+                break;
+            case 'w':
+            case KEY_UP:
+                xt_par0(XT_CLEAR_SCREEN);
+                if (selected_game > 0) {
+                    drawgame(--selected_game);
+                } else {
+                    drawgame(selected_game);
+                }
+                break;
+            case 's':
+            case KEY_DOWN:
+                xt_par0(XT_CLEAR_SCREEN);
+                if (selected_game < 64 && games[selected_game + 1].valid != 0) {
+                    drawgame(++selected_game);
+                } else {
+                    drawgame(selected_game);
+                }
+                break;
+            case 'j':
+            case 'J':
+                join_popup(games[selected_game]);
+                drawgame(selected_game);
+                break;
+            case 'c':
+            case 'C':
+                create_popup();
+                break;
+            case 'h':
+            case 'H':
+                help_popup();
+                break;
+        }
+    }
+}
+
+void join_popup (game_t game) {
+    int key = 0;
+    int row = 0, col = 0;
+    xt_par0(XT_CH_NORMAL);
+    SETPOS(ROWS / 2 - 2, COLS / 2 - 30);
+    printf("%s                         Join Game                          %s", XT_CH_INVERSE,XT_CH_NORMAL);
     
-    current_lobby.next = &((lobby_t) {"join this room if you dont have swag :(", 4, 1, 1, users2, NULL, &current_lobby});
+    SETPOS(ROWS / 2 - 1, COLS / 2 - 30);
+    printf("%s  %s                                                        %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, XT_CH_INVERSE,XT_CH_NORMAL);
+    
+    char* title = malloc(sizeof(char) * 32);
+    strcpy(title, game.name);
+    int i = strlen(title);
 
-    current_lobby.next->next = &((lobby_t) {"pls dont join this room ty", 2, 1, 0, users3, NULL, current_lobby.next});
+
+    while (i < 41) {
+        strcat(title, " ");
+        i++;
+    }
 
 
+
+
+
+
+    SETPOS(ROWS / 2 , COLS / 2 - 30);
+    printf("%s  %s  Joining: %s    %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, title, XT_CH_INVERSE,XT_CH_NORMAL);
+    
+    SETPOS(ROWS / 2 + 1, COLS / 2 - 30);
+    printf("%s  %s                                                        %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, XT_CH_INVERSE,XT_CH_NORMAL);
+    
+    SETPOS(ROWS / 2 + 2, COLS / 2 - 30);
+    printf("%s                            %sB%s%sack                            %s", XT_CH_INVERSE, XT_CH_UNDERLINE, XT_CH_NORMAL,XT_CH_INVERSE, XT_CH_NORMAL);
+
+    while(1){
+        while((key = getkey()) == KEY_NOTHING);
+        switch(key){
+            case 'q':
+            case 'b':
+            case 'B':
+                xt_par0(XT_CLEAR_SCREEN);
+                return;
+        }
+    }
+    //this should disappear when the the join is accepted; else it moves on to here:
+    int rejected = 0;
+    if (rejected) {
+        SETPOS(row,col);
+        printf("You were rejected from the group!");
+    }
+}
+
+void create_popup () {
+
+}
+
+void help_popup () {
+
+}
+
+
+
+
+
+void dispframe(){
+    SETPOS(10,10);
+    xt_par0(XT_CH_NORMAL);
     int cursor_r = 1, cursor_c = 1;
     SETPOS(1, 1);
     int test = 0;
@@ -87,6 +334,8 @@ void drawlobby(int choice) {
         }
         test++;
     }
+
+
     cursor_r = 2;
     while (cursor_r < ROWS) {
         cursor_c = 1;
@@ -104,317 +353,5 @@ void drawlobby(int choice) {
             test = 0;
         }
         test++;
-    }
-
-    SETPOS(2, COLS - 18);
-    printf("Who's Online");
-    
-    for (int i = 0; i < numusers; i++) {
-        SETPOS(4 + i, COLS - 18);
-        printf("%s", users[i].username);
-    }
-
-    //this prints stuff before the current
-    int current_pos = 0;
-    lobby_t head;
-    lobby_t iterator = current_lobby;
-    while (iterator.previous != NULL) {
-        iterator = *(iterator.previous);
-        current_pos++;
-    }
-    head = iterator;
-
-    int i = 0;
-    while (current_pos > 0) {
-        SETPOS(6 + 2 * i, 6);
-        printf("%s (%d/%d)", iterator.name, iterator.current_users, iterator.max_users);
-
-        SETPOS(6 + 2 * i, COLS - 30);
-        switch(iterator.type){
-            case 0:
-                printf("Duel");
-                break;
-            case 1:
-                printf("Team");
-                break;
-            case 2:
-                printf("Blitz");
-                break;
-        }
-
-        iterator = *(iterator.next);
-        i++;
-    }
-
-    //prints current
-    SETPOS(6 + 2 * i, 4);
-    printf("> %s (%d/%d)", current_lobby.name, current_lobby.current_users, current_lobby.max_users);
-
-    SETPOS(6 + 2 * i, COLS - 30);
-    switch(iterator.type){
-        case 0:
-            printf("Duel");
-            break;
-        case 1:
-            printf("Team");
-            break;
-        case 2:
-            printf("Blitz");
-            break;
-    }
-    int useroffset = 1;
-    while (useroffset <= current_lobby.current_users){
-        SETPOS(6 + 2 * i + useroffset, 8);
-        printf("%s", current_lobby.users[useroffset-1].username);
-        useroffset++;
-    }
-
-    i++;
-
-
-
-
-    //this prints stuff after the current
-    iterator = current_lobby;
-    while (iterator.next != NULL) {
-
-        SETPOS(6 + 2 * i + useroffset, 6);
-        printf("%s (%d/%d)", iterator.name, iterator.current_users, iterator.max_users);
-
-        SETPOS(6 + 2 * i + useroffset, COLS - 30);
-        switch(iterator.type){
-            case 0:
-                printf("Duel");
-                break;
-            case 1:
-                printf("Team");
-                break;
-            case 2:
-                printf("Blitz");
-                break;
-        }
-
-        iterator = *(iterator.next);
-        i++;
-    }
-
-    SETPOS(2, 3);
-    printf("Open Lobbies (Up/Down to select, %sJ%soin, %sC%sreate, %sS%start, %sH%selp)", XT_CH_UNDERLINE, XT_CH_NORMAL, XT_CH_UNDERLINE, XT_CH_NORMAL, XT_CH_UNDERLINE, XT_CH_NORMAL, XT_CH_UNDERLINE, XT_CH_NORMAL);
-
-    xt_par0(XT_CH_BOLD);
-    SETPOS(3, 3);
-    printf("terminvaders MuLtIpLaYeR Lobby");
-
-    xt_par0(XT_CH_DEFAULT);
-
-    SETPOS(3 * ROWS / 4, COLS / 2 - 2);
-    xt_par0(XT_CH_RED);
-    printf("Quit");
-
-
-    /*
-    //display lobbys here
-
-    xt_par0(XT_CH_NORMAL);
-    xt_par0(XT_CH_BOLD);
-    SETPOS(6, 4);
-    printf(">");
-    xt_par0(XT_CH_INVERSE); 
-    SETPOS(6, 6);
-    printf("join this room if you have swag (4/10)");
-    xt_par0(XT_CH_NORMAL);
-    SETPOS(7, 10);
-    printf("Earwig");
-    SETPOS(8, 10);
-    printf("VjiaoBlack");
-    SETPOS(9, 10);
-    printf("Infernous");
-    SETPOS(10, 10);
-    printf("jeuwshuawakeup");
-    SETPOS(6, COLS - 30);
-    printf("Blitz");//mode  
-
-    xt_par0(XT_CH_NORMAL);
-    SETPOS(12, 8);
-    printf("join this room if you dont have swag :( (2/4)");
-    SETPOS(12, COLS - 30);
-    printf("Team");
-
-    SETPOS(14, 8);
-    printf("pls dont join this room ty (1/2)");
-    SETPOS(14, COLS - 30);
-    printf("Duel");
-
-                        /*
-                        xt_par0(XT_CH_BOLD);
-                        xt_par0(XT_CH_INVERSE);
-                        switch (choice) { // makes the button highlighted
-                            case 0:
-                                SETPOS(ROWS / 2, COLS / 2 - 2);
-                                xt_par0(XT_CH_GREEN);
-                                printf("Play");
-                                SETPOS(ROWS, COLS);
-                                break;
-                            case 1:
-                                SETPOS(5 * ROWS / 8, COLS / 2 - 4);
-                                xt_par0(XT_CH_WHITE);
-                                xt_par0(XT_CH_BOLD);
-                                printf("Settings");
-                                SETPOS(ROWS, COLS);
-                                break;
-                            case 2:
-                                SETPOS(3 * ROWS / 4, COLS / 2 - 2);
-                                xt_par0(XT_CH_RED);
-                                printf("Quit");
-                                SETPOS(ROWS, COLS);
-                                break;
-                        }
-                        xt_par0(XT_CH_NORMAL);
-                        */
-
-    fflush(stdout);
-}
-
-int lobby() {
-    xt_par0(XT_CLEAR_SCREEN);
-    drawlobby(0);
-    int key, choice = 0;
-    while(1) {
-        if (getkey() == 'q'){
-            xt_par0(XT_CLEAR_SCREEN);
-            SETPOS(0,0);
-            return MENU_QUIT; 
-        }  
-    }
-                        /*
-                        while (1) {
-                            switch (key = getkey()) {
-                            case KEY_UP:
-                            case 'w':
-                                xt_par0(XT_CH_DEFAULT);
-                                switch (choice) { // makes the previous button 'normal'
-                                    case 0:
-                                        SETPOS(ROWS / 2, COLS / 2 - 2);
-                                        xt_par0(XT_CH_GREEN);
-                                        printf("Play");
-                                        break;
-                                    case 1:
-                                        SETPOS(5 * ROWS / 8, COLS / 2 - 4);
-                                        xt_par0(XT_CH_WHITE);
-                                        printf("Settings");
-                                        break;
-                                    case 2:
-                                        SETPOS(3 * ROWS / 4, COLS / 2 - 2);
-                                        xt_par0(XT_CH_RED);
-                                        printf("Quit");
-                                        break;
-                                }
-                                choice = !choice ? 2 : choice - 1;
-                                xt_par0(XT_CH_BOLD);
-                                xt_par0(XT_CH_INVERSE);
-                                switch (choice) { // makes the button highlighted
-                                    case 0:
-                                        SETPOS(ROWS / 2, COLS / 2 - 2);
-                                        xt_par0(XT_CH_GREEN);
-                                        printf("Play");
-                                        SETPOS(ROWS, COLS);
-                                        break;
-                                    case 1:
-                                        SETPOS(5 * ROWS / 8, COLS / 2 - 4);
-                                        xt_par0(XT_CH_WHITE);
-                                        xt_par0(XT_CH_BOLD);
-                                        printf("Settings");
-                                        SETPOS(ROWS, COLS);
-                                        break;
-                                    case 2:
-                                        SETPOS(3 * ROWS / 4, COLS / 2 - 2);
-                                        xt_par0(XT_CH_RED);
-                                        printf("Quit");
-                                        SETPOS(ROWS, COLS);
-                                        break;
-                                }
-                                xt_par0(XT_CH_NORMAL);
-                                break;
-                            case KEY_DOWN:
-                            case 's':
-                                xt_par0(XT_CH_DEFAULT);
-                                switch (choice) { // makes the previous button 'normal'
-                                    case 0:
-                                        SETPOS(ROWS / 2, COLS / 2 - 2);
-                                        xt_par0(XT_CH_GREEN);
-                                        printf("Play");
-                                        break;
-                                    case 1:
-                                        SETPOS(5 * ROWS / 8, COLS / 2 - 4);
-                                        xt_par0(XT_CH_WHITE);
-                                        printf("Settings");
-                                        break;
-                                    case 2:
-                                        SETPOS(3 * ROWS / 4, COLS / 2 - 2);
-                                        xt_par0(XT_CH_RED);
-                                        printf("Quit");
-                                        break;
-                                }
-                                choice = (choice + 1) % 3;
-                                xt_par0(XT_CH_BOLD);
-                                xt_par0(XT_CH_INVERSE);
-                                switch (choice) { // makes the button highlighted
-                                    case 0:
-                                        SETPOS(ROWS / 2, COLS / 2 - 2);
-                                        xt_par0(XT_CH_GREEN);
-                                        printf("Play");
-                                        SETPOS(ROWS, COLS);
-                                        break;
-                                    case 1:
-                                        SETPOS(5 * ROWS / 8, COLS / 2 - 4);
-                                        xt_par0(XT_CH_WHITE);
-                                        xt_par0(XT_CH_BOLD);
-                                        printf("Settings");
-                                        SETPOS(ROWS, COLS);
-                                        break;
-                                    case 2:
-                                        SETPOS(3 * ROWS / 4, COLS / 2 - 2);
-                                        xt_par0(XT_CH_RED);
-                                        printf("Quit");
-                                        SETPOS(ROWS, COLS);
-                                        break;
-                                    }
-                                    xt_par0(XT_CH_NORMAL);
-                                    break;
-                                case KEY_ENTER:
-                                    return choice;
-                                case 'q':
-                                    return MENU_QUIT;
-                            }
-                        }
-                        */
-}
-
-
-
-void dispframe(){
-    
-    int cursor_r = 1, cursor_c = 1;
-    SETPOS(1, 1);
-    while (cursor_c <= get_cols()) {
-        cursor_r = 1;
-        SETPOS(cursor_r, cursor_c);
-        putchar('-');
-        cursor_r = get_rows();
-        SETPOS(cursor_r, cursor_c);
-        putchar('-');
-        cursor_c++;
-        //fflush(stdout);
-    }
-    cursor_r = 2;
-    while (cursor_r <= get_rows()) {
-        cursor_c = 1;
-        SETPOS(cursor_r, cursor_c);
-        putchar('|');
-        cursor_c = get_cols();
-        SETPOS(cursor_r, cursor_c);
-        putchar('|');
-        cursor_r++;
-        //fflush(stdout);
     }
 }
