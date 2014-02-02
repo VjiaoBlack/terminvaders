@@ -183,7 +183,7 @@ static void* handle_client(void* arg) {
         case CMD_STATUS:
             free(buffer);
             if (is_local_client(id)) {
-                serialize_status_data(&clients[0], databuf);
+                serialize_status_data(&clients[0], &games[0], databuf);
                 write(sockfd, databuf, strlen(databuf));
             }
             else
@@ -263,7 +263,8 @@ static void do_help(char* name) {
 
 static void do_status(void) {
     int sockfd = make_connection("localhost");
-    int n_clients, n_max, n_connecting, n_idle, n_waiting, n_in_game;
+    int n_clients, nc_max, nc_connecting, nc_idle, nc_waiting, nc_in_game,
+        n_games, ng_max, ng_waiting, ng_playing;
     char resp[1024];
 
     printf("Terminvaders server: ");
@@ -277,18 +278,25 @@ static void do_status(void) {
         return;
     read(sockfd, resp, 1024);
     close(sockfd);
-    sscanf(resp, "%d/%d (%d/%d/%d/%d)", &n_clients, &n_max, &n_connecting,
-           &n_idle, &n_waiting, &n_in_game);
+    sscanf(resp, "%d/%d (%d/%d/%d/%d)\n%d/%d (%d/%d)", &n_clients, &nc_max,
+           &nc_connecting, &nc_idle, &nc_waiting, &nc_in_game, &n_games,
+           &ng_max, &ng_waiting, &ng_playing);
 
-    printf("%d users connected (%d max)\n", n_clients, n_max);
-    if (n_connecting > 0)
-        printf("  %d users connecting\n", n_connecting);
-    if (n_idle > 0)
-        printf("  %d users idling in the lobby\n", n_idle);
-    if (n_waiting > 0)
-        printf("  %d users waiting for a game to start\n", n_waiting);
-    if (n_in_game > 0)
-        printf("  %d users in a game\n", n_in_game);
+    printf("%d users connected (%d max)\n", n_clients, nc_max);
+    if (nc_connecting > 0)
+        printf("  %d users connecting\n", nc_connecting);
+    if (nc_idle > 0)
+        printf("  %d users idling in the lobby\n", nc_idle);
+    if (nc_waiting > 0)
+        printf("  %d users waiting for a game to start\n", nc_waiting);
+    if (nc_in_game > 0)
+        printf("  %d users in a game\n", nc_in_game);
+
+    printf("%d games active (%d max)\n", n_games, ng_max);
+    if (ng_waiting > 0)
+        printf("  %d games waiting for players\n", ng_waiting);
+    if (ng_playing > 0)
+        printf("  %d games in progress\n", ng_playing);
 }
 
 static void do_start(void) {
