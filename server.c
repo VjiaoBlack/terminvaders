@@ -17,6 +17,13 @@ int master_sockfd;
 client_t clients[MAX_CLIENTS];
 mgame_t games[MAX_GAMES];
 
+/* ----------------------------- Helper Macros ----------------------------- */
+
+#define SAFE_TRANSMIT(id, sockfd, command, data) \
+    pthread_mutex_lock(&clients[id].mutex); \
+    transmit(sockfd, command, data); \
+    pthread_mutex_unlock(&clients[id].mutex);
+
 /* --------------------------- Helper Functions ---------------------------- */
 
 /* Return whether or not the server is currently running. */
@@ -199,16 +206,18 @@ static void* handle_client(void* arg) {
         if (receive(sockfd, &command, &buffer) < 0)
             goto cleanup;
         switch (command) {
-            case CMD_LOBBYINFO:
+            case CMD_LOBBY_INFO:
                 free(buffer);
+                if (clients[id].status != CLIENT_IDLE) {
+                    SAFE_TRANSMIT(id, sockfd, CMD_QUIT, ERR_BAD_CONTEXT);
+                    goto cleanup;
+                }
                 serialize_lobby_info(&clients[0], &games[0], &buffer);
-                pthread_mutex_lock(&clients[id].mutex);
-                transmit(sockfd, CMD_LOBBYINFO, buffer);
-                pthread_mutex_unlock(&clients[id].mutex);
+                SAFE_TRANSMIT(id, sockfd, CMD_LOBBY_INFO, buffer);
                 break;
             default:
                 free(buffer);
-                transmit(sockfd, CMD_QUIT, ERR_INVALID);
+                SAFE_TRANSMIT(id, sockfd, CMD_QUIT, ERR_INVALID);
                 goto cleanup;
         }
         free(buffer);
