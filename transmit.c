@@ -31,8 +31,9 @@ void serialize_status_data(client_t* clients, char* databuf) {
 }
 
 /* Serialize lobby info into a malloc()'d buffer. */
-void serialize_lobby_info(client_t* clients, char** buffer_ptr) {
-    int id, status, pos, bufsize = (MAX_CLIENTS + MAX_GAMES) * (NAME_LEN + 20);
+#define APPEND(args...) pos += snprintf(buffer + pos, bufsize - pos, args)
+void serialize_lobby_info(client_t* clients, mgame_t* games, char** buffer_ptr) {
+    int id, status, pos, i, bufsize = (MAX_CLIENTS + MAX_GAMES) * (NAME_LEN + 20);
     char* buffer = malloc(sizeof(char) * bufsize);
 
     *buffer_ptr = buffer;
@@ -42,9 +43,20 @@ void serialize_lobby_info(client_t* clients, char** buffer_ptr) {
         status = clients[id].status;
         if (status == CLIENT_FREE || status == CLIENT_CONNECTING)
             continue;
-        pos += snprintf(buffer + pos, bufsize - pos, "{%d.%d.%s}", id, status, clients[id].name);
+        APPEND("{%d.%d.%s}", id, status, clients[id].name);
     }
-    pos += snprintf(buffer + pos, bufsize - pos, "][");
-    // game data
-    pos += snprintf(buffer + pos, bufsize - pos, "]");
+    APPEND("][");
+    for (id = 0; id < MAX_GAMES; id++) {
+        status = games[id].status;
+        if (status == GAME_FREE)
+            continue;
+        APPEND("{%d.%d.%d.%d.", id, status, games[id].slots_total, games[id].slots_filled);
+        for (i = 0; i < MAX_SLOTS; i++) {
+            APPEND("%d", games[id].players[i]);
+            if (i < MAX_SLOTS - 1)
+                APPEND(",");
+        }
+        APPEND(".%s}", games[id].name);
+    }
+    APPEND("]");
 }

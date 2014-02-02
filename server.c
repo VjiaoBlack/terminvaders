@@ -15,7 +15,7 @@
 
 int master_sockfd;
 client_t clients[MAX_CLIENTS];
-multigame_t multigames[MAX_GAMES];
+mgame_t games[MAX_GAMES];
 
 /* --------------------------- Helper Functions ---------------------------- */
 
@@ -98,6 +98,8 @@ static void start_server(void) {
         clients[id] = (client_t) {id, CLIENT_FREE};
         pthread_mutex_init(&clients[id].mutex, NULL);
     }
+    for (id = 0; id < MAX_GAMES; id++)
+        games[id] = (mgame_t) {id, GAME_FREE};
     if (signal(SIGTERM, catch_signal) == SIG_ERR) {
         printf("Error: couldn't attach a signal handler.\n");
         exit(1);
@@ -199,7 +201,7 @@ static void* handle_client(void* arg) {
         switch (command) {
             case CMD_LOBBYINFO:
                 free(buffer);
-                serialize_lobby_info(&clients[0], &buffer);
+                serialize_lobby_info(&clients[0], &games[0], &buffer);
                 pthread_mutex_lock(&clients[id].mutex);
                 transmit(sockfd, CMD_LOBBYINFO, buffer);
                 pthread_mutex_unlock(&clients[id].mutex);

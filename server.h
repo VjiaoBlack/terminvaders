@@ -16,6 +16,10 @@
 #define CLIENT_WAITING 3
 #define CLIENT_IN_GAME 4
 
+#define GAME_FREE 0
+#define GAME_WAITING 1
+#define GAME_PLAYING 2
+
 /* Structs */
 
 struct client_t {
@@ -30,7 +34,7 @@ struct client_t {
 };
 typedef struct client_t client_t;
 
-struct multigame_t {
+struct mgame_t {
     int id;
     int status;
     int slots_total;
@@ -38,4 +42,4 @@ struct multigame_t {
     int players[MAX_SLOTS];
     char name[NAME_LEN + 1];
 };
-typedef struct multigame_t multigame_t;
+typedef struct mgame_t mgame_t;
