@@ -4,7 +4,7 @@
 #include "transmit.h"
 
 /* Serialize status information into databuf. */
-void serialize_status_data(client_t clients[MAX_CLIENTS], char* databuf) {
+void serialize_status_data(client_t* clients, char* databuf) {
     int id, n_clients = 0, n_connecting = 0, n_idle = 0, n_waiting = 0, n_in_game = 0;
 
     for (id = 0; id < MAX_CLIENTS; id++) {
@@ -31,7 +31,7 @@ void serialize_status_data(client_t clients[MAX_CLIENTS], char* databuf) {
 }
 
 /* Serialize lobby info into a malloc()'d buffer. */
-void serialize_lobby_info(client_t clients[MAX_CLIENTS], char** buffer_ptr) {
+void serialize_lobby_info(client_t* clients, char** buffer_ptr) {
     int id, status, pos, bufsize = (MAX_CLIENTS + MAX_GAMES) * (NAME_LEN + 20);
     char* buffer = malloc(sizeof(char) * bufsize);
 

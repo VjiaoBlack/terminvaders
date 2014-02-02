@@ -181,7 +181,7 @@ static void* handle_client(void* arg) {
         case CMD_STATUS:
             free(buffer);
             if (is_local_client(id)) {
-                serialize_status_data(clients, databuf);
+                serialize_status_data(&clients[0], databuf);
                 write(sockfd, databuf, strlen(databuf));
             }
             else
@@ -199,7 +199,7 @@ static void* handle_client(void* arg) {
         switch (command) {
             case CMD_LOBBYINFO:
                 free(buffer);
-                serialize_lobby_info(clients, &buffer);
+                serialize_lobby_info(&clients[0], &buffer);
                 pthread_mutex_lock(&clients[id].mutex);
                 transmit(sockfd, CMD_LOBBYINFO, buffer);
                 pthread_mutex_unlock(&clients[id].mutex);
