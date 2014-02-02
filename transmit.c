@@ -37,26 +37,24 @@ void serialize_lobby_info(client_t* clients, mgame_t* games, char** buffer_ptr) 
     char* buffer = malloc(sizeof(char) * bufsize);
 
     *buffer_ptr = buffer;
-    strcpy(buffer, "[");
-    pos = 1;
+    pos = 0;
     for (id = 0; id < MAX_CLIENTS; id++) {
         status = clients[id].status;
         if (status == CLIENT_FREE || status == CLIENT_CONNECTING)
             continue;
-        APPEND("{%d.%d.%s}", id, status, clients[id].name);
+        APPEND("%d|%d|%s\n", id, status, clients[id].name);
     }
-    APPEND("][");
+    APPEND("|\n");
     for (id = 0; id < MAX_GAMES; id++) {
         status = games[id].status;
         if (status == GAME_FREE)
             continue;
-        APPEND("{%d.%d.%d.%d.", id, status, games[id].slots_total, games[id].slots_filled);
+        APPEND("%d|%d|%d|%d|", id, status, games[id].slots_total, games[id].slots_filled);
         for (i = 0; i < MAX_SLOTS; i++) {
             APPEND("%d", games[id].players[i]);
             if (i < MAX_SLOTS - 1)
                 APPEND(",");
         }
-        APPEND(".%s}", games[id].name);
+        APPEND("|%s\n", games[id].name);
     }
-    APPEND("]");
 }
