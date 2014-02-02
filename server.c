@@ -9,11 +9,13 @@
 #include <sys/stat.h>
 #include <arpa/inet.h>
 #include "server.h"
+#include "transmit.h"
 
 /* --------------------------- Global Variables ---------------------------- */
 
 int master_sockfd;
 client_t clients[MAX_CLIENTS];
+multigame_t multigames[MAX_GAMES];
 
 /* --------------------------- Helper Functions ---------------------------- */
 
@@ -148,52 +150,6 @@ static int is_local_client(int id) {
     return strcmp(cname, "127.0.0.1") == 0;
 }
 
-/* Put some status information into databuf. */
-static void get_status_data(char* databuf) {
-    int id, n_clients = 0, n_connecting = 0, n_idle = 0, n_waiting = 0, n_in_game = 0;
-
-    for (id = 0; id < MAX_CLIENTS; id++) {
-        if (clients[id].status != CLIENT_FREE)
-            n_clients++;
-        switch (clients[id].status) {
-            case CLIENT_CONNECTING:
-                n_connecting++; break;
-            case CLIENT_IDLE:
-                n_idle++;       break;
-            case CLIENT_WAITING:
-                n_waiting++;    break;
-            case CLIENT_IN_GAME:
-                n_in_game++;    break;
-        }
-    }
-
-    /* This will include the client asking for data, which is bad. */
-    n_clients--;
-    n_connecting--;
-
-    snprintf(databuf, 1024, "%d/%d (%d/%d/%d/%d)", n_clients, MAX_CLIENTS,
-             n_connecting, n_idle, n_waiting, n_in_game);
-}
-
-/* Put encoded lobby info into databuf. */
-static void encode_lobby_info(char** buffer_ptr) {
-    int id, status, pos, bufsize = (MAX_CLIENTS + MAX_GAMES) * (NAME_LEN + 20);
-    char* buffer = malloc(sizeof(char) * bufsize);
-
-    *buffer_ptr = buffer;
-    strcpy(buffer, "[");
-    pos = 1;
-    for (id = 0; id < MAX_CLIENTS; id++) {
-        status = clients[id].status;
-        if (status == CLIENT_FREE || status == CLIENT_CONNECTING)
-            continue;
-        pos += snprintf(buffer + pos, bufsize - pos, "{%d.%d.%s}", id, status, clients[id].name);
-    }
-    pos += snprintf(buffer + pos, bufsize - pos, "][");
-    // game data
-    pos += snprintf(buffer + pos, bufsize - pos, "]");
-}
-
 /* Handle a connection with a client. */
 static void* handle_client(void* arg) {
     char* buffer, databuf[1024];
@@ -225,7 +181,7 @@ static void* handle_client(void* arg) {
         case CMD_STATUS:
             free(buffer);
             if (is_local_client(id)) {
-                get_status_data(databuf);
+                serialize_status_data(clients, databuf);
                 write(sockfd, databuf, strlen(databuf));
             }
             else
@@ -243,7 +199,7 @@ static void* handle_client(void* arg) {
         switch (command) {
             case CMD_LOBBYINFO:
                 free(buffer);
-                encode_lobby_info(&buffer);
+                serialize_lobby_info(clients, &buffer);
                 pthread_mutex_lock(&clients[id].mutex);
                 transmit(sockfd, CMD_LOBBYINFO, buffer);
                 pthread_mutex_unlock(&clients[id].mutex);

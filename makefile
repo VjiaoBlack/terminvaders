@@ -7,8 +7,8 @@ all: terminvaders server
 terminvaders: build build/keyboard.o build/xterm_control.o build/game.o build/graphics.o build/terminvaders.o build/settings.o build/star.o
 	$(LINK) build/keyboard.o build/xterm_control.o build/game.o build/graphics.o build/terminvaders.o build/settings.o build/star.o -o terminvaders
 
-server: build build/network.o build/server.o
-	$(LINK) build/network.o build/server.o -o server
+server: build build/network.o build/transmit.o build/server.o
+	$(LINK) build/network.o build/transmit.o build/server.o -o server
 
 build/keyboard.o: xterm/keyboard.c
 	$(COMPILE) xterm/keyboard.c -o build/keyboard.o
@@ -30,6 +30,9 @@ build/settings.o: settings.c settings.h terminvaders.h star.h
 
 build/network.o: network.c network.h
 	$(COMPILE) network.c -o build/network.o
+
+build/transmit.o: transmit.c transmit.h network.c network.h server.c server.h
+	$(COMPILE) transmit.c -o build/transmit.o
 
 build/server.o: server.c server.h network.c network.h
 	$(COMPILE) server.c -o build/server.o

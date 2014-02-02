@@ -1,3 +1,4 @@
+#pragma once
 #include <sys/types.h>
 #include <netinet/in.h>
 #include "graphics.h"
@@ -7,6 +8,7 @@
 
 #define MAX_CLIENTS 64
 #define MAX_GAMES 32
+#define MAX_SLOTS 4
 
 #define CLIENT_FREE 0
 #define CLIENT_CONNECTING 1
@@ -20,9 +22,20 @@ struct client_t {
     int id;
     int status;
     int sockfd;
-    struct sockaddr_in addr;
+    int game;
     char name[NAME_LEN + 1];
+    struct sockaddr_in addr;
     pthread_t thread;
     pthread_mutex_t mutex;
 };
 typedef struct client_t client_t;
+
+struct multigame_t {
+    int id;
+    int status;
+    int slots_total;
+    int slots_filled;
+    int players[MAX_SLOTS];
+    char name[NAME_LEN + 1];
+};
+typedef struct multigame_t multigame_t;
