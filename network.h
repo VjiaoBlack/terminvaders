@@ -1,3 +1,5 @@
+#pragma once
+
 /* Defines */
 
 #define PORT 6413

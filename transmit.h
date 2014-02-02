@@ -1,3 +1,4 @@
+#pragma once
 #include "server.h"
 
 void serialize_status_data(client_t clients[MAX_CLIENTS], char*);
