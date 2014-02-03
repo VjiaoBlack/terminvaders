@@ -38,10 +38,26 @@ void dispmultiframe();
 int game();
 void drawgame(int);
 void printgame(int,int,multiplayergame_t);
-void join_popup (multiplayergame_t);
+int join_popup (multiplayergame_t);
 int create_popup ();
 void help_popup ();
 void game_wait(int);
+int lobby();
+void serverlogin();
+int confirm_request(user_t);
+
+
+/* notes:
+    display all palyers in game
+    also the whitespace at the bottom; bottom entry should be disp at bottom
+
+
+    multiplayer button -> name and server entry -> the mainscreen
+
+    also make the invite / accept thign actualy.
+
+
+*/
 
 
 
