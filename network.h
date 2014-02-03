@@ -35,6 +35,10 @@
 #define ERR_INVALID "Invalid command."
 #define ERR_BAD_CONTEXT "You issued a valid command in an invalid context."
 #define ERR_BAD_NAME "The name you entered is invalid."
+#define ERR_BAD_ID "Invalid game ID."
+#define ERR_GAME_FULL "The game you tried to join is full."
+#define ERR_GAME_STARTED "The game you tried to join is already in progress."
+#define ERR_ALREADY_PENDING "You already have a pending game join request."
 #define ERR_KICKED "You have been kicked from the server."
 
 /* Functions */

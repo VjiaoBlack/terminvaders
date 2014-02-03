@@ -111,6 +111,7 @@ static void start_server(void) {
 
     for (id = 0; id < MAX_CLIENTS; id++) {
         clients[id] = (client_t) {id, CLIENT_FREE};
+        clients[id].request = -1;
         pthread_mutex_init(&clients[id].send_lock, NULL);
     }
     for (id = 0; id < MAX_GAMES; id++) {
@@ -182,28 +183,58 @@ static int is_local_client(int id) {
 
 /* Process CMD_SETUP_GAME. */
 static void process_setup_game(int id, int sockfd, char* buffer) {
-    // read in total slots and game name from buffer
-    // lock global game mutex
-    // get a free game id; if -1 -> err_full
-    // set up game struct (status->waiting, slots_total, slots_filled->0, players[0]->id, name) (status update LAST)
-    // unlock global game mutex
-    // set client status to waiting
-    // set client game to id
-    // send cmd_player_join to new admin
+    int game_id, game_type, slots_total;
+    char name[NAME_LEN + 1], *name_ptr = name, tempbuf[8];
+
+    unserialize_game_setup(buffer, &name_ptr, &game_type, &slots_total);
+    pthread_mutex_lock(&new_game_lock);
+    if ((game_id = get_free_game_id()) < 0) {
+        pthread_mutex_unlock(&new_game_lock);
+        SAFE_TRANSMIT(id, sockfd, CMD_ERROR, ERR_FULL);
+        return;
+    }
+
+    games[game_id].slots_total = slots_total;
+    games[game_id].slots_filled = 0;
+    games[game_id].players[0] = id;
+    strcpy(games[game_id].name, name);
+    games[game_id].type = game_type;
+    games[game_id].status = GAME_WAITING;
+    pthread_mutex_unlock(&new_game_lock);
+
+    clients[id].game = game_id;
+    clients[id].status = CLIENT_WAITING;
+    snprintf(tempbuf, 8, "%d", id);
+    SAFE_TRANSMIT(id, sockfd, CMD_PLAYER_JOIN, tempbuf);
 }
 
 /* Process CMD_JOIN_GAME. */
 static void process_join_game(int id, int sockfd, char* buffer) {
-    // if user already has a request pending -> err_already_pending
-    // unpack game
-    // if game out of range -> err_bad_id
-    // lock game state mutex
-    // if game free -> err_bad_id
-    // if game full -> err_game_full
-    // if game in progress -> err_game_started
-    // track pending request (id->game)
-    // send cmd_new_request to game.players[0]
-    // unlock game state mutex
+    int game_id, admin;
+
+    if (clients[id].request != -1) {
+        SAFE_TRANSMIT(id, sockfd, CMD_ERROR, ERR_ALREADY_PENDING);
+        return;
+    }
+    game_id = atoi(buffer);
+    if (game_id < 0 || game_id >= MAX_GAMES) {
+        SAFE_TRANSMIT(id, sockfd, CMD_ERROR, ERR_BAD_ID);
+        return;
+    }
+
+    pthread_mutex_lock(games[game_id].state_lock);
+    if (games[game_id].status != GAME_WAITING) {
+        SAFE_TRANSMIT(id, sockfd, CMD_ERROR, (games[game_id].status == GAME_PLAYING) ? ERR_GAME_STARTED : ERR_BAD_ID);
+        return;
+    }
+    if (games[game_id].slots_filled >= games[game_id.slots_total]) {
+        SAFE_TRANSMIT(id, sockfd, CMD_ERROR, ERR_GAME_FULL);
+        return;
+    }
+    clients[id].request = game_id;
+    admin = games[game_id].players[0];
+    SAFE_TRANSMIT(admin, clients[admin].sockfd, CMD_ERROR, ERR_GAME_FULL);
+    pthread_mutex_unlock(games[game_id].state_lock);
 }
 
 /* Process CMD_CANCEL_REQ. */

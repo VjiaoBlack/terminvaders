@@ -28,6 +28,7 @@ struct client_t {
     int sockfd;
     int game;
     char name[NAME_LEN + 1];
+    int request;
     struct sockaddr_in addr;
     pthread_t thread;
     pthread_mutex_t send_lock;
@@ -41,6 +42,7 @@ struct mgame_t {
     int slots_filled;
     int players[MAX_SLOTS];
     char name[NAME_LEN + 1];
+    int type;
     pthread_mutex_t state_lock;
 };
 typedef struct mgame_t mgame_t;

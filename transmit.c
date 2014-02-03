@@ -75,3 +75,8 @@ void serialize_lobby_info(client_t* clients, mgame_t* games, char** buffer_ptr) 
         pthread_mutex_unlock(&games[id].state_lock);
     }
 }
+
+/* Unserialize game setup data. */
+void unserialize_game_setup(char* buffer, char** name, int* type, int* slots) {
+    // TODO
+}
