@@ -199,9 +199,26 @@ static void cancel_requests(int game_id) {
     }
 }
 
+/* Process input from a user into a game. */
+static void process_game_input(game_t* game, int player, int action) {
+    switch (action) {
+        case INPUT_UP:
+            break;
+        case INPUT_DOWN:
+            break;
+        case INPUT_LEFT:
+            break;
+        case INPUT_RIGHT:
+            break;
+        case INPUT_SHOOT:
+            break;
+    }
+}
+
 /* Handle the logic in a running game. This runs in its own thread. */
 static void* handle_game(void* arg) {
-    int id = *((int*) arg), slot, player;
+    int id = *((int*) arg), action, player, slot;
+    input_t* input;
     char *buffer;
 
     /* Set up the game and enter the logic loop. */
@@ -215,7 +232,17 @@ static void* handle_game(void* arg) {
         do_logic(&games[id].data);
 
         /* Handle unprocessed player input. */
-        // TODO
+        pthread_mutex_lock(&games[id].input_buffer.lock);
+        while (games[id].input_buffer.first != NULL) {
+            /* Pop the first input item off the stack. */
+            input = games[id].input_buffer.first;
+            player = input->player;
+            action = input->action;
+            games[id].input_buffer.first = input->next;
+            free(input);
+            process_game_input(&games[id].data, player, action);
+        }
+        pthread_mutex_unlock(&games[id].input_buffer.lock);
 
         /* Update all players with the current game status. */
         serialize_game_data(&games[id].data, &buffer);

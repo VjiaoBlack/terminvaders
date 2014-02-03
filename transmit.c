@@ -82,7 +82,7 @@ void serialize_game_data(game_t* game, char** buffer_ptr) {
     char* buffer = malloc(sizeof(char) * bufsize);
 
     *buffer_ptr = buffer;
-    // TODO
+    // TODO: actually serialize data
 }
 
 /* Unserialize game setup data. */
