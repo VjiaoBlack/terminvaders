@@ -4,7 +4,7 @@
 #include "game.h"
 
 /* Some function headers. */
-static void spawn_player(game_t*);
+static void spawn_player(game_t*, int);
 static void despawn_player(game_t*);
 static enemy_t* spawn_enemy(game_t*);
 static enemy_t* despawn_enemy(game_t*, enemy_t*, enemy_t*);
@@ -14,9 +14,9 @@ static explosion_t* spawn_explosion(game_t*, int, int, int);
 static explosion_t* despawn_explosion(game_t*, explosion_t*, explosion_t*);
 
 /* Spawn the player in the game. */
-static void spawn_player(game_t* game) {
+static void spawn_player(game_t* game, int lives) {
     point_t point = {COLS / 2 - 1, ROWS - 5};
-    game->player = (player_t) {point, 0, PLAYER_INVINCIBILITY, 0, 0, 0, 4};
+    game->player = (player_t) {point, lives, 0, PLAYER_INVINCIBILITY, 0, 0, 0, 4};
 }
 
 /* Despawn the player in the game. */
@@ -177,13 +177,12 @@ static void do_player_logic(game_t* game) {
     if (player->respawning && !game->over) {  // Respawn timer
         player->respawning--;
         if (!player->respawning) {
-            if (!game->lives) {
+            if (!player->lives) {
                 player->respawning = 1;  // Prevent player from being displayed
                 game->over = GAME_OVER_TIMER;
             }
             else {
-                game->lives--;
-                spawn_player(game);
+                spawn_player(game, player->lives - 1);
                 player = &game->player;
             }
         }
@@ -399,10 +398,10 @@ static void draw_hud(game_t* game) {
         printf("%sScore:%s %s%d%s", XT_CH_BOLD, XT_CH_NORMAL, XT_CH_YELLOW, game->score, XT_CH_NORMAL);
         SETPOS(ROWS, 1);
         printf("%sShips:%s", XT_CH_BOLD, XT_CH_NORMAL);
-        if (game->lives >= 5)
-            printf(" %s^%s x %s%d%s", XT_CH_GREEN, XT_CH_NORMAL, XT_CH_YELLOW, game->lives, XT_CH_NORMAL);
-        else if (game->lives) {
-            for (i = 0; i < game->lives; i++)
+        if (game->player.lives >= 5)
+            printf(" %s^%s x %s%d%s", XT_CH_GREEN, XT_CH_NORMAL, XT_CH_YELLOW, game->player.lives, XT_CH_NORMAL);
+        else if (game->player.lives) {
+            for (i = 0; i < game->player.lives; i++)
                 printf(" %s^%s", XT_CH_GREEN, XT_CH_NORMAL);
         }
         else
@@ -451,14 +450,13 @@ static void render(game_t* game) {
 void setup_game(game_t* game) {
     game->running = 1;
     game->score = 0;
-    game->lives = PLAYER_LIVES;
     game->over = 0;
     game->until_spawn = FPS;  // Wait one second for first enemy
     game->spawn_timer = MAX_SPAWN_TIMER;
     game->first_enemy = NULL;
     game->first_bullet = NULL;
     game->first_explosion = NULL;
-    spawn_player(game);
+    spawn_player(game, PLAYER_LIVES);
 }
 
 /* Do a single cycle of game logic: render and handle input. */

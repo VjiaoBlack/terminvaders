@@ -25,6 +25,7 @@
 
 struct player_t {
     point_t point;
+    int lives;
     int respawning;
     int invincible;
     int cooldown;
@@ -65,7 +66,6 @@ typedef struct explosion_t explosion_t;
 struct game_t {
     int running;
     int score;
-    int lives;
     int over;
     int until_spawn;
     int spawn_timer;
