@@ -215,6 +215,42 @@ static void* handle_client(void* arg) {
                 serialize_lobby_info(&clients[0], &games[0], &buffer);
                 SAFE_TRANSMIT(id, sockfd, CMD_LOBBY_INFO, buffer);
                 break;
+            case CMD_SETUP_GAME:
+                // if client not idle: err_bad_context
+                // read in total slots and game name
+                // get a free game id; if -1: err_full
+                // set up game struct (status->waiting, slots_total, slots_filled->0, players[0]->id, name)
+                // set client status to waiting
+            case CMD_JOIN_GAME:
+                // if client not idle: err_bad_context
+                // if game full -> err_game_full
+                // send cmd_new_request to game.players[0]
+            case CMD_CANCEL_REQ:
+                // if client not waiting: err_bad_context
+                // if invalid user -> err_you_goddamn_idiot
+                // send cmd_cancel_req to game.players[0]
+            case CMD_ACCEPT_REQ:
+                // if client not waiting: err_bad_context
+                // if invalid requester or not admin -> err_you_goddamn_idiot
+                // send cmd_accept_req to requester
+                // send cmd_player_join to all users in game already
+                // send cmd_player_join for all users in game already to requester
+                // increment slots_filled
+                // if slots_filled == slots_total: set game status to playing; set all players to in_game; send cmd_game_start to all players; start game handler pthread
+            case CMD_REJECT_REQ:
+                // if client not waiting: err_bad_context
+                // if invalid requester or not admin -> err_you_goddamn_idiot
+                // send cmd_reject_req to requester
+            case CMD_PLAYER_PART:
+                // if client not waiting: err_bad_context
+                // if invalid user -> err_you_goddamn_idiot
+                // set client status to idle
+                // decrement slots_filled, adjust players array if necessary
+                // if admin left: second player to join is now the admin (implicit per above rule... no code for this)
+                // if slots_total > 0: send cmd_player_part to remaining players; else set game status to free
+            case CMD_INPUT:
+                // if client not in_game: err_bad_context
+                // tell game thread about input -> mutex-locked pending input linked-list buffer?
             default:
                 free(buffer);
                 SAFE_TRANSMIT(id, sockfd, CMD_QUIT, ERR_INVALID);
@@ -225,6 +261,9 @@ static void* handle_client(void* arg) {
 
     cleanup:
     close(sockfd);
+    // if client connecting or idle: do nothing other than standard stuff
+    // if client idle with pending request: send cmd_cancel_req to admin
+    // if client waiting or in_game: dec slots_filled, adjust players array, send cmd_player_part to remaining players OR set game status to free if last player
     clients[id].status = CLIENT_FREE;
     return NULL;
 }
