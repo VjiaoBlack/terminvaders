@@ -1,14 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-
-#include "xterm/xterm_control.c"
-#include "terminvaders.h"
-#include <stdio.h>
 #include <termios.h>
-#include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
+#include "settings.h"
+#include "terminvaders.h"
 
 #define BLITZ 2
 #define TEAM 1
@@ -25,7 +22,7 @@ struct user_t {
 };
 typedef struct user_t user_t;
 
-struct game_t {
+struct multiplayergame_t {
     int valid;
     char* name;
     int max_users;
@@ -35,15 +32,16 @@ struct game_t {
 //    struct lobby_t* next;
 //    struct lobby_t* previous;
 };
-typedef struct game_t game_t;
+typedef struct multiplayergame_t multiplayergame_t;
 
-void dispframe();
+void dispmultiframe();
 int game();
 void drawgame(int);
-void printgame(int,int,game_t);
-void join_popup (game_t);
-void create_popup ();
+void printgame(int,int,multiplayergame_t);
+void join_popup (multiplayergame_t);
+int create_popup ();
 void help_popup ();
+void game_wait(int);
 
 
 
