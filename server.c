@@ -198,6 +198,37 @@ static void cancel_requests(int game_id) {
     }
 }
 
+/* Remove a player from a game; notify remaining players or end the game. */
+static void remove_player(int id, int game_id) {
+    int slot, player;
+    char tempbuf[8];
+
+    /* Update game slots data. */
+    pthread_mutex_lock(&games[game_id].state_lock);
+    for (slot = 0; slot < games[game_id].slots_filled; slot++) {
+        if (games[game_id].players[slot] == id)
+            break;
+    }
+    games[game_id].slots_filled--;
+    for (; slot < games[game_id].slots_filled; slot++)
+        games[game_id].players[slot] = games[game_id].players[slot + 1];
+
+    /* If there are players left, inform them of the part. */
+    if (games[game_id].slots_filled > 0) {
+        snprintf(tempbuf, 8, "%d", id);
+        for (slot = 0; slot < games[game_id].slots_filled; slot++) {
+            player = games[game_id].players[slot];
+            SAFE_TRANSMIT2(player, CMD_PLAYER_PART, tempbuf);
+        }
+    }
+    /* If that was the last player, end the game. */
+    else {
+        games[game_id].status = GAME_FREE;
+        cancel_requests(game_id);
+    }
+    pthread_mutex_unlock(&games[game_id].state_lock);
+}
+
 /* Process CMD_SETUP_GAME. */
 static void process_setup_game(int id, int sockfd, char* buffer) {
     int game_id, game_type, slots_total;
@@ -358,7 +389,7 @@ static void process_reject_req(int id, int sockfd, char* buffer) {
 
 /* Process CMD_PLAYER_PART. */
 static void process_player_part(int id, int sockfd) {
-    int game_id = clients[id].game, slot, player;
+    int game_id = clients[id].game;
     char tempbuf[8];
 
     /* Confirm part with player and update their status. */
@@ -366,34 +397,38 @@ static void process_player_part(int id, int sockfd) {
     SAFE_TRANSMIT(id, sockfd, CMD_PLAYER_PART, tempbuf);
     clients[id].status = CLIENT_IDLE;
 
-    /* Update game slots data. */
-    pthread_mutex_lock(&games[game_id].state_lock);
-    for (slot = 0; slot < games[game_id].slots_filled; slot++) {
-        if (games[game_id].players[slot] == id)
-            break;
-    }
-    games[game_id].slots_filled--;
-    for (; slot < games[game_id].slots_filled; slot++)
-        games[game_id].players[slot] = games[game_id].players[slot + 1];
-
-    /* If there are players left, inform them of the part. */
-    if (games[game_id].slots_filled > 0) {
-        for (slot = 0; slot < games[game_id].slots_filled; slot++) {
-            player = games[game_id].players[slot];
-            SAFE_TRANSMIT2(player, CMD_PLAYER_PART, tempbuf);
-        }
-    }
-    /* If that was the last player, end the game. */
-    else {
-        games[game_id].status = GAME_FREE;
-        cancel_requests(game_id);
-    }
-    pthread_mutex_unlock(&games[game_id].state_lock);
+    remove_player(id, game_id);
 }
 
 /* Process CMD_INPUT. */
 static void process_input(int id, int sockfd, char* buffer) {
     // TODO: insert input data into some locked queue
+}
+
+/* Clean up data involving a particular client after their socket is closed. */
+static void cleanup_client(int id) {
+    int game_id, admin;
+    char tempbuf[8];
+
+    /* If client has a pending request: invalidate it and inform admin. */
+    if (clients[id].status == CLIENT_IDLE && clients[id].request != -1) {
+        game_id = clients[id].request;
+        clients[id].request = NO_REQUEST;
+        pthread_mutex_lock(&games[game_id].state_lock);
+        if (games[game_id].status == GAME_WAITING) {
+            admin = games[game_id].players[0];
+            snprintf(tempbuf, 8, "%d", id);
+            SAFE_TRANSMIT2(admin, CMD_CANCEL_REQ, tempbuf);
+
+        }
+        pthread_mutex_unlock(&games[game_id].state_lock);
+    }
+
+    /* If client is in a game, act as if they've parted. */
+    else if (clients[id].status == CLIENT_WAITING || clients[id].status == CLIENT_IN_GAME)
+        remove_player(id, clients[id].game);
+
+    clients[id].status = CLIENT_FREE;
 }
 
 /* Handle a connection with a client. */
@@ -487,19 +522,7 @@ static void* handle_client(void* arg) {
 
     cleanup:
     close(sockfd);
-    // if client idle with pending request:
-    //     remove request
-    //     lock game mutex
-    //     if game waiting: send cmd_cancel_req to players[0]
-    //     unlock game mutex
-    // if client waiting or in_game:
-    //     lock game mutex
-    //     dec slots_filled
-    //     adjust players array
-    //     if last player: set game status to free and reject pending reqs
-    //     else: send cmd_player_part to remaining players
-    //     unlock game mutex
-    clients[id].status = CLIENT_FREE;
+    cleanup_client(id);
     return NULL;
 }
 
