@@ -122,6 +122,7 @@ static void start_server(void) {
     for (id = 0; id < MAX_GAMES; id++) {
         games[id] = (mgame_t) {id, GAME_FREE};
         pthread_mutex_init(&games[id].state_lock, NULL);
+        pthread_mutex_init(&games[id].input_buffer.lock, NULL);
     }
     if (signal(SIGTERM, catch_signal) == SIG_ERR) {
         printf("Error: couldn't attach a signal handler.\n");
@@ -198,6 +199,57 @@ static void cancel_requests(int game_id) {
     }
 }
 
+/* Handle the logic in a running game. This runs in its own thread. */
+static void* handle_game(void* arg) {
+    int id = *((int*) arg), slot, player;
+    char *buffer;
+
+    /* Set up the game and enter the logic loop. */
+    setup_game(&games[id].data);
+    while (games[id].data.running) {
+        pthread_mutex_lock(&games[id].state_lock);
+        if (games[id].status != GAME_PLAYING) {  /* All players have left. */
+            pthread_mutex_unlock(&games[id].state_lock);
+            return NULL;
+        }
+        do_logic(&games[id].data);
+
+        /* Handle unprocessed player input. */
+        // TODO
+
+        /* Update all players with the current game status. */
+        serialize_game_data(&games[id].data, &buffer);
+        for (slot = 0; slot < games[id].slots_filled; slot++) {
+            player = games[id].players[slot];
+            SAFE_TRANSMIT2(player, CMD_GAME_UPDATE, buffer);
+        }
+
+        pthread_mutex_unlock(&games[id].state_lock);
+        free(buffer);
+        usleep(1000000 / FPS);
+    }
+
+    /* Game has ended; inform remaining players. */
+    for (slot = 0; slot < games[id].slots_filled; slot++) {
+        player = games[id].players[slot];
+        SAFE_TRANSMIT2(player, CMD_GAME_OVER, NULL);
+    }
+    return NULL;
+}
+
+/* Start a game pthread. */
+static void start_game_thread(int id) {
+    pthread_attr_t attr;
+
+    pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+    if (pthread_create(&games[id].thread, &attr, handle_game, (void*) &id) < 0) {
+        pthread_attr_destroy(&attr);
+        stop_server(1);
+    }
+    pthread_attr_destroy(&attr);
+}
+
 /* Remove a player from a game; notify remaining players or end the game. */
 static void remove_player(int id, int game_id) {
     int slot, player;
@@ -232,10 +284,10 @@ static void remove_player(int id, int game_id) {
 /* Process CMD_SETUP_GAME. */
 static void process_setup_game(int id, int sockfd, char* buffer) {
     int game_id, game_type, slots_total;
-    char name[NAME_LEN + 1], *name_ptr = name, tempbuf[8];
+    char name[NAME_LEN + 1], tempbuf[8];
 
     /* Load the game data and try to fetch a free ID. */
-    unserialize_game_setup(buffer, &name_ptr, &game_type, &slots_total);
+    unserialize_game_setup(buffer, name, &game_type, &slots_total);
     pthread_mutex_lock(&new_game_lock);
     if ((game_id = get_free_game_id()) < 0) {
         pthread_mutex_unlock(&new_game_lock);
@@ -361,8 +413,7 @@ static void process_accept_req(int id, int sockfd, char* buffer) {
             SAFE_TRANSMIT2(player, CMD_GAME_START, NULL);
         }
         cancel_requests(game_id);
-
-        // TODO: start game pthread
+        start_game_thread(game_id);
     }
     pthread_mutex_unlock(&games[game_id].state_lock);
 }
@@ -402,7 +453,16 @@ static void process_player_part(int id, int sockfd) {
 
 /* Process CMD_INPUT. */
 static void process_input(int id, int sockfd, char* buffer) {
-    // TODO: insert input data into some locked queue
+    int game_id = clients[id].game;
+    input_t* input = malloc(sizeof(input_t));
+
+    /* Lock the input buffer, create a new node, and push it to the top. */
+    pthread_mutex_lock(&games[game_id].input_buffer.lock);
+    input->player = id;
+    input->action = atoi(buffer);
+    input->next = games[game_id].input_buffer.first;
+    games[game_id].input_buffer.first = input;
+    pthread_mutex_unlock(&games[game_id].input_buffer.lock);
 }
 
 /* Clean up data involving a particular client after their socket is closed. */
@@ -431,7 +491,7 @@ static void cleanup_client(int id) {
     clients[id].status = CLIENT_FREE;
 }
 
-/* Handle a connection with a client. */
+/* Handle a connection with a client. This runs in its own thread. */
 static void* handle_client(void* arg) {
     char* buffer, databuf[1024];
     int id = *((int*) arg), sockfd = clients[id].sockfd, command;
@@ -535,10 +595,8 @@ static void serve() {
 
     client_len = sizeof(client_addr);
     while (1) {
-        if ((client_fd = accept(master_sockfd, (struct sockaddr*) &client_addr, &client_len)) < 0) {
-            close(master_sockfd);
+        if ((client_fd = accept(master_sockfd, (struct sockaddr*) &client_addr, &client_len)) < 0)
             stop_server(1);
-        }
         if ((id = get_free_client_id()) < 0) {
             transmit(client_fd, CMD_QUIT, ERR_FULL);
             close(client_fd);
@@ -554,7 +612,6 @@ static void serve() {
             pthread_attr_destroy(&attr);
             transmit(client_fd, CMD_QUIT, ERR_SERVER_STOPPING);
             clients[id].status = CLIENT_FREE;
-            close(master_sockfd);
             stop_server(1);
         }
         pthread_attr_destroy(&attr);

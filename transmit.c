@@ -76,7 +76,16 @@ void serialize_lobby_info(client_t* clients, mgame_t* games, char** buffer_ptr) 
     }
 }
 
-/* Unserialize game setup data. */
-void unserialize_game_setup(char* buffer, char** name, int* type, int* slots) {
+/* Serialize game data into a malloc()'d buffer. */
+void serialize_game_data(game_t* game, char** buffer_ptr) {
+    int bufsize = 1024;
+    char* buffer = malloc(sizeof(char) * bufsize);
+
+    *buffer_ptr = buffer;
     // TODO
+}
+
+/* Unserialize game setup data. */
+void unserialize_game_setup(char* buffer, char* name, int* type, int* slots) {
+    sscanf(buffer, "%d|%d|%s", type, slots, name);
 }

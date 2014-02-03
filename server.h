@@ -3,6 +3,7 @@
 #include <netinet/in.h>
 #include "graphics.h"
 #include "network.h"
+#include "game.h"
 
 /* Defines */
 
@@ -21,6 +22,12 @@
 #define GAME_WAITING 1
 #define GAME_PLAYING 2
 
+#define INPUT_UP 0
+#define INPUT_DOWN 1
+#define INPUT_LEFT 2
+#define INPUT_RIGHT 3
+#define INPUT_SHOOT 4
+
 /* Structs */
 
 struct client_t {
@@ -36,6 +43,19 @@ struct client_t {
 };
 typedef struct client_t client_t;
 
+struct input_t {
+    int player;
+    int action;
+    struct input_t* next;
+};
+typedef struct input_t input_t;
+
+struct inptbuf_t {
+    input_t* first;
+    pthread_mutex_t lock;
+};
+typedef struct inptbuf_t inptbuf_t;
+
 struct mgame_t {
     int id;
     int status;
@@ -44,6 +64,9 @@ struct mgame_t {
     int players[MAX_SLOTS];
     char name[NAME_LEN + 1];
     int type;
+    game_t data;
+    pthread_t thread;
+    inptbuf_t input_buffer;
     pthread_mutex_t state_lock;
 };
 typedef struct mgame_t mgame_t;

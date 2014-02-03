@@ -57,7 +57,7 @@ static enemy_t* despawn_enemy(game_t* game, enemy_t* enemy, enemy_t* prev) {
 static bullet_t* spawn_bullet(game_t* game, int x, int y, double velocity, int fired_by_player, int type) {
     bullet_t* bullet = malloc(sizeof(bullet_t));
     point_t point = {x, y};
-    //------- change speed for cannons 
+    //------- change speed for cannons
     if (type == 3) {
         velocity = velocity * 3/4;
     }
@@ -316,7 +316,7 @@ static void do_explosion_logic(game_t* game) {
 }
 
 /* Do game logic, mainly involving bullets and enemy spawning/movement. */
-static void do_logic(game_t* game) {
+void do_logic(game_t* game) {
     do_player_logic(game);
     do_bullet_logic(game);
     do_enemy_logic(game);
@@ -333,7 +333,7 @@ static void handle_input(game_t* game) {
     int key;
     while ((key = getkey()) != KEY_NOTHING) {
         switch (key) {
-            case '1':  
+            case '1':
                 game->player.bullet_type = 2;
                 break;
             case '2':
@@ -448,7 +448,7 @@ static void render(game_t* game) {
 }
 
 /* Set up the game. */
-static void setup(game_t* game) {
+void setup_game(game_t* game) {
     game->running = 1;
     game->score = 0;
     game->lives = PLAYER_LIVES;
@@ -471,7 +471,7 @@ static void update(game_t* game) {
 /* Play a game. */
 void play(void) {
     game_t game;
-    setup(&game);
+    setup_game(&game);
     while (game.running) {
         update(&game);
         usleep(1000000 / FPS);

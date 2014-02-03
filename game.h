@@ -2,6 +2,8 @@
 #include "graphics.h"
 #include "terminvaders.h"
 
+/* Defines */
+
 #define FPS 20
 
 #define PLAYER_LIVES 3
@@ -18,6 +20,8 @@
 #define MIN_SPAWN_TIMER (FPS * 2)
 #define SPAWN_TIMER_DECREASE 3
 #define GAME_OVER_TIMER (FPS * 4)
+
+/* Structs */
 
 struct player_t {
     point_t point;
@@ -72,4 +76,8 @@ struct game_t {
 };
 typedef struct game_t game_t;
 
+/* Functions */
+
+void setup_game(game_t*);
+void do_logic(game_t*);
 void play(void);
