@@ -39,6 +39,8 @@
 #define ERR_GAME_FULL "The game you tried to join is full."
 #define ERR_GAME_STARTED "The game you tried to join is already in progress."
 #define ERR_ALREADY_PENDING "You already have a pending game join request."
+#define ERR_NO_REQUEST "There is no request to act upon."
+#define ERR_NOT_ADMIN "You must be the game admin to do this action."
 #define ERR_KICKED "You have been kicked from the server."
 
 /* Functions */

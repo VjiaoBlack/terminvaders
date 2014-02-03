@@ -25,6 +25,11 @@ pthread_mutex_t new_game_lock = PTHREAD_MUTEX_INITIALIZER;
     transmit(sockfd, command, data); \
     pthread_mutex_unlock(&clients[id].send_lock);
 
+#define SAFE_TRANSMIT2(id, command, data) \
+    pthread_mutex_lock(&clients[id].send_lock); \
+    transmit(clients[id].sockfd, command, data); \
+    pthread_mutex_unlock(&clients[id].send_lock);
+
 #define ENFORCE_CONTEXT(desired_status) \
     if (clients[id].status != desired_status) { \
         free(buffer); \
@@ -111,7 +116,7 @@ static void start_server(void) {
 
     for (id = 0; id < MAX_CLIENTS; id++) {
         clients[id] = (client_t) {id, CLIENT_FREE};
-        clients[id].request = -1;
+        clients[id].request = NO_REQUEST;
         pthread_mutex_init(&clients[id].send_lock, NULL);
     }
     for (id = 0; id < MAX_GAMES; id++) {
@@ -181,11 +186,24 @@ static int is_local_client(int id) {
     return strcmp(cname, "127.0.0.1") == 0;
 }
 
+/* Cancel any pending requests for a game. */
+static void cancel_requests(int game_id) {
+    int id;
+
+    for (id = 0; id < MAX_CLIENTS; id++) {
+        if (clients[id].request == game_id) {
+            SAFE_TRANSMIT2(id, CMD_REJECT_REQ, NULL);
+            clients[id].request = NO_REQUEST;
+        }
+    }
+}
+
 /* Process CMD_SETUP_GAME. */
 static void process_setup_game(int id, int sockfd, char* buffer) {
     int game_id, game_type, slots_total;
     char name[NAME_LEN + 1], *name_ptr = name, tempbuf[8];
 
+    /* Load the game data and try to fetch a free ID. */
     unserialize_game_setup(buffer, &name_ptr, &game_type, &slots_total);
     pthread_mutex_lock(&new_game_lock);
     if ((game_id = get_free_game_id()) < 0) {
@@ -194,14 +212,16 @@ static void process_setup_game(int id, int sockfd, char* buffer) {
         return;
     }
 
+    /* Populate the game's struct. */
     games[game_id].slots_total = slots_total;
-    games[game_id].slots_filled = 0;
+    games[game_id].slots_filled = 1;
     games[game_id].players[0] = id;
     strcpy(games[game_id].name, name);
     games[game_id].type = game_type;
     games[game_id].status = GAME_WAITING;
     pthread_mutex_unlock(&new_game_lock);
 
+    /* Populate the game's admin's struct and inform them of the creation. */
     clients[id].game = game_id;
     clients[id].status = CLIENT_WAITING;
     snprintf(tempbuf, 8, "%d", id);
@@ -211,8 +231,10 @@ static void process_setup_game(int id, int sockfd, char* buffer) {
 /* Process CMD_JOIN_GAME. */
 static void process_join_game(int id, int sockfd, char* buffer) {
     int game_id, admin;
+    char tempbuf[8];
 
-    if (clients[id].request != -1) {
+    /* Check for an old pending request; check for validity of new one. */
+    if (clients[id].request != NO_REQUEST) {
         SAFE_TRANSMIT(id, sockfd, CMD_ERROR, ERR_ALREADY_PENDING);
         return;
     }
@@ -222,74 +244,156 @@ static void process_join_game(int id, int sockfd, char* buffer) {
         return;
     }
 
-    pthread_mutex_lock(games[game_id].state_lock);
+    /* Reject if game isn't waiting for new players, or if it's full. */
+    pthread_mutex_lock(&games[game_id].state_lock);
     if (games[game_id].status != GAME_WAITING) {
         SAFE_TRANSMIT(id, sockfd, CMD_ERROR, (games[game_id].status == GAME_PLAYING) ? ERR_GAME_STARTED : ERR_BAD_ID);
         return;
     }
-    if (games[game_id].slots_filled >= games[game_id.slots_total]) {
+    if (games[game_id].slots_filled >= games[game_id].slots_total) {
         SAFE_TRANSMIT(id, sockfd, CMD_ERROR, ERR_GAME_FULL);
         return;
     }
+
+    /* Inform the game admin of the new request. */
     clients[id].request = game_id;
     admin = games[game_id].players[0];
-    SAFE_TRANSMIT(admin, clients[admin].sockfd, CMD_ERROR, ERR_GAME_FULL);
-    pthread_mutex_unlock(games[game_id].state_lock);
+    snprintf(tempbuf, 8, "%d", id);
+    SAFE_TRANSMIT2(admin, CMD_NEW_REQUEST, tempbuf);
+    pthread_mutex_unlock(&games[game_id].state_lock);
 }
 
 /* Process CMD_CANCEL_REQ. */
 static void process_cancel_req(int id, int sockfd) {
-    // try to fetch game from requests table
-    // if no request for user -> err_no_request
-    // untrack pending request with key id
-    // lock game state mutex
-    // send cmd_cancel_req to game.players[0] if game is waiting
-    // unlock game state mutex
+    int game_id = clients[id].request, admin;
+    char tempbuf[8];
+
+    /* Ensure the client has a pending request to cancel. */
+    if (game_id == -1) {
+        SAFE_TRANSMIT(id, sockfd, CMD_ERROR, ERR_NO_REQUEST);
+        return;
+    }
+
+    /* Invalidate the request and inform the admin if necessary. */
+    clients[id].request = NO_REQUEST;
+    pthread_mutex_lock(&games[game_id].state_lock);
+    if (games[game_id].status == GAME_WAITING) {
+        admin = games[game_id].players[0];
+        snprintf(tempbuf, 8, "%d", id);
+        SAFE_TRANSMIT2(admin, CMD_CANCEL_REQ, tempbuf);
+    }
+    pthread_mutex_unlock(&games[game_id].state_lock);
 }
 
 /* Process CMD_ACCEPT_REQ. */
 static void process_accept_req(int id, int sockfd, char* buffer) {
-    // fetch game as users[id].game; verify admin; if fail -> err_not_admin
-    // unpack requester from buffer
-    // try to fetch game from requests table; if not found or doesn't match admin -> err_no_request
-    // untrack pending request with requester id
-    // send cmd_accept_req to requester
-    // set requester status to waiting
-    // set requester game to id
-    // lock game state mutex
-    // send cmd_player_join to all users in game already
-    // send cmd_player_join for all users to requester
-    // increment slots_filled
-    // if slots_filled == slots_total: set game status to playing; set all players to in_game; send cmd_game_start to all players; start game handler pthread
-    // unlock game state mutex
-    // remove remaining requests and send cmd_reject_req
+    int game_id = clients[id].game, requester, slot, player;
+    char tempbuf[8], tempbuf2[8];
+
+    /* Only admins can accept requests; ensure request is valid. */
+    if (id != games[game_id].players[0]) {
+        SAFE_TRANSMIT(id, sockfd, CMD_ERROR, ERR_NOT_ADMIN);
+        return;
+    }
+    requester = atoi(buffer);
+    if (clients[requester].request != game_id) {
+        SAFE_TRANSMIT(id, sockfd, CMD_ERROR, ERR_NO_REQUEST);
+        return;
+    }
+
+    /* Remove the pending request and inform the requester; update struct. */
+    clients[requester].request = NO_REQUEST;
+    SAFE_TRANSMIT2(requester, CMD_ACCEPT_REQ, NULL);
+    clients[requester].status = CLIENT_WAITING;
+    clients[requester].game = game_id;
+
+    /* Inform current players of the new guy and vice versa. */
+    snprintf(tempbuf, 8, "%d", requester);
+    pthread_mutex_lock(&games[game_id].state_lock);
+    for (slot = 0; slot < games[game_id].slots_filled; slot++) {
+        player = games[game_id].players[slot];
+        snprintf(tempbuf2, 8, "%d", player);
+        SAFE_TRANSMIT2(player, CMD_PLAYER_JOIN, tempbuf);
+        SAFE_TRANSMIT2(requester, CMD_PLAYER_JOIN, tempbuf2);
+    }
+    SAFE_TRANSMIT2(requester, CMD_PLAYER_JOIN, tempbuf);
+    games[game_id].players[games[game_id].slots_filled++] = requester;
+
+    /* If we have enough players now, start the game. */
+    if (games[game_id].slots_filled >= games[game_id].slots_total) {
+        games[game_id].status = GAME_PLAYING;
+
+        /* Inform players of the game start. */
+        for (slot = 0; slot < games[game_id].slots_filled; slot++) {
+            player = games[game_id].players[slot];
+            clients[player].status = CLIENT_IN_GAME;
+            SAFE_TRANSMIT2(player, CMD_GAME_START, NULL);
+        }
+        cancel_requests(game_id);
+
+        // TODO: start game pthread
+    }
+    pthread_mutex_unlock(&games[game_id].state_lock);
 }
 
 /* Process CMD_REJECT_REQ. */
 static void process_reject_req(int id, int sockfd, char* buffer) {
-    // fetch game as users[id].game; verify admin; if fail -> err_not_admin
-    // unpack requester from buffer
-    // try to fetch game from requests table; if not found or doesn't match admin -> err_no_request
-    // untrack pending request with requester id
-    // send cmd_reject_req to requester
+    int game_id = clients[id].game, requester;
+
+    /* Only admins can accept requests; ensure request is valid. */
+    if (id != games[game_id].players[0]) {
+        SAFE_TRANSMIT(id, sockfd, CMD_ERROR, ERR_NOT_ADMIN);
+        return;
+    }
+    requester = atoi(buffer);
+    if (clients[requester].request != game_id) {
+        SAFE_TRANSMIT(id, sockfd, CMD_ERROR, ERR_NO_REQUEST);
+        return;
+    }
+
+    /* Remove the pending request and inform the requester. */
+    clients[requester].request = NO_REQUEST;
+    SAFE_TRANSMIT2(requester, CMD_REJECT_REQ, NULL);
 }
 
 /* Process CMD_PLAYER_PART. */
 static void process_player_part(int id, int sockfd) {
-    // send cmd_player_part back to player to confirm
-    // set client status to idle
-    // lock game state mutex
-    // decrement slots_filled, adjust players array if necessary
-    // if slots_total > 0:
-    //     send cmd_player_part to remaining players
-    // else:
-    //     set game status to free and reject all reqs of pending players (note: game thread needs to stop when game becomes free)
-    // unlock game state mutex
+    int game_id = clients[id].game, slot, player;
+    char tempbuf[8];
+
+    /* Confirm part with player and update their status. */
+    snprintf(tempbuf, 8, "%d", id);
+    SAFE_TRANSMIT(id, sockfd, CMD_PLAYER_PART, tempbuf);
+    clients[id].status = CLIENT_IDLE;
+
+    /* Update game slots data. */
+    pthread_mutex_lock(&games[game_id].state_lock);
+    for (slot = 0; slot < games[game_id].slots_filled; slot++) {
+        if (games[game_id].players[slot] == id)
+            break;
+    }
+    games[game_id].slots_filled--;
+    for (; slot < games[game_id].slots_filled; slot++)
+        games[game_id].players[slot] = games[game_id].players[slot + 1];
+
+    /* If there are players left, inform them of the part. */
+    if (games[game_id].slots_filled > 0) {
+        for (slot = 0; slot < games[game_id].slots_filled; slot++) {
+            player = games[game_id].players[slot];
+            SAFE_TRANSMIT2(player, CMD_PLAYER_PART, tempbuf);
+        }
+    }
+    /* If that was the last player, end the game. */
+    else {
+        games[game_id].status = GAME_FREE;
+        cancel_requests(game_id);
+    }
+    pthread_mutex_unlock(&games[game_id].state_lock);
 }
 
 /* Process CMD_INPUT. */
 static void process_input(int id, int sockfd, char* buffer) {
-    // insert input data into some locked queue
+    // TODO: insert input data into some locked queue
 }
 
 /* Handle a connection with a client. */

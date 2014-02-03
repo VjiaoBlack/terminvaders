@@ -9,6 +9,7 @@
 #define MAX_CLIENTS 64
 #define MAX_GAMES 32
 #define MAX_SLOTS 4
+#define NO_REQUEST -1
 
 #define CLIENT_FREE 0
 #define CLIENT_CONNECTING 1
