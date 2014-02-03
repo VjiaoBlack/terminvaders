@@ -16,13 +16,21 @@
 int master_sockfd;
 client_t clients[MAX_CLIENTS];
 mgame_t games[MAX_GAMES];
+pthread_mutex_t new_game_lock = PTHREAD_MUTEX_INITIALIZER;
 
 /* ----------------------------- Helper Macros ----------------------------- */
 
 #define SAFE_TRANSMIT(id, sockfd, command, data) \
-    pthread_mutex_lock(&clients[id].mutex); \
+    pthread_mutex_lock(&clients[id].send_lock); \
     transmit(sockfd, command, data); \
-    pthread_mutex_unlock(&clients[id].mutex);
+    pthread_mutex_unlock(&clients[id].send_lock);
+
+#define ENFORCE_CONTEXT(desired_status) \
+    if (clients[id].status != desired_status) { \
+        free(buffer); \
+        SAFE_TRANSMIT(id, sockfd, CMD_QUIT, ERR_BAD_CONTEXT); \
+        goto cleanup; \
+    }
 
 /* --------------------------- Helper Functions ---------------------------- */
 
@@ -60,10 +68,10 @@ static void stop_server(int retval) {
             case CLIENT_IDLE:
             case CLIENT_WAITING:
             case CLIENT_IN_GAME:
-                pthread_mutex_lock(&clients[id].mutex);
+                pthread_mutex_lock(&clients[id].send_lock);
                 transmit(clients[id].sockfd, CMD_QUIT, ERR_SERVER_STOPPING);
                 close(clients[id].sockfd);
-                pthread_mutex_unlock(&clients[id].mutex);
+                pthread_mutex_unlock(&clients[id].send_lock);
         }
     }
     close(master_sockfd);
@@ -103,10 +111,12 @@ static void start_server(void) {
 
     for (id = 0; id < MAX_CLIENTS; id++) {
         clients[id] = (client_t) {id, CLIENT_FREE};
-        pthread_mutex_init(&clients[id].mutex, NULL);
+        pthread_mutex_init(&clients[id].send_lock, NULL);
     }
-    for (id = 0; id < MAX_GAMES; id++)
+    for (id = 0; id < MAX_GAMES; id++) {
         games[id] = (mgame_t) {id, GAME_FREE};
+        pthread_mutex_init(&games[id].state_lock, NULL);
+    }
     if (signal(SIGTERM, catch_signal) == SIG_ERR) {
         printf("Error: couldn't attach a signal handler.\n");
         exit(1);
@@ -151,12 +161,104 @@ static int get_free_client_id(void) {
     return -1;
 }
 
+/* Get a free game ID. Return -1 if none are available. */
+static int get_free_game_id(void) {
+    int id;
+
+    for (id = 0; id < MAX_GAMES; id++) {
+        if (games[id].status == GAME_FREE)
+            return id;
+    }
+    return -1;
+}
+
 /* Return whether or not the given client is connected from localhost. */
 static int is_local_client(int id) {
     char cname[INET_ADDRSTRLEN];
 
     inet_ntop(AF_INET, &clients[id].addr.sin_addr, cname, INET_ADDRSTRLEN);
     return strcmp(cname, "127.0.0.1") == 0;
+}
+
+/* Process CMD_SETUP_GAME. */
+static void process_setup_game(int id, int sockfd, char* buffer) {
+    // read in total slots and game name from buffer
+    // lock global game mutex
+    // get a free game id; if -1 -> err_full
+    // set up game struct (status->waiting, slots_total, slots_filled->0, players[0]->id, name) (status update LAST)
+    // unlock global game mutex
+    // set client status to waiting
+    // set client game to id
+    // send cmd_player_join to new admin
+}
+
+/* Process CMD_JOIN_GAME. */
+static void process_join_game(int id, int sockfd, char* buffer) {
+    // if user already has a request pending -> err_already_pending
+    // unpack game
+    // if game out of range -> err_bad_id
+    // lock game state mutex
+    // if game free -> err_bad_id
+    // if game full -> err_game_full
+    // if game in progress -> err_game_started
+    // track pending request (id->game)
+    // send cmd_new_request to game.players[0]
+    // unlock game state mutex
+}
+
+/* Process CMD_CANCEL_REQ. */
+static void process_cancel_req(int id, int sockfd) {
+    // try to fetch game from requests table
+    // if no request for user -> err_no_request
+    // untrack pending request with key id
+    // lock game state mutex
+    // send cmd_cancel_req to game.players[0] if game is waiting
+    // unlock game state mutex
+}
+
+/* Process CMD_ACCEPT_REQ. */
+static void process_accept_req(int id, int sockfd, char* buffer) {
+    // fetch game as users[id].game; verify admin; if fail -> err_not_admin
+    // unpack requester from buffer
+    // try to fetch game from requests table; if not found or doesn't match admin -> err_no_request
+    // untrack pending request with requester id
+    // send cmd_accept_req to requester
+    // set requester status to waiting
+    // set requester game to id
+    // lock game state mutex
+    // send cmd_player_join to all users in game already
+    // send cmd_player_join for all users to requester
+    // increment slots_filled
+    // if slots_filled == slots_total: set game status to playing; set all players to in_game; send cmd_game_start to all players; start game handler pthread
+    // unlock game state mutex
+    // remove remaining requests and send cmd_reject_req
+}
+
+/* Process CMD_REJECT_REQ. */
+static void process_reject_req(int id, int sockfd, char* buffer) {
+    // fetch game as users[id].game; verify admin; if fail -> err_not_admin
+    // unpack requester from buffer
+    // try to fetch game from requests table; if not found or doesn't match admin -> err_no_request
+    // untrack pending request with requester id
+    // send cmd_reject_req to requester
+}
+
+/* Process CMD_PLAYER_PART. */
+static void process_player_part(int id, int sockfd) {
+    // send cmd_player_part back to player to confirm
+    // set client status to idle
+    // lock game state mutex
+    // decrement slots_filled, adjust players array if necessary
+    // if slots_total > 0:
+    //     send cmd_player_part to remaining players
+    // else:
+    //     set game status to free and reject all reqs of pending players (note: game thread needs to stop when game becomes free)
+    // unlock game state mutex
+}
+
+/* Process CMD_INPUT. */
+static void process_input(int id, int sockfd, char* buffer) {
+    // insert input data into some locked queue
 }
 
 /* Handle a connection with a client. */
@@ -207,50 +309,39 @@ static void* handle_client(void* arg) {
             goto cleanup;
         switch (command) {
             case CMD_LOBBY_INFO:
+                ENFORCE_CONTEXT(CLIENT_IDLE);
                 free(buffer);
-                if (clients[id].status != CLIENT_IDLE) {
-                    SAFE_TRANSMIT(id, sockfd, CMD_QUIT, ERR_BAD_CONTEXT);
-                    goto cleanup;
-                }
                 serialize_lobby_info(&clients[0], &games[0], &buffer);
                 SAFE_TRANSMIT(id, sockfd, CMD_LOBBY_INFO, buffer);
                 break;
             case CMD_SETUP_GAME:
-                // if client not idle: err_bad_context
-                // read in total slots and game name
-                // get a free game id; if -1: err_full
-                // set up game struct (status->waiting, slots_total, slots_filled->0, players[0]->id, name)
-                // set client status to waiting
+                ENFORCE_CONTEXT(CLIENT_IDLE);
+                process_setup_game(id, sockfd, buffer);
+                break;
             case CMD_JOIN_GAME:
-                // if client not idle: err_bad_context
-                // if game full -> err_game_full
-                // send cmd_new_request to game.players[0]
+                ENFORCE_CONTEXT(CLIENT_IDLE);
+                process_join_game(id, sockfd, buffer);
+                break;
             case CMD_CANCEL_REQ:
-                // if client not waiting: err_bad_context
-                // if invalid user -> err_you_goddamn_idiot
-                // send cmd_cancel_req to game.players[0]
+                ENFORCE_CONTEXT(CLIENT_IDLE);
+                process_cancel_req(id, sockfd);
+                break;
             case CMD_ACCEPT_REQ:
-                // if client not waiting: err_bad_context
-                // if invalid requester or not admin -> err_you_goddamn_idiot
-                // send cmd_accept_req to requester
-                // send cmd_player_join to all users in game already
-                // send cmd_player_join for all users in game already to requester
-                // increment slots_filled
-                // if slots_filled == slots_total: set game status to playing; set all players to in_game; send cmd_game_start to all players; start game handler pthread
+                ENFORCE_CONTEXT(CLIENT_WAITING);
+                process_accept_req(id, sockfd, buffer);
+                break;
             case CMD_REJECT_REQ:
-                // if client not waiting: err_bad_context
-                // if invalid requester or not admin -> err_you_goddamn_idiot
-                // send cmd_reject_req to requester
+                ENFORCE_CONTEXT(CLIENT_WAITING);
+                process_reject_req(id, sockfd, buffer);
+                break;
             case CMD_PLAYER_PART:
-                // if client not waiting: err_bad_context
-                // if invalid user -> err_you_goddamn_idiot
-                // set client status to idle
-                // decrement slots_filled, adjust players array if necessary
-                // if admin left: second player to join is now the admin (implicit per above rule... no code for this)
-                // if slots_total > 0: send cmd_player_part to remaining players; else set game status to free
+                ENFORCE_CONTEXT(CLIENT_WAITING && clients[id].status != CLIENT_IN_GAME);
+                process_player_part(id, sockfd);
+                break;
             case CMD_INPUT:
-                // if client not in_game: err_bad_context
-                // tell game thread about input -> mutex-locked pending input linked-list buffer?
+                ENFORCE_CONTEXT(CLIENT_IN_GAME);
+                process_input(id, sockfd, buffer);
+                break;
             default:
                 free(buffer);
                 SAFE_TRANSMIT(id, sockfd, CMD_QUIT, ERR_INVALID);
@@ -261,9 +352,18 @@ static void* handle_client(void* arg) {
 
     cleanup:
     close(sockfd);
-    // if client connecting or idle: do nothing other than standard stuff
-    // if client idle with pending request: send cmd_cancel_req to admin
-    // if client waiting or in_game: dec slots_filled, adjust players array, send cmd_player_part to remaining players OR set game status to free if last player
+    // if client idle with pending request:
+    //     remove request
+    //     lock game mutex
+    //     if game waiting: send cmd_cancel_req to players[0]
+    //     unlock game mutex
+    // if client waiting or in_game:
+    //     lock game mutex
+    //     dec slots_filled
+    //     adjust players array
+    //     if last player: set game status to free and reject pending reqs
+    //     else: send cmd_player_part to remaining players
+    //     unlock game mutex
     clients[id].status = CLIENT_FREE;
     return NULL;
 }

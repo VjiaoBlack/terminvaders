@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <pthread.h>
 #include "transmit.h"
 
 /* Serialize status information into databuf. */
@@ -58,9 +59,12 @@ void serialize_lobby_info(client_t* clients, mgame_t* games, char** buffer_ptr) 
     }
     APPEND("|\n");
     for (id = 0; id < MAX_GAMES; id++) {
+        pthread_mutex_lock(&games[id].state_lock);
         status = games[id].status;
-        if (status == GAME_FREE)
+        if (status == GAME_FREE) {
+            pthread_mutex_unlock(&games[id].state_lock);
             continue;
+        }
         APPEND("%d|%d|%d|%d|", id, status, games[id].slots_total, games[id].slots_filled);
         for (i = 0; i < MAX_SLOTS; i++) {
             APPEND("%d", games[id].players[i]);
@@ -68,5 +72,6 @@ void serialize_lobby_info(client_t* clients, mgame_t* games, char** buffer_ptr) 
                 APPEND(",");
         }
         APPEND("|%s\n", games[id].name);
+        pthread_mutex_unlock(&games[id].state_lock);
     }
 }
