@@ -40,7 +40,7 @@ int make_connection(char* name) {
 
 /* Send a client->server or server->client message via sockfd. */
 int transmit(int sockfd, int command, char* data) {
-    int datalen = (data ? strlen(data) : 0) + 1, retval, remainder;
+    int datalen = (data ? strlen(data) : 0) + 1, retval = 0, remainder;
     char *encoded = malloc(sizeof(char) * (HEADER_SIZE + datalen)), *unsent;
 
     /* Encode data into a message for sending. */
