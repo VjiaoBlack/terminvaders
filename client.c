@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 #include "client.h"
 #include "server.h"
 #include "network.h"
@@ -33,9 +34,28 @@ int check_multiplayer_game_over(game_t* game) {
 
 /* Load multiplayer data from the server; non-blocking. */
 void load_server_data(game_t* game) {
-    // TODO: loop while server has data to send (non-blocking loop)
-    // TODO: if server has broken the connection, end the game
-    // TODO: handle CMD_GAME_UPDATE, CMD_GAME_OVER, CMD_QUIT
+    char* buffer;
+    int sockfd = game->multiplayer_data.sockfd, command;
+
+    while (1) {
+        if (receive(sockfd, &command, &buffer) < 0) {
+            if (errno != EWOULDBLOCK && errno != EAGAIN)
+                game->running = 0;
+            break;
+        }
+
+        switch (command) {
+            case CMD_GAME_UPDATE:
+                unserialize_game_data(buffer, game);
+                break;
+            case CMD_GAME_OVER:
+            case CMD_QUIT:
+                // TODO: CMD_QUIT should show the server quit message in buffer
+                game->running = 0;
+                break;
+        }
+        free(buffer);
+    }
 }
 
 /* Handle user keyboard input during a multiplayer game. */

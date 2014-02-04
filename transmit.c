@@ -91,6 +91,6 @@ void unserialize_game_setup(char* buffer, char* name, int* type, int* slots) {
 }
 
 /* Unserialize game data. */
-void unserialize_game_data(char* buffer) {
+void unserialize_game_data(char* buffer, game_t* game) {
     // TODO
 }
