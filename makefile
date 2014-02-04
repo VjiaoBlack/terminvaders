@@ -4,11 +4,11 @@ LINK=gcc -g -O2 -Wall
 all: terminvaders server
 	rm -f preferences.txt
 
-terminvaders: build build/keyboard.o build/xterm_control.o build/network.o build/transmit.o build/game.o build/graphics.o build/terminvaders.o build/settings.o build/star.o
-	$(LINK) build/keyboard.o build/xterm_control.o build/network.o build/transmit.o build/game.o build/graphics.o build/terminvaders.o build/settings.o build/star.o -o terminvaders
+terminvaders: build build/keyboard.o build/xterm_control.o build/network.o build/transmit.o build/game.o build/graphics.o build/terminvaders.o build/settings.o build/star.o build/client.o
+	$(LINK) build/keyboard.o build/xterm_control.o build/network.o build/transmit.o build/game.o build/graphics.o build/terminvaders.o build/settings.o build/star.o build/client.o -o terminvaders
 
-server: build build/keyboard.o build/xterm_control.o build/network.o build/transmit.o build/server.o build/game.o build/graphics.o build/settings.o build/star.o
-	$(LINK) build/keyboard.o build/xterm_control.o build/network.o build/transmit.o build/server.o build/game.o build/graphics.o build/settings.o build/star.o -o server
+server: build build/keyboard.o build/xterm_control.o build/network.o build/transmit.o build/server.o build/game.o build/graphics.o build/settings.o build/star.o build/client.o
+	$(LINK) build/keyboard.o build/xterm_control.o build/network.o build/transmit.o build/server.o build/game.o build/graphics.o build/settings.o build/star.o build/client.o -o server
 
 build/keyboard.o: xterm/keyboard.c
 	$(COMPILE) xterm/keyboard.c -o build/keyboard.o
@@ -36,6 +36,9 @@ build/transmit.o: transmit.c transmit.h network.c network.h server.c server.h
 
 build/server.o: server.c server.h network.c network.h game.c game.h
 	$(COMPILE) server.c -o build/server.o
+
+build/client.o: client.c client.h game.c game.h
+	$(COMPILE) client.c -o build/client.o
 
 build/star.o: star.c star.h
 	$(COMPILE) star.c -o build/star.o

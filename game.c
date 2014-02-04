@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "game.h"
-#include "server.h"
+#include "client.h"
 
 /* Some function headers. */
 static void spawn_player(game_t*, int);
@@ -328,12 +328,6 @@ void do_logic(game_t* game) {
     }
 }
 
-/* Load multiplayer data from the server; non-blocking. */
-void load_server_data(game_t* game) {
-    // TODO: loop while server has data to send (non-blocking loop)
-    // TODO: handle CMD_GAME_UPDATE and CMD_GAME_OVER
-}
-
 /* Handle user keyboard input during the game. */
 static void handle_input(game_t* game) {
     int key;
@@ -392,41 +386,6 @@ static void handle_input(game_t* game) {
                     if (!game->player.cooldown)
                         player_shoot(game);
                 }
-                break;
-        }
-    }
-}
-
-/* Handle user keyboard input during a multiplayer game. */
-static void handle_input_multi(game_t* game) {
-    int key;
-    char tmpbuf[8];
-
-    while ((key = getkey()) != KEY_NOTHING) {
-        switch (key) {
-            case KEY_UP:
-            case 'w':
-                snprintf(tmpbuf, 8, "%d", INPUT_UP);
-                transmit(game->multiplayer_data.sockfd, CMD_INPUT, tmpbuf);
-                break;
-            case KEY_DOWN:
-            case 's':
-                snprintf(tmpbuf, 8, "%d", INPUT_DOWN);
-                transmit(game->multiplayer_data.sockfd, CMD_INPUT, tmpbuf);
-                break;
-            case KEY_LEFT:
-            case 'a':
-                snprintf(tmpbuf, 8, "%d", INPUT_LEFT);
-                transmit(game->multiplayer_data.sockfd, CMD_INPUT, tmpbuf);
-                break;
-            case KEY_RIGHT:
-            case 'd':
-                snprintf(tmpbuf, 8, "%d", INPUT_RIGHT);
-                transmit(game->multiplayer_data.sockfd, CMD_INPUT, tmpbuf);
-                break;
-            case ' ':
-                snprintf(tmpbuf, 8, "%d", INPUT_SHOOT);
-                transmit(game->multiplayer_data.sockfd, CMD_INPUT, tmpbuf);
                 break;
         }
     }
@@ -500,14 +459,6 @@ void setup_game(game_t* game) {
     game->first_bullet = NULL;
     game->first_explosion = NULL;
     spawn_player(game, PLAYER_LIVES);
-}
-
-/* Set up a multiplayer game. */
-void setup_multiplayer(game_t* game, int player, int sockfd) {
-    game->multiplayer = 1;
-    game->multiplayer_data.mode = MODE_CO_OP;
-    game->multiplayer_data.player = player;
-    game->multiplayer_data.sockfd = sockfd;
 }
 
 /* Do a single cycle of game logic: render and handle input. */

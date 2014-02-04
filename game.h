@@ -90,6 +90,5 @@ typedef struct game_t game_t;
 /* Functions */
 
 void setup_game(game_t*);
-void setup_multiplayer(game_t*, int, int);
 void do_logic(game_t*);
 void play(void);
