@@ -13,7 +13,7 @@
 #define EMPTY_SLOT -1
 #define NO_REQUEST -1
 
-#define MODE_CO_OP 0
+#define MODE_TEAM 0
 
 #define CLIENT_FREE 0
 #define CLIENT_CONNECTING 1

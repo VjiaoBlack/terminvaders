@@ -11,7 +11,7 @@ void setup_multiplayer(game_t* game, int players, int player, int sockfd) {
     int i;
 
     game->multiplayer = 1;
-    game->multiplayer_data.mode = MODE_CO_OP;
+    game->multiplayer_data.mode = MODE_TEAM;
     game->multiplayer_data.players = players;
     game->multiplayer_data.player = player;
     game->multiplayer_data.sockfd = sockfd;

@@ -7,16 +7,6 @@
 #include "settings.h"
 #include "terminvaders.h"
 
-#define BLITZ 2
-#define TEAM 1
-#define DUEL 0
-
-//duplicated code
-#define MAX_GAMES 32
-#define MAX_CLIENTS 64
-
-
-
 struct user_t {
     char* username;
 };

@@ -5,8 +5,8 @@
 #include "terminvaders.h"
 #include "star.h"
 
-static int rows = 44;
-static int cols = 100;
+static int rows = 40;
+static int cols = 120;
 
 int get_rows(void) {
     return rows;
@@ -20,7 +20,7 @@ void load_rc(void) {
     FILE *fp;
     if (!(fp = fopen("preferences.txt", "r"))) {
         fp = fopen("preferences.txt", "w");
-        fputs("44:100", fp);
+        fputs("40:120", fp);
         fclose(fp);
         fp = fopen("preferences.txt", "r");
     }
