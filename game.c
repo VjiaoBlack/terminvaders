@@ -224,7 +224,7 @@ static int enemy_bullet_impacts(game_t* game, bullet_t* bullet) {
     player_t* player;
     int slot;
 
-    for (slot = 0; slot < (game->multiplayer ? game->multiplayer_data.players : 1); slot++) {
+    for (slot = 0; slot < NUMBER_OF_PLAYERS; slot++) {
         player = &game->players[slot];
         if (!player->respawning && !player->invincible) {
             if (collides(&bullet->point, &player->point, 2, 1)) {
@@ -321,7 +321,7 @@ static void do_explosion_logic(game_t* game) {
 /* Do game logic, mainly involving bullets and enemy spawning/movement. */
 void do_logic(game_t* game) {
     int slot;
-    for (slot = 0; slot < (game->multiplayer ? game->multiplayer_data.players : 1); slot++)
+    for (slot = 0; slot < NUMBER_OF_PLAYERS; slot++)
         do_player_logic(game, &game->players[slot]);
     do_bullet_logic(game);
     do_enemy_logic(game);
@@ -451,7 +451,7 @@ static void render(game_t* game) {
         enemy = enemy->next;
     }
 
-    for (slot = 0; slot < (game->multiplayer ? game->multiplayer_data.players : 1); slot++) {
+    for (slot = 0; slot < NUMBER_OF_PLAYERS; slot++) {
         player = &game->players[slot];
         if (!player->respawning && !(player->invincible % 2))
             draw(&(player->point), get_sprite(PLAYER));

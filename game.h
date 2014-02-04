@@ -13,6 +13,7 @@
 #define PLAYER_Y_VELOCITY 0.5
 #define PLAYER_BULLET_VELOCITY -1
 #define PLAYER_COOLDOWN (FPS / 4)
+#define NUMBER_OF_PLAYERS (game->multiplayer ? game->multiplayer_data.players : 1)
 
 #define COLLISION_POINTS 25
 #define EXPLOSION_STEPS_PER_SPRITE 2
