@@ -35,7 +35,7 @@ int check_multiplayer_game_over(game_t* game) {
 void load_server_data(game_t* game) {
     // TODO: loop while server has data to send (non-blocking loop)
     // TODO: if server has broken the connection, end the game
-    // TODO: handle CMD_GAME_UPDATE, CMD_GAME_OVER, CMD_QUIT, CMD_PLAYER_PART (set user lives to 0, respawn 1)
+    // TODO: handle CMD_GAME_UPDATE, CMD_GAME_OVER, CMD_QUIT
 }
 
 /* Handle user keyboard input during a multiplayer game. */

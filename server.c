@@ -200,8 +200,23 @@ static void cancel_requests(int game_id) {
     }
 }
 
+/* Get the game slot that corresponds to a client ID. */
+static int get_slot_for_client(int game_id, int player) {
+    int slot;
+
+    for (slot = 0; slot < games[game_id].slots_total; slot++) {
+        if (games[game_id].players[slot] == player)
+            return slot;
+    }
+    return EMPTY_SLOT;
+}
+
 /* Process input from a user into a game. */
-static void process_game_input(game_t* game, int player, int action) {
+static void process_game_input(game_t* game, int id, int player, int action) {
+    int slot = get_slot_for_client(id, player);
+    if (slot == EMPTY_SLOT)  /* Ghost input; ignore. */
+        return;
+
     // TODO: convert 'player' to SLOT by looking for the index in .players
     switch (action) {
         case INPUT_UP:
@@ -243,7 +258,7 @@ static void* handle_game(void* arg) {
             action = input->action;
             games[id].input_buffer.first = input->next;
             free(input);
-            process_game_input(&games[id].data, player, action);
+            process_game_input(&games[id].data, id, player, action);
         }
         pthread_mutex_unlock(&games[id].input_buffer.lock);
 
@@ -286,28 +301,25 @@ static void start_game_thread(int id) {
 
 /* Remove a player from a game; notify remaining players or end the game. */
 static void remove_player(int id, int game_id) {
-    int slot, player;
-    char tempbuf[8];
+    int slot;
 
     /* Update game slots data. */
     pthread_mutex_lock(&games[game_id].state_lock);
-    for (slot = 0; slot < games[game_id].slots_total; slot++) {
-        if (games[game_id].players[slot] == id) {
-            games[game_id].players[slot] = EMPTY_SLOT;
-            break;
-        }
+    slot = get_slot_for_client(game_id, id);
+    if (slot < 0) {
+        /* Something is very wrong, but I'm not sure how to handle it. Running
+           around like a headless chicken is ill-advised, so let's pretend this
+           never happened. */
+        pthread_mutex_unlock(&games[game_id].state_lock);
+        return;
     }
+    games[game_id].players[slot] = EMPTY_SLOT;
     games[game_id].slots_filled--;
 
-    /* If there are players left, inform them of the part. */
+    /* If there are players left, kill the player. */
     if (games[game_id].slots_filled > 0) {
-        snprintf(tempbuf, 8, "%d", id);
-        for (slot = 0; slot < games[game_id].slots_total; slot++) {
-            player = games[game_id].players[slot];
-            if (player == EMPTY_SLOT)
-                continue;
-            SAFE_TRANSMIT2(player, CMD_PLAYER_PART, tempbuf);
-        }
+        games[game_id].data.players[slot].lives = 0;
+        games[game_id].data.players[slot].respawning = 1;
     }
     /* If that was the last player, end the game. */
     else {

@@ -22,7 +22,7 @@
 #define CMD_ACCEPT_REQ 10    /* C <-> S (client accepting a game join request; server informing requester) */
 #define CMD_REJECT_REQ 11    /* C <-> S (client rejecting a game join request; server informing requester) */
 #define CMD_PLAYER_JOIN 12   /* C <-- S (server informing client that a player joined) */
-#define CMD_PLAYER_PART 13   /* C <-> S (client leaving game; server informing other clients) */
+#define CMD_PLAYER_PART 13   /* C --> S (client informing server of game leave) */
 #define CMD_GAME_START 14    /* C <-- S (server informing client of game start) */
 
 #define CMD_GAME_UPDATE 15   /* C <-- S (server sending client game update info) */
