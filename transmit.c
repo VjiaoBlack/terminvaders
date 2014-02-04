@@ -63,7 +63,6 @@ void serialize_lobby_info(client_t* clients, mgame_t* games, char** buffer_ptr) 
             continue;
         APPEND("%d|%d|%s\n", id, status, clients[id].name);
     }
-    APPEND("|\n");
     for (id = 0; id < MAX_GAMES; id++) {
         pthread_mutex_lock(&games[id].state_lock);
         status = games[id].status;
@@ -73,11 +72,11 @@ void serialize_lobby_info(client_t* clients, mgame_t* games, char** buffer_ptr) 
         }
         APPEND("%d|%d|%d|%d|", id, status, games[id].slots_total, games[id].slots_filled);
         for (i = 0; i < MAX_SLOTS; i++) {
-            APPEND("%d", games[id].players[i]);
+            APPEND("1|%d", games[id].players[i]);
             if (i < MAX_SLOTS - 1)
-                APPEND(",");
+                APPEND("0|");
         }
-        APPEND("|%s\n", games[id].name);
+        APPEND("%s\n", games[id].name);
         pthread_mutex_unlock(&games[id].state_lock);
     }
 }
@@ -122,29 +121,33 @@ void unserialize_game_setup(char* buffer, char* name, int* type, int* slots) {
     sscanf(buffer, "%d|%d|%s", type, slots, name);
 }
 
+/* Unserialize lobby info. */
+void unserialize_lobby_info(char* buffer) {
+}
+
 /* Unserialize game data. */
 void unserialize_game_data(char* buffer, game_t* game) {
     int pos = 0, offset, slot, more;
     player_t* player;
-    enemy_t *enemy = game->first_enemy, *next_enemy;
-    bullet_t *bullet = game->first_bullet, *next_bullet;
-    explosion_t *explosion = game->first_explosion, *next_explosion;
+    enemy_t *enemy;
+    bullet_t *bullet;
+    explosion_t *explosion;
 
     /* Destory existing data, which is now invalid. */
-    while (enemy) {
-        next_enemy = enemy->next;
-        free(enemy);
-        enemy = next_enemy;
+    while (game->first_enemy) {
+        enemy = game->first_enemy->next;
+        free(game->first_enemy);
+        game->first_enemy = enemy;
     }
-    while (bullet) {
-        next_bullet = bullet->next;
-        free(bullet);
-        bullet = next_bullet;
+    while (game->first_bullet) {
+        bullet = game->first_bullet->next;
+        free(game->first_bullet);
+        game->first_bullet = bullet;
     }
-    while (explosion) {
-        next_explosion = explosion->next;
-        free(explosion);
-        explosion = next_explosion;
+    while (game->first_explosion) {
+        explosion = game->first_explosion->next;
+        free(game->first_explosion);
+        game->first_explosion = explosion;
     }
 
     /* Scan known-sized data. */

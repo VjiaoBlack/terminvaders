@@ -500,7 +500,7 @@ void setup_game(game_t* game) {
 }
 
 /* Do a single cycle of game logic: render and handle input. */
-static void update(game_t* game) {
+void update_game(game_t* game) {
     if (game->multiplayer) {
         load_server_data(game);
         handle_input_multi(game);
@@ -517,7 +517,7 @@ void play(void) {
     game_t game;
     setup_game(&game);
     while (game.running) {
-        update(&game);
+        update_game(&game);
         usleep(1000000 / FPS);
     }
 }
