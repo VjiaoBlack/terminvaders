@@ -91,6 +91,7 @@ typedef struct game_t game_t;
 /* Functions */
 
 void spawn_player(game_t*, player_t*, int);
+void handle_serializable_input(game_t*, int, int);
 void setup_game(game_t*);
 void do_logic(game_t*);
 void play(void);

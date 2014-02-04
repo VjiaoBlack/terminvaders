@@ -211,27 +211,6 @@ static int get_slot_for_client(int game_id, int player) {
     return EMPTY_SLOT;
 }
 
-/* Process input from a user into a game. */
-static void process_game_input(game_t* game, int id, int player, int action) {
-    int slot = get_slot_for_client(id, player);
-    if (slot == EMPTY_SLOT)  /* Ghost input; ignore. */
-        return;
-
-    // TODO: convert 'player' to SLOT by looking for the index in .players
-    switch (action) {
-        case INPUT_UP:
-            break;
-        case INPUT_DOWN:
-            break;
-        case INPUT_LEFT:
-            break;
-        case INPUT_RIGHT:
-            break;
-        case INPUT_SHOOT:
-            break;
-    }
-}
-
 /* Handle the logic in a running game. This runs in its own thread. */
 static void* handle_game(void* arg) {
     int id = *((int*) arg), action, player, slot;
@@ -258,7 +237,12 @@ static void* handle_game(void* arg) {
             action = input->action;
             games[id].input_buffer.first = input->next;
             free(input);
-            process_game_input(&games[id].data, id, player, action);
+
+            /* Process the input in the context of its sender. */
+            slot = get_slot_for_client(id, player);
+            if (slot == EMPTY_SLOT)
+                continue;
+            handle_serializable_input(&games[id].data, slot, action);
         }
         pthread_mutex_unlock(&games[id].input_buffer.lock);
 

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "game.h"
+#include "server.h"
 #include "client.h"
 
 /* Some function headers. */
@@ -335,6 +336,50 @@ void do_logic(game_t* game) {
     }
 }
 
+/* Handle a subset of input that may be processed by the client or server. */
+void handle_serializable_input(game_t* game, int slot, int action) {
+    switch (action) {
+        case INPUT_UP:
+            if (!game->players[slot].respawning) {
+                if (game->players[slot].vertical_accel > 0)
+                    game->players[slot].vertical_accel = 0;
+                else
+                    game->players[slot].vertical_accel = -1;
+            }
+            break;
+        case INPUT_DOWN:
+            if (!game->players[slot].respawning) {
+                if (game->players[slot].vertical_accel < 0)
+                    game->players[slot].vertical_accel = 0;
+                else
+                    game->players[slot].vertical_accel = 1;
+            }
+            break;
+        case INPUT_LEFT:
+            if (!game->players[slot].respawning) {
+                if (game->players[slot].horiz_accel > 0)
+                    game->players[slot].horiz_accel = 0;
+                else
+                    game->players[slot].horiz_accel = -1;
+            }
+            break;
+        case INPUT_RIGHT:
+            if (!game->players[slot].respawning) {
+                if (game->players[slot].horiz_accel < 0)
+                    game->players[slot].horiz_accel = 0;
+                else
+                    game->players[slot].horiz_accel = 1;
+            }
+            break;
+        case INPUT_SHOOT:
+            if (!game->players[slot].respawning) {
+                if (!game->players[slot].cooldown)
+                    player_shoot(game, &game->players[slot]);
+            }
+            break;
+    }
+}
+
 /* Handle user keyboard input during the game. */
 static void handle_input(game_t* game) {
     int key;
@@ -354,45 +399,22 @@ static void handle_input(game_t* game) {
                 break;
             case KEY_UP:
             case 'w':
-                if (!game->players[0].respawning) {
-                    if (game->players[0].vertical_accel > 0)
-                        game->players[0].vertical_accel = 0;
-                    else
-                        game->players[0].vertical_accel = -1;
-                }
+                handle_serializable_input(game, 0, INPUT_UP);
                 break;
             case KEY_DOWN:
             case 's':
-                if (!game->players[0].respawning) {
-                    if (game->players[0].vertical_accel < 0)
-                        game->players[0].vertical_accel = 0;
-                    else
-                        game->players[0].vertical_accel = 1;
-                }
+                handle_serializable_input(game, 0, INPUT_DOWN);
                 break;
             case KEY_LEFT:
             case 'a':
-                if (!game->players[0].respawning) {
-                    if (game->players[0].horiz_accel > 0)
-                        game->players[0].horiz_accel = 0;
-                    else
-                        game->players[0].horiz_accel = -1;
-                }
+                handle_serializable_input(game, 0, INPUT_LEFT);
                 break;
             case KEY_RIGHT:
             case 'd':
-                if (!game->players[0].respawning) {
-                    if (game->players[0].horiz_accel < 0)
-                        game->players[0].horiz_accel = 0;
-                    else
-                        game->players[0].horiz_accel = 1;
-                }
+                handle_serializable_input(game, 0, INPUT_RIGHT);
                 break;
             case ' ':
-                if (!game->players[0].respawning) {
-                    if (!game->players[0].cooldown)
-                        player_shoot(game, &game->players[0]);
-                }
+                handle_serializable_input(game, 0, INPUT_SHOOT);
                 break;
         }
     }
