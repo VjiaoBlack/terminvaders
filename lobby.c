@@ -790,62 +790,6 @@ void serverlogin(){
             case KEY_ENTER: {
                 // ben this shud be ur server magic,  you gotta connect here
                 // NOTE -> the NULL should be replaced with the user that calls this... i'm not sure how to best do it
-
-
-
-                // int sockfd = make_connection("earwig.yulli.org"), command;
-                // char* databuf;
-                // transmit(sockfd, CMD_CONNECT, "Earwig");
-                // transmit(sockfd, CMD_SETUP_GAME, "0|2|Test");
-                // while((key = getkey()) == KEY_NOTHING);
-                // receive(sockfd, &command, &databuf); // PLAYER_JOIN
-                // // free(databuf);
-                // receive(sockfd, &command, &databuf); // NEW_REQUEST
-                // // free(databuf);
-                // transmit(sockfd, CMD_ACCEPT_REQ, "1");
-                // receive(sockfd, &command, &databuf); // PLAYER_JOIN
-                // // free(databuf);
-                // receive(sockfd, &command, &databuf); // GAME_START
-                // // free(databuf);
-                // int flags = fcntl(sockfd, F_GETFL, 0);
-                // fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
-                // game_t game;
-                // setup_game(&game);
-                // setup_multiplayer(&game, 2, 0, sockfd);
-                // while (game.running) {
-                //     update_game(&game);
-                //     usleep(1000000 / FPS);
-                // }
-
-
-
-
-                int sockfd = make_connection("earwig.yulli.org"), command;
-                char* databuf;
-                transmit(sockfd, CMD_CONNECT, "Firefly");
-                transmit(sockfd, CMD_JOIN_GAME, "0");
-                receive(sockfd, &command, &databuf); // PLAYER_JOIN
-                // free(databuf);
-                receive(sockfd, &command, &databuf); // PLAYER_JOIN
-                // free(databuf);
-                receive(sockfd, &command, &databuf); // GAME_START
-                // free(databuf);
-                int flags = fcntl(sockfd, F_GETFL, 0);
-                fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
-                game_t game;
-                setup_game(&game);
-                setup_multiplayer(&game, 2, 1, sockfd);
-                while (game.running) {
-                    update_game(&game);
-                    usleep(1000000 / FPS);
-                }
-
-
-
-
-
-
-
                 // lobby();
                 //return 1;
                 return;
