@@ -1,137 +1,113 @@
+#include <errno.h>
 #include "lobby.h"
 #include "server.h"
 #include "network.h"
 #include "transmit.h"
 #include "client.h"
 
-//ben, this should be coming from your server instead of these variables
-static multiplayergame_t* games;
+static multiplayergame_t games[MAX_GAMES];
 static int numgames;
-static user_t* users;
-static int numusers;
+static user_t users[MAX_CLIENTS];
+static int sockfd;
+static int our_id;
 
 static char* types[] = {"Team "};
 static int maxplayers_pertype[] = {4};
 
 int lobby() {
-    numusers = 64;
-    users = malloc(sizeof(user_t) * 6);
-    users[0] = (user_t) {"Earwig"};
-    users[1] = (user_t) {"VjiaoBlack"};
-    users[2] = (user_t) {"jeuwshuawakeup"};
-    users[3] = (user_t) {"Infernous"};
-    users[4] = (user_t) {"Agnok"};
-    users[5] = (user_t) {"Xx.DarkLord.xX"};
+    char* buffer;
+    int option, command;
 
-    users[6] = (user_t) {"66666666"};
-    users[7] = (user_t) {"77777777"};
-    users[8] = (user_t) {"88888888"};
-    users[9] = (user_t) {"99999999"};
-    users[10] = (user_t) {"10.10.10."};
-    users[11] = (user_t) {"11.11.11"};
+    int flags = fcntl(sockfd, F_GETFL, 0);
+    fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
 
-    int i;
-    for (i = 12; i < 63; i++) {
-        users[i] = (user_t) {"sweg"};
-    }
-    users[63] = (user_t) {"end"};
+    int j;
+    for (j = 0; j < MAX_CLIENTS; j++)
+        users[j].id = j;
+    for (j = 0; j < MAX_GAMES; j++)
+        games[j].id = j;
 
-    user_t *users1 = malloc(sizeof(user_t) * 4);
-    users1[0] = users[0];
-    users1[1] = users[1];
-    users1[2] = users[3];
-    users1[3] = users[2];
+    while (1) {
 
-    user_t *users2 = malloc(sizeof(user_t) * 2);
-    users2[0] = users[4];
-    users2[1] = users[5];
+        if (transmit(sockfd, CMD_LOBBY_INFO, NULL) < 0) {
+            if (errno != EWOULDBLOCK && errno != EAGAIN)
+                return 0;
+        }
 
-    user_t *users3 = malloc(sizeof(user_t) * 1);
-    users3[0] = users[5];
-
-    games = malloc(sizeof(multiplayergame_t) * MAX_GAMES);
-    games[0] = (multiplayergame_t) {1,"join this room if you have swag", 10, 4, 2, users1};//lobby_t current_lobby = (lobby_t) {"join this room if you have swag", 10, 4, 2, users1, NULL, NULL};
-    games[1] = (multiplayergame_t) {1,"join this room if you dont have swag :(", 4, 1, 1, users2};//current_lobby.next = &((lobby_t) {"join this room if you dont have swag :(", 4, 1, 1, users2, NULL, &current_lobby});
-    games[2] = (multiplayergame_t) {1,"pls dont join this room ty", 2, 1, 0, users3};
-    for (i = 3; i < 10; i++) {
-        games[i] = (multiplayergame_t){1,"testtesttest", i, 4, 0, users1};
-    }
-    for (i = 10; i < MAX_GAMES; i++) {
-        games[i] = (multiplayergame_t) {0};
-    }
-    numgames = 9;
-
-    int option;
-    while (1){
-        switch(option = game()) {
+        if (receive(sockfd, &command, &buffer) < 0) {
+            if (errno != EWOULDBLOCK && errno != EAGAIN)
+                return 0;
+        }
+        else {
+            switch (command) {
+                case CMD_LOBBY_INFO: {
+                    int ii;
+                    unserialize_lobby_info(buffer, &users[0], &games[0]);
+                    numgames = 0;
+                    for (ii = 0; ii < MAX_GAMES; ii++) {
+                        if (games[ii].status != GAME_FREE)
+                            numgames++;
+                    }
+                    break;
+                }
+                case CMD_QUIT:
+                case CMD_ERROR:
+                    return 0;
+            }
+            free(buffer);
+        }
+        switch (option = game()) {
             case MENU_QUIT:
                 xt_par0(XT_CH_NORMAL);
                 return 0;
         }
+
+        usleep(1000000 / 5);
     }
 
 }
 
 
-
-
-
-
-
-
-
-
-
-void drawgame(int pos) {
+void drawgames(int pos) {
     int selected_game = 0;
 
-    //data stuff that shud b replaced by the working server
-
-    user_t *users1 = malloc(sizeof(user_t) * 4);
-
-    users1[0] = users[0];
-    users1[1] = users[1];
-    users1[2] = users[3];
-    users1[3] = users[2];
-
-    user_t *users2 = malloc(sizeof(user_t) * 2);
-    users2[0] = users[4];
-    users2[1] = users[5];
-
-    user_t *users3 = malloc(sizeof(user_t) * 1);
-    users3[0] = users[5];
-
-    //--------------------------------------------------------
-    if (pos > -1) {
+    if (games[pos].status != GAME_FREE) {
         selected_game = pos;
     }
+    else
+        selected_game = 0;
 
     dispmultiframe();
     xt_par0(XT_CH_NORMAL);
-    // this should be scrollable too. Prob with <, > or 1, 0, or something.
-
-    //this prints stuff before the current-----------
-
 
     int c = 0;
     int useroffsettotal = 0;
     int ioffset = 0;
 
-    while (2 * ioffset + useroffsettotal + games[numgames - c].current_users < ROWS - 20){
-        useroffsettotal += games[numgames - c].current_users;
+    while (2 * ioffset + useroffsettotal + (games[numgames - c].status == GAME_FREE ? 0 : games[numgames - c].slots_filled) < ROWS - 20){
+        useroffsettotal += games[numgames - c].status == GAME_FREE ? 0 : games[numgames - c].slots_filled;
         c++;
     }
 
     int i = selected_game - c;
+    int ii;
 
     useroffsettotal = 1;
     int useroffset = 1;
     if (i < 0) i = 0;
-    while (i < selected_game) {
-        printgame(5 + 2 * ioffset + useroffsettotal, 0, games[i]);
-        while (useroffset <= games[i].current_users){
+
+
+    for (; i < MAX_GAMES; i++) {
+
+        if (games[i].status == GAME_FREE)
+            continue;
+
+        printgame(5 + 2 * ioffset + useroffsettotal, i == selected_game, games[i]);
+        for (ii = 0; ii < games[i].slots_filled; ii++) {
+            if (games[i].players[ii] == EMPTY_SLOT)
+                continue;
             SETPOS(6 + 2 * ioffset + useroffsettotal, 8);
-            printf("%s", games[i].users[useroffset-1].username);
+            printf("%s", users[games[i].players[ii]].username);
             useroffset++;
             useroffsettotal++;
             fflush(stdout);
@@ -139,38 +115,10 @@ void drawgame(int pos) {
         useroffset = 1;
         i++;
         ioffset++;
-        fflush(stdout);
-    }
 
-    //prints current ---------------
-    i = selected_game; // should be redundant. this is a safety catch.
-    printgame(5 + 2 * ioffset + useroffsettotal, 1, games[i]);
-    while (useroffset <= games[i].current_users){
-        SETPOS(6 + 2 * ioffset + useroffsettotal, 8);
-        printf("%s", games[i].users[useroffset-1].username);
-        useroffset++;
-        useroffsettotal++;
-        fflush(stdout);
     }
-    useroffset = 1;
-    i++;
-    ioffset++;
+    fflush(stdout);
 
-    //this prints stuff after the current
-    while (i < 64 && games[i].valid != 0 && 2 * ioffset + useroffsettotal + games[i].current_users < ROWS - 6) {
-        printgame(5 + 2 * ioffset + useroffsettotal, 0, games[i]);
-        while (useroffset <= games[i].current_users){
-            SETPOS(6 + 2 * ioffset + useroffsettotal, 8);
-            printf("%s", games[i].users[useroffset-1].username);
-            useroffset++;
-            useroffsettotal++;
-            fflush(stdout);
-        }
-        useroffset = 1;
-        i++;
-        ioffset++;
-        fflush(stdout);
-    }
 
     SETPOS(2, 3);
     printf("Open Lobbies (Up/Down to select, %sJ%soin, %sC%sreate, %sQ%suit, %sH%selp)", XT_CH_UNDERLINE, XT_CH_NORMAL, XT_CH_UNDERLINE, XT_CH_NORMAL, XT_CH_UNDERLINE, XT_CH_NORMAL, XT_CH_UNDERLINE, XT_CH_NORMAL);
@@ -191,11 +139,11 @@ void drawgame(int pos) {
 void printgame(int row, int is_selected, multiplayergame_t game) {
     SETPOS(row, 4);
     if (is_selected)
-        printf("> %s (%d/%d)", game.name, game.current_users, game.max_users);
+        printf("> %s (%d/%d)", game.name, game.slots_filled, game.slots_total);
     else
-        printf("  %s (%d/%d)", game.name, game.current_users, game.max_users);
+        printf("  %s (%d/%d)", game.name, game.slots_filled, game.slots_total);
     SETPOS(row, COLS - 30);
-    switch(game.type){
+    switch(game.mode){
         case MODE_TEAM:
             printf("Team");
             break;
@@ -203,175 +151,147 @@ void printgame(int row, int is_selected, multiplayergame_t game) {
 }
 
 
-
-
-
+void draw_users() {
+    int i;
+    printf("Who's Online");
+    for (i = 0; i < 16; i++) {
+        if (users[i].status != CLIENT_FREE)
+            printf("%s", users[i].username);
+    }
+    fflush(stdout);
+}
 
 
 int game() {
-    int i = 0;
-
-    users[6] = (user_t) {"66666666"};
-    users[7] = (user_t) {"77777777"};
-    users[8] = (user_t) {"88888888"};
-    users[9] = (user_t) {"99999999"};
-    users[10] = (user_t) {"10.10.10"};
-    users[11] = (user_t) {"11.11.11"};
-
-
-    int selected_game = 0;
-    int onlinelistoffset = 0;
+    static int selected_game = 0;
 
     xt_par0(XT_CLEAR_SCREEN);
     xt_par0(XT_CH_NORMAL);
     SETPOS(2, COLS - 18);
-    printf("Who's Online");
-    for (i = 0; i < numusers - onlinelistoffset; i++) {
-        SETPOS(4 + i, COLS - 18);
-        if (5 + i > ROWS)
-            break;
-        printf("%s", users[i + onlinelistoffset].username);
-        fflush(stdout);
-    }
-    drawgame(0);
+    draw_users();
+    drawgames(0);
+    fflush(stdout);
     int key;
-    while(1) {
-        while((key = getkey()) == KEY_NOTHING);
-        xt_par0(XT_CH_NORMAL);
-        SETPOS(2, COLS - 18);
-        printf("Who's Online");
-        for (i = 0; i < numusers - onlinelistoffset; i++) {
-            SETPOS(4 + i, COLS - 18);
-            if (5 + i > ROWS)
-                break;
-            printf("%s", users[i + onlinelistoffset].username);
-            fflush(stdout);
-        }
-        switch(key) {
-            case '<':
-                xt_par0(XT_CLEAR_SCREEN);
-                drawgame(selected_game);
-                dispmultiframe();
-                if (onlinelistoffset > 0)
-                    onlinelistoffset--;
-                xt_par0(XT_CH_NORMAL);
-                SETPOS(2, COLS - 18);
-                printf("Who's Online");
-                for (i = 0; i < numusers - onlinelistoffset; i++) {
-                    SETPOS(4 + i, COLS - 18);
-                    if (5 + i > ROWS)
-                        break;
-                    printf("%s", users[i + onlinelistoffset].username);
-                }
-                break;
-            case '>':
-                xt_par0(XT_CLEAR_SCREEN);
-                drawgame(selected_game);
-                dispmultiframe();
-                if (ROWS - 5 + onlinelistoffset < 64)
-                    onlinelistoffset++;
-                xt_par0(XT_CH_NORMAL);
-                SETPOS(2, COLS - 18);
-                printf("Who's Online");
-                for (i = 0; i < numusers - onlinelistoffset; i++) {
-                    SETPOS(4 + i, COLS - 18);
-                    if (5 + i > ROWS)
-                        break;
-                    printf("%s", users[i + onlinelistoffset].username);
-                }
-                break;
-            case 'q':
-            case 'Q':
-                xt_par0(XT_CLEAR_SCREEN);
-                SETPOS(0,0);
-                return MENU_QUIT;
-                break;
-            case 'w':
-            case KEY_UP:
-                xt_par0(XT_CLEAR_SCREEN);
-                if (selected_game > 0) {
-                    drawgame(--selected_game);
-                } else {
-                    drawgame(selected_game);
-                }
-                xt_par0(XT_CH_NORMAL);
-                SETPOS(2, COLS - 18);
-                printf("Who's Online");
-                for (i = 0; i < numusers - onlinelistoffset; i++) {
-                    SETPOS(4 + i, COLS - 18);
-                    if (5 + i > ROWS)
-                        break;
-                    printf("%s", users[i + onlinelistoffset].username);
-                }
-                break;
-            case 's':
-            case KEY_DOWN:
-                xt_par0(XT_CLEAR_SCREEN);
-                if (selected_game < 64 && games[selected_game + 1].valid != 0) {
-                    drawgame(++selected_game);
-                } else {
-                    drawgame(selected_game);
-                }
-                xt_par0(XT_CH_NORMAL);
-                SETPOS(2, COLS - 18);
-                printf("Who's Online");
-                for (i = 0; i < numusers - onlinelistoffset; i++) {
-                    SETPOS(4 + i, COLS - 18);
-                    if (5 + i > ROWS)
-                        break;
-                    printf("%s", users[i + onlinelistoffset].username);
-                }
-                break;
-            case 'j':
-            case 'J':
-                if (join_popup(games[selected_game]))
-                    game_wait(selected_game);
-                drawgame(selected_game);
-                xt_par0(XT_CH_NORMAL);
-                SETPOS(2, COLS - 18);
-                printf("Who's Online");
-                for (i = 0; i < numusers - onlinelistoffset; i++) {
-                    SETPOS(4 + i, COLS - 18);
-                    if (5 + i > ROWS)
-                        break;
-                    printf("%s", users[i + onlinelistoffset].username);
-                }
-                break;
-            case 'c':
-            case 'C':
-                if (create_popup()) // create_popup also includes the error message handling
-                    game_wait(numgames - 1);
-                drawgame(selected_game);
-                xt_par0(XT_CH_NORMAL);
-                SETPOS(2, COLS - 18);
-                printf("Who's Online");
-                for (i = 0; i < numusers - onlinelistoffset; i++) {
-                    SETPOS(4 + i, COLS - 18);
-                    if (5 + i > ROWS)
-                        break;
-                    printf("%s", users[i + onlinelistoffset].username);
-                }
-                break;
-            case 'h':
-            case 'H':
-                help_popup();
-                break;
-        }
+    if ((key = getkey()) == KEY_NOTHING)
+        return 0;
+
+    xt_par0(XT_CH_NORMAL);
+    SETPOS(2, COLS - 18);
+    // printf("Who's Online");
+    // for (i = 0; i < numusers - onlinelistoffset; i++) {
+    //     SETPOS(4 + i, COLS - 18);
+    //     if (5 + i > ROWS)
+    //         break;
+    //     printf("%s", users[i + onlinelistoffset].username);
+
+    // }
+    // fflush(stdout);
+    switch(key) {
+        // case '<':
+        //     xt_par0(XT_CLEAR_SCREEN);
+        //     drawgames(selected_game);
+        //     dispmultiframe();
+        //     if (onlinelistoffset > 0)
+        //         onlinelistoffset--;
+        //     xt_par0(XT_CH_NORMAL);
+        //     SETPOS(2, COLS - 18);
+        //     printf("Who's Online");
+        //     for (i = 0; i < numusers - onlinelistoffset; i++) {
+        //         SETPOS(4 + i, COLS - 18);
+        //         if (5 + i > ROWS)
+        //             break;
+        //         if (users[i + onlinelistoffset].status != CLIENT_FREE)
+        //             printf("%s", users[i + onlinelistoffset].username);
+        //     }
+        //     break;
+        // case '>':
+        //     xt_par0(XT_CLEAR_SCREEN);
+        //     drawgames(selected_game);
+        //     dispmultiframe();
+        //     if (ROWS - 5 + onlinelistoffset < 64)
+        //         onlinelistoffset++;
+        //     xt_par0(XT_CH_NORMAL);
+        //     SETPOS(2, COLS - 18);
+        //     printf("Who's Online");
+        //     for (i = 0; i < numusers - onlinelistoffset; i++) {
+        //         SETPOS(4 + i, COLS - 18);
+        //         if (5 + i > ROWS)
+        //             break;
+        //         if (users[i + onlinelistoffset].status != CLIENT_FREE)
+        //             printf("%s", users[i + onlinelistoffset].username);
+        //     }
+        //     break;
+        case 'q':
+        case 'Q':
+            xt_par0(XT_CLEAR_SCREEN);
+            SETPOS(0,0);
+            return MENU_QUIT;
+        case 'w':
+        case KEY_UP:
+            xt_par0(XT_CLEAR_SCREEN);
+            if (selected_game > 0) {
+                drawgames(--selected_game);
+            } else {
+                drawgames(selected_game);
+            }
+            xt_par0(XT_CH_NORMAL);
+            SETPOS(2, COLS - 18);
+            draw_users();
+            break;
+        case 's':
+        case KEY_DOWN:
+            xt_par0(XT_CLEAR_SCREEN);
+            if (selected_game < 64 && games[selected_game + 1].status != GAME_FREE) {
+                drawgames(++selected_game);
+            } else {
+                drawgames(selected_game);
+            }
+            xt_par0(XT_CH_NORMAL);
+            SETPOS(2, COLS - 18);
+            draw_users();
+            break;
+        case 'j':
+        case 'J':
+            if (join_popup(&games[selected_game]))
+                game_wait(selected_game);
+            drawgames(selected_game);
+            xt_par0(XT_CH_NORMAL);
+            SETPOS(2, COLS - 18);
+            draw_users();
+            break;
+        case 'c':
+        case 'C':
+            if (create_popup()) // create_popup also includes the error message handling
+                game_wait(numgames - 1);
+            drawgames(selected_game);
+            xt_par0(XT_CH_NORMAL);
+            SETPOS(2, COLS - 18);
+            draw_users();
+            break;
+        case 'h':
+        case 'H':
+            help_popup();
+            break;
     }
+    return 0;
 }
 
-int join_popup (multiplayergame_t game) {
+int join_popup (multiplayergame_t* game) {
     int key = 0;
     //int row = 0, col = 0;
 
     char* title = malloc(sizeof(char) * 33);
-    strcpy(title, game.name);
-    int i = strlen(title);
+    strcpy(title, "JOIN GAME - TESTING");
+    // int i = strlen(title);
 
-    while (i < 41) {
-        strcat(title, " ");
-        i++;
-    }
+    char tmpbuf[8];
+    snprintf(tmpbuf, 8, "%d\n", game->id);
+    transmit(sockfd, CMD_JOIN_GAME, tmpbuf);
+
+    // while (i < 41) {
+    //     strcat(title, " ");
+    //     i++;
+    // }
 
     xt_par0(XT_CH_NORMAL);
     SETPOS(ROWS / 2 - 2, COLS / 2 - 30);
@@ -389,9 +309,30 @@ int join_popup (multiplayergame_t game) {
     SETPOS(ROWS / 2 + 2, COLS / 2 - 30);
     printf("%s                            %sB%s%sack                            %s", XT_CH_INVERSE, XT_CH_UNDERLINE, XT_CH_NORMAL,XT_CH_INVERSE, XT_CH_NORMAL);
 
-    int rejected = 1;
+    int rejected = 0;
     while(1){
-        while((key = getkey()) == KEY_NOTHING);
+
+        int command;
+        char* buffer;
+        if (receive(sockfd, &command, &buffer) < 0) {
+            if (errno != EWOULDBLOCK && errno != EAGAIN)
+                return 0;
+        }
+        else {
+            free(buffer);
+            switch (command) {
+                case CMD_ACCEPT_REQ:
+                    rejected = -1;
+                    break;
+                case CMD_REJECT_REQ:
+                    rejected = 1;
+                    break;
+                case CMD_QUIT:
+                case CMD_ERROR:
+                    return 0;
+            }
+        }
+
         if ((rejected = 1)) {// rejected should be revalued from server here
             xt_par0(XT_CH_NORMAL);
             SETPOS(ROWS / 2 - 2, COLS / 2 - 30);
@@ -408,6 +349,7 @@ int join_popup (multiplayergame_t game) {
 
             SETPOS(ROWS / 2 + 2, COLS / 2 - 30);
             printf("%s                            %sB%s%sack                            %s", XT_CH_INVERSE, XT_CH_UNDERLINE, XT_CH_NORMAL,XT_CH_INVERSE, XT_CH_NORMAL);
+            usleep(1000000);
             return 0;
         } else if ((rejected = -1)) { // -1 symbolizes that they were ACCEPTED.
             SETPOS(ROWS / 2 - 2, COLS / 2 - 30);
@@ -424,17 +366,21 @@ int join_popup (multiplayergame_t game) {
 
             SETPOS(ROWS / 2 + 2, COLS / 2 - 30);
             printf("%s                            %sB%s%sack                            %s", XT_CH_INVERSE, XT_CH_UNDERLINE, XT_CH_NORMAL,XT_CH_INVERSE, XT_CH_NORMAL);
-            usleep(1000000/2);
+            usleep(1000000);
             return 1;
         }
 
+        key = getkey();
         switch(key){
             case 'q':
+            case 'Q':
             case 'b':
             case 'B':
+                transmit(sockfd, CMD_CANCEL_REQ, NULL);
                 xt_par0(XT_CLEAR_SCREEN);
                 return 0;
         }
+        usleep(1000000/2);
     }
 }
 
@@ -520,13 +466,19 @@ int create_popup () {
 
         while((key = getkey()) == KEY_NOTHING);
         switch(key){
-            case KEY_ENTER:
+            case KEY_ENTER: {
                 // ben this shud be ur server magic, ithink
-                games[numgames++] = (multiplayergame_t) {1, title, users, 0, type, NULL};
-                // NOTE -> the NULL should be replaced with the user that calls this... i'm not sure how to best do it
+                char bufff[16];
+                snprintf(bufff, 16, "%d|%d|%s", type, users, title);
+                transmit(sockfd, CMD_SETUP_GAME, bufff);
+                int nnn = numgames;
+                games[nnn] = (multiplayergame_t) {nnn, GAME_WAITING, users, 0, {0}, {0}, type};
+                strcpy(games[nnn].name, title);
+                numgames++;
                 xt_par0(XT_CLEAR_SCREEN);
                 free(title);
                 return 1;
+            }
             case 9: //TAB
                 if (field < 2)
                     field++;
@@ -583,7 +535,7 @@ int create_popup () {
                     }
                 }
             default:
-                if (((key <= 'z' && key >= 'A') || (key >= '0' && key <= '9')) && field == 0 && titlelen < 32) {
+                if ((key >= ' ' && key <= '~') && field == 0 && titlelen < 32) {
                     if (pos != titlelen) {
                         for (i = titlelen; i > pos; i--) {
                             title[i] = title[i-1];
@@ -612,92 +564,88 @@ void game_wait(int created_game) {
 
     // this prints out current users in this game
     int i = created_game; // (which also needs to be integrated with server)
-    int onlinelistoffset = 0    ;
-    int useroffset = 1;
-    while (useroffset <= games[i].current_users){
-        SETPOS(6 + 2 * i + useroffset, 8);
-        printf("%s", games[i].users[useroffset-1].username);
-        useroffset++;
-        fflush(stdout);
-    }
+    // int onlinelistoffset = 0    ;
 
-    // this prints out who's online
-    xt_par0(XT_CH_NORMAL);
-    SETPOS(2, COLS - 18);
-    printf("Who's Online");
-    for (i = 0; i < numusers - onlinelistoffset; i++) {
-        SETPOS(4 + i, COLS - 18);
-        if (5 + i > ROWS)
-            break;
-        printf("%s", users[i + onlinelistoffset].username);
-        fflush(stdout);
-    }
-
-    SETPOS(2,3);
-    printf("%s", games[created_game].name);
-    SETPOS(ROWS, COLS);
-
+    int p_id;
+    int foxes;
+    int command;
+    char* buffer;
 
     while (1) {
-        //------------------------------------------
-        //user_t requestinguser;
-        /* Server code goes here.
-        There is a request for GET_USER_REQUEST or something, much like getkey.
-        while ((requestinguser = GET_USER_REQUEST()) != NULL) {
-            games[created_game].users[games[created_game].currentusers++] = requestinguser;
-        } */
+        int useroffset = 1;
+        for (foxes = 0; foxes < MAX_SLOTS; foxes++) {
+            SETPOS(6 + 2 * i + useroffset, 8);
+            if (games[i].players[foxes] != EMPTY_SLOT) {
+                printf("%d", games[i].players[foxes]);
+                useroffset++;
+            }
+        }
 
-        // please note im not sure if i need a cpyuser funciton. I dont thinks o. tell me if i dio.
-        //- ----------------------------------------
-        if (games[created_game].current_users == games[created_game].max_users){
-            //run some play game funciton;
-            return;
+        SETPOS(2,3);
+        printf("%s", games[created_game].name);
+        SETPOS(ROWS, COLS);
+        fflush(stdout);
+
+        if (receive(sockfd, &command, &buffer) < 0) {
+            if (errno != EWOULDBLOCK && errno != EAGAIN)
+                return;
+        }
+        else {
+            switch (command) {
+                case CMD_NEW_REQUEST:
+                    if (confirm_request(buffer))
+                        transmit(sockfd, CMD_ACCEPT_REQ, buffer);
+                    else
+                        transmit(sockfd, CMD_REJECT_REQ, buffer);
+                    break;
+                case CMD_CANCEL_REQ:
+                    // TODO: implement
+                    break;
+                case CMD_PLAYER_JOIN:
+                    sscanf(buffer, "%d", &p_id);
+                    for (foxes = 0; foxes < MAX_SLOTS; foxes++) {
+                        if (games[i].players[foxes] == EMPTY_SLOT) {
+                            games[i].players[foxes] = p_id;
+                            break;
+                        }
+                    }
+                    break;
+                case CMD_PLAYER_PART:
+                    sscanf(buffer, "%d", &p_id);
+                    for (foxes = 0; foxes < MAX_SLOTS; foxes++) {
+                        if (games[i].players[foxes] == p_id) {
+                            games[i].players[foxes] = EMPTY_SLOT;
+                            break;
+                        }
+                    }
+                    break;
+                case CMD_GAME_START: {
+                    game_t game;
+                    setup_game(&game);
+                    setup_multiplayer(&game, games[i].slots_total, our_id, sockfd);
+                    while (game.running) {
+                        update_game(&game);
+                        usleep(1000000 / FPS);
+                    }
+                    return;
+                }
+                case CMD_QUIT:
+                case CMD_ERROR:
+                    return;
+            }
+            free(buffer);
         }
 
         switch ((key = getkey())) {
-            case '<':
-                xt_par0(XT_CLEAR_SCREEN);
-                dispmultiframe();
-                SETPOS(2,3);
-                printf("%s", games[created_game].name);
-                SETPOS(ROWS, COLS);
-                if (onlinelistoffset > 0)
-                    onlinelistoffset--;
-                xt_par0(XT_CH_NORMAL);
-                SETPOS(2, COLS - 18);
-                printf("Who's Online");
-                for (i = 0; i < numusers - onlinelistoffset; i++) {
-                    SETPOS(4 + i, COLS - 18);
-                    if (5 + i > ROWS)
-                        break;
-                    printf("%s", users[i + onlinelistoffset].username);
-                }
-                break;
-            case '>':
-                xt_par0(XT_CLEAR_SCREEN);
-                dispmultiframe();
-                SETPOS(2,3);
-                printf("%s", games[created_game].name);
-                SETPOS(ROWS, COLS);
-                if (ROWS - 4 + onlinelistoffset < 64)
-                    onlinelistoffset++;
-                xt_par0(XT_CH_NORMAL);
-                SETPOS(2, COLS - 18);
-                printf("Who's Online");
-                for (i = 0; i < numusers - onlinelistoffset; i++) {
-                    SETPOS(4 + i, COLS - 18);
-                    if (5 + i > ROWS)
-                        break;
-                    printf("%s", users[i + onlinelistoffset].username);
-                }
-                break;
             case 'q':
             case 'Q':
             case 27: // esc
+                transmit(sockfd, CMD_PLAYER_PART, NULL);
                 xt_par0(XT_CLEAR_SCREEN);
                 return;
         }
 
+        usleep(1000000 / 20);
     }
 }
 
@@ -706,11 +654,11 @@ void serverlogin(){
 int badserver = 0; //impt later on trust me
     int field = 0, pos = 0, len = 0, addresslen = 0, usernamelen = 0, key = 0;
 
-    char address[33];
-    int i = strlen(address);
+    char address[33] = "";
+    int i;
 
-    char username[17];
-    int j = strlen(username);
+    char username[17] = "";
+    int j;
 
     while(1){
 
@@ -785,10 +733,25 @@ int badserver = 0; //impt later on trust me
 
         switch(key){
             case KEY_ENTER: {
-                // ben this shud be ur server magic,  you gotta connect here
-                // NOTE -> the NULL should be replaced with the user that calls this... i'm not sure how to best do it
-                lobby();
-                //return 1;
+                sockfd = make_connection(address);
+                if (sockfd < 0)
+                    badserver = 1;
+                else if (transmit(sockfd, CMD_CONNECT, username) < 0)
+                    badserver = 1;
+                else {
+                    int command;
+                    char* buffer;
+                    if (receive(sockfd, &command, &buffer) < 0)
+                        badserver = 1;
+                    else {
+                        if (command == CMD_CONNECT)
+                            our_id = atoi(buffer);
+                        else
+                            badserver = 1;
+                        free(buffer);
+                    }
+                }
+
                 if (badserver) {
                     xt_par0(XT_CH_NORMAL);
                     SETPOS(ROWS / 2 - 3, COLS / 2 - 30);
@@ -811,10 +774,13 @@ int badserver = 0; //impt later on trust me
 
                     SETPOS(ROWS / 2 + 3, COLS / 2 - 30);
                     printf("%s                       Esc to go back                       %s", XT_CH_INVERSE, XT_CH_NORMAL);
+                    fflush(stdout);
+                    break;
                 }
-                fflush(stdout);
+
+
                 lobby();
-                //  return 1;
+                close(sockfd);
                 return;
             }
             case 27: //ESC
@@ -856,7 +822,7 @@ int badserver = 0; //impt later on trust me
                 }
                 break;
             default:
-                if (((key <= 'z' && key >= 'A') || (key >= '0' && key <= '9'))) {
+                if (key >= ' ' && key <= '~') {
                     if (field && usernamelen < 16) {
                         if (pos != usernamelen) {
                             for (i = usernamelen; i > pos; i--) {
@@ -884,13 +850,11 @@ int badserver = 0; //impt later on trust me
     }
 }
 
-int confirm_request(user_t requester) {
-    int choice;
+int confirm_request(char* username) {
+    int choice = 0;
 
     int key = 0;
 
-    char* username = malloc(sizeof(char) * 17);
-    strcpy(username, requester.username);
     int j = strlen(username);
 
     while (j < 16) {
@@ -920,32 +884,41 @@ int confirm_request(user_t requester) {
 
     SETPOS(ROWS / 2 + 3, COLS / 2 - 16);
     printf("%s                                %s", XT_CH_INVERSE, XT_CH_NORMAL);
-
+    fflush(stdout);
 
     while (1){
         while ((key == getkey()) == KEY_NOTHING);
 
         switch (key) {
-            if (choice) {
-                SETPOS(ROWS / 2 + 1, COLS / 2 + 5);
-                printf(XT_CH_INVERSE);
-                printf(XT_CH_BOLD);
-                printf("YES");
-                printf(XT_CH_NORMAL);
-            } else {
-                SETPOS(ROWS / 2 + 1, COLS / 2 - 5);
-                printf(XT_CH_INVERSE);
-                printf(XT_CH_BOLD);
-                printf("NO");
-                printf(XT_CH_NORMAL);
-            }
             case KEY_LEFT:
+                choice = 0;
+                break;
             case KEY_RIGHT:
-                choice = !choice;
+                choice = 1;
                 break;
             case KEY_ENTER:
                 return choice;
         }
+
+            if (choice) {
+                SETPOS(ROWS / 2 + 1, COLS / 2 + 5);
+                printf(XT_CH_INVERSE);
+                printf(XT_CH_BOLD);
+                printf("Yes");
+                printf(XT_CH_NORMAL);
+                SETPOS(ROWS / 2 + 1, COLS / 2 - 5);
+                printf("No");
+                fflush(stdout);
+            } else {
+                SETPOS(ROWS / 2 + 1, COLS / 2 - 5);
+                printf(XT_CH_INVERSE);
+                printf(XT_CH_BOLD);
+                printf("No");
+                printf(XT_CH_NORMAL);
+                SETPOS(ROWS / 2 + 1, COLS / 2 + 5);
+                printf("Yes");
+                fflush(stdout);
+            }
     }
 
 

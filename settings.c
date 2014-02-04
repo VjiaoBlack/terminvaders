@@ -6,7 +6,7 @@
 #include "star.h"
 
 static int rows = 40;
-static int cols = 120;
+static int cols = 100;
 
 int get_rows(void) {
     return rows;

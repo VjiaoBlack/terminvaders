@@ -549,6 +549,8 @@ static void* handle_client(void* arg) {
             strcpy(clients[id].name, buffer);
             free(buffer);
             clients[id].status = CLIENT_IDLE;
+            snprintf(databuf, 1024, "%d", id);
+            transmit(sockfd, CMD_CONNECT, databuf);
             break;
         case CMD_GETPID:
             free(buffer);

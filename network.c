@@ -83,12 +83,6 @@ int receive(int sockfd, int* command, char** data) {
         return -1;
     *data = malloc(sizeof(char) * datalen);
 
-    /* Handle the no-data case for certain commands (CMD_STATUS, ...). */
-    if (datalen == 1) {
-        *data[0] = '\0';
-        return 0;
-    }
-
     /* read() until we get all data, or an error. */
     remainder = datalen;
     while (remainder) {

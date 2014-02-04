@@ -1,3 +1,4 @@
+#pragma once
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -6,21 +7,23 @@
 #include <string.h>
 #include "settings.h"
 #include "terminvaders.h"
+#include "server.h"
 
 struct user_t {
-    char* username;
+    int id;
+    int status;
+    char username[NAME_LEN + 1];
 };
 typedef struct user_t user_t;
 
 struct multiplayergame_t {
-    int valid;
-    char* name;
-    int max_users;
-    int current_users;
-    int type;
-    struct user_t* users;
-//    struct lobby_t* next;
-//    struct lobby_t* previous;
+    int id;
+    int status;
+    int slots_total;
+    int slots_filled;
+    int players[MAX_SLOTS];
+    char name[NAME_LEN + 1];
+    int mode;
 };
 typedef struct multiplayergame_t multiplayergame_t;
 
@@ -28,13 +31,13 @@ void dispmultiframe();
 int game();
 void drawgame(int);
 void printgame(int,int,multiplayergame_t);
-int join_popup (multiplayergame_t);
+int join_popup (multiplayergame_t*);
 int create_popup ();
 void help_popup ();
 void game_wait(int);
 int lobby();
 void serverlogin();
-int confirm_request(user_t);
+int confirm_request(char*);
 
 
 /* notes:
