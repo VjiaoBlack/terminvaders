@@ -1,14 +1,21 @@
-COMPILE=gcc -g -O2 -Wall -lm -c
-LINK=gcc -g -O2 -Wall -lm
+MACHINE= $(shell uname -s)
+COMPILE=gcc -g -O2 -Wall -c
+LINK=gcc -g -O2 -Wall
+
+ifeq ($(MACHINE), Linux)
+	EXTRA= -lm -pthread
+else
+	EXTRA= -lm
+endif
 
 all: terminvaders server
 	rm -f preferences.txt
 
 terminvaders: build build/keyboard.o build/xterm_control.o build/network.o build/transmit.o build/game.o build/graphics.o build/terminvaders.o build/settings.o build/star.o build/client.o build/lobby.o
-	$(LINK) build/keyboard.o build/xterm_control.o build/network.o build/transmit.o build/game.o build/graphics.o build/terminvaders.o build/settings.o build/star.o build/client.o build/lobby.o -o terminvaders
+	$(LINK) build/keyboard.o build/xterm_control.o build/network.o build/transmit.o build/game.o build/graphics.o build/terminvaders.o build/settings.o build/star.o build/client.o build/lobby.o $(EXTRA) -o terminvaders
 
 server: build build/keyboard.o build/xterm_control.o build/network.o build/transmit.o build/server.o build/game.o build/graphics.o build/settings.o build/star.o build/client.o
-	$(LINK) build/keyboard.o build/xterm_control.o build/network.o build/transmit.o build/server.o build/game.o build/graphics.o build/settings.o build/star.o build/client.o -o server
+	$(LINK) build/keyboard.o build/xterm_control.o build/network.o build/transmit.o build/server.o build/game.o build/graphics.o build/settings.o build/star.o build/client.o $(EXTRA) -o server
 
 build/keyboard.o: xterm/keyboard.c
 	$(COMPILE) xterm/keyboard.c -o build/keyboard.o
