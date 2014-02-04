@@ -10,6 +10,7 @@
 #define MAX_CLIENTS 64
 #define MAX_GAMES 32
 #define MAX_SLOTS 4
+#define EMPTY_SLOT -1
 #define NO_REQUEST -1
 
 #define MODE_CO_OP 0

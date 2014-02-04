@@ -249,8 +249,10 @@ static void* handle_game(void* arg) {
 
         /* Update all players with the current game status. */
         serialize_game_data(&games[id].data, &buffer);
-        for (slot = 0; slot < games[id].slots_filled; slot++) {
+        for (slot = 0; slot < games[id].slots_total; slot++) {
             player = games[id].players[slot];
+            if (player == EMPTY_SLOT)
+                continue;
             SAFE_TRANSMIT2(player, CMD_GAME_UPDATE, buffer);
         }
 
@@ -260,8 +262,10 @@ static void* handle_game(void* arg) {
     }
 
     /* Game has ended; inform remaining players. */
-    for (slot = 0; slot < games[id].slots_filled; slot++) {
+    for (slot = 0; slot < games[id].slots_total; slot++) {
         player = games[id].players[slot];
+        if (player == EMPTY_SLOT)
+            continue;
         SAFE_TRANSMIT2(player, CMD_GAME_OVER, NULL);
     }
     return NULL;
@@ -287,19 +291,21 @@ static void remove_player(int id, int game_id) {
 
     /* Update game slots data. */
     pthread_mutex_lock(&games[game_id].state_lock);
-    for (slot = 0; slot < games[game_id].slots_filled; slot++) {
-        if (games[game_id].players[slot] == id)
+    for (slot = 0; slot < games[game_id].slots_total; slot++) {
+        if (games[game_id].players[slot] == id) {
+            games[game_id].players[slot] = EMPTY_SLOT;
             break;
+        }
     }
     games[game_id].slots_filled--;
-    for (; slot < games[game_id].slots_filled; slot++)
-        games[game_id].players[slot] = games[game_id].players[slot + 1];
 
     /* If there are players left, inform them of the part. */
     if (games[game_id].slots_filled > 0) {
         snprintf(tempbuf, 8, "%d", id);
-        for (slot = 0; slot < games[game_id].slots_filled; slot++) {
+        for (slot = 0; slot < games[game_id].slots_total; slot++) {
             player = games[game_id].players[slot];
+            if (player == EMPTY_SLOT)
+                continue;
             SAFE_TRANSMIT2(player, CMD_PLAYER_PART, tempbuf);
         }
     }
@@ -313,7 +319,7 @@ static void remove_player(int id, int game_id) {
 
 /* Process CMD_SETUP_GAME. */
 static void process_setup_game(int id, int sockfd, char* buffer) {
-    int game_id, game_mode, slots_total;
+    int game_id, game_mode, slots_total, slot;
     char name[NAME_LEN + 1], tempbuf[8];
 
     /* Load the game data and try to fetch a free ID. */
@@ -329,6 +335,8 @@ static void process_setup_game(int id, int sockfd, char* buffer) {
     games[game_id].slots_total = slots_total;
     games[game_id].slots_filled = 1;
     games[game_id].players[0] = id;
+    for (slot = 1; slot < slots_total; slot++)
+        games[game_id].players[slot] = EMPTY_SLOT;
     strcpy(games[game_id].name, name);
     games[game_id].mode = game_mode;
     games[game_id].status = GAME_WAITING;
@@ -423,25 +431,37 @@ static void process_accept_req(int id, int sockfd, char* buffer) {
     /* Inform current players of the new guy and vice versa. */
     snprintf(tempbuf, 8, "%d", requester);
     pthread_mutex_lock(&games[game_id].state_lock);
-    for (slot = 0; slot < games[game_id].slots_filled; slot++) {
+    for (slot = 0; slot < games[game_id].slots_total; slot++) {
         player = games[game_id].players[slot];
+        if (player == EMPTY_SLOT)
+            continue;
         snprintf(tempbuf2, 8, "%d", player);
         SAFE_TRANSMIT2(player, CMD_PLAYER_JOIN, tempbuf);
         SAFE_TRANSMIT2(requester, CMD_PLAYER_JOIN, tempbuf2);
     }
     SAFE_TRANSMIT2(requester, CMD_PLAYER_JOIN, tempbuf);
-    games[game_id].players[games[game_id].slots_filled++] = requester;
+
+    /* Fill an empty slot with the new player. */
+    for (slot = 0; slot < games[game_id].slots_total; slot++) {
+        if (games[game_id].players[slot] == EMPTY_SLOT) {
+            games[game_id].players[slot] = requester;
+            break;
+        }
+    }
+    games[game_id].slots_filled++;
 
     /* If we have enough players now, start the game. */
     if (games[game_id].slots_filled >= games[game_id].slots_total) {
         games[game_id].status = GAME_PLAYING;
 
         /* Inform players of the game start. */
-        for (slot = 0; slot < games[game_id].slots_filled; slot++) {
+        for (slot = 0; slot < games[game_id].slots_total; slot++) {
             player = games[game_id].players[slot];
+            if (player == EMPTY_SLOT)
+                continue;
             clients[player].status = CLIENT_IN_GAME;
             snprintf(tempbuf2, 8, "%d", slot);
-            SAFE_TRANSMIT2(player, CMD_GAME_START, slot);
+            SAFE_TRANSMIT2(player, CMD_GAME_START, tempbuf2);
         }
         cancel_requests(game_id);
         start_game_thread(game_id);
