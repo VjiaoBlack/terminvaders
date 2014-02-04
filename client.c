@@ -25,7 +25,7 @@ void handle_input_multi(game_t* game) {
     while ((key = getkey()) != KEY_NOTHING) {
         switch (key) {
             case 'q':
-                transmit(game->multiplayer_data.sockfd, CMD_PLAYER_PART);
+                transmit(game->multiplayer_data.sockfd, CMD_PLAYER_PART, NULL);
                 game->running = 0;
                 break;
             case KEY_UP:

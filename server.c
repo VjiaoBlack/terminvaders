@@ -10,6 +10,7 @@
 #include <arpa/inet.h>
 #include "server.h"
 #include "transmit.h"
+#include "client.h"
 
 /* --------------------------- Global Variables ---------------------------- */
 
@@ -467,16 +468,9 @@ static void process_reject_req(int id, int sockfd, char* buffer) {
 }
 
 /* Process CMD_PLAYER_PART. */
-static void process_player_part(int id, int sockfd) {
-    int game_id = clients[id].game;
-    char tempbuf[8];
-
-    /* Confirm part with player and update their status. */
-    snprintf(tempbuf, 8, "%d", id);
-    SAFE_TRANSMIT(id, sockfd, CMD_PLAYER_PART, tempbuf);
+static void process_player_part(int id) {
     clients[id].status = CLIENT_IDLE;
-
-    remove_player(id, game_id);
+    remove_player(id, clients[id].game);
 }
 
 /* Process CMD_INPUT. */
@@ -594,7 +588,7 @@ static void* handle_client(void* arg) {
                 break;
             case CMD_PLAYER_PART:
                 ENFORCE_CONTEXT(CLIENT_WAITING && clients[id].status != CLIENT_IN_GAME);
-                process_player_part(id, sockfd);
+                process_player_part(id);
                 break;
             case CMD_INPUT:
                 ENFORCE_CONTEXT(CLIENT_IN_GAME);
