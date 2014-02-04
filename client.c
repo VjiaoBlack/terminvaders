@@ -3,6 +3,14 @@
 #include "client.h"
 #include "server.h"
 
+/* Set up a multiplayer game. */
+void setup_multiplayer(game_t* game, int player, int sockfd) {
+    game->multiplayer = 1;
+    game->multiplayer_data.mode = MODE_CO_OP;
+    game->multiplayer_data.player = player;
+    game->multiplayer_data.sockfd = sockfd;
+}
+
 /* Load multiplayer data from the server; non-blocking. */
 void load_server_data(game_t* game) {
     // TODO: loop while server has data to send (non-blocking loop)
@@ -16,6 +24,10 @@ void handle_input_multi(game_t* game) {
 
     while ((key = getkey()) != KEY_NOTHING) {
         switch (key) {
+            case 'q':
+                transmit(game->multiplayer_data.sockfd, CMD_PLAYER_PART);
+                game->running = 0;
+                break;
             case KEY_UP:
             case 'w':
                 snprintf(tmpbuf, 8, "%d", INPUT_UP);
@@ -42,12 +54,4 @@ void handle_input_multi(game_t* game) {
                 break;
         }
     }
-}
-
-/* Set up a multiplayer game. */
-void setup_multiplayer(game_t* game, int player, int sockfd) {
-    game->multiplayer = 1;
-    game->multiplayer_data.mode = MODE_CO_OP;
-    game->multiplayer_data.player = player;
-    game->multiplayer_data.sockfd = sockfd;
 }
