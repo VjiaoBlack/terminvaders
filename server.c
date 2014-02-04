@@ -224,7 +224,7 @@ static void* handle_game(void* arg) {
 
     /* Set up the game and enter the logic loop. */
     setup_game(&games[id].data);
-    setup_multiplayer(&games[id].data, -1, -1);
+    setup_multiplayer(&games[id].data, games[id].slots_total, -1, -1);
     while (games[id].data.running) {
         pthread_mutex_lock(&games[id].state_lock);
         if (games[id].status != GAME_PLAYING) {  /* All players have left. */

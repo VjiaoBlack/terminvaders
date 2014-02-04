@@ -12,6 +12,8 @@
 #define MAX_SLOTS 4
 #define NO_REQUEST -1
 
+#define MODE_CO_OP 0
+
 #define CLIENT_FREE 0
 #define CLIENT_CONNECTING 1
 #define CLIENT_IDLE 2

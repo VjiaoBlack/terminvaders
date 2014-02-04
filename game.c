@@ -5,8 +5,7 @@
 #include "client.h"
 
 /* Some function headers. */
-static void spawn_player(game_t*, int);
-static void despawn_player(game_t*);
+static void despawn_player(game_t*, player_t*);
 static enemy_t* spawn_enemy(game_t*);
 static enemy_t* despawn_enemy(game_t*, enemy_t*, enemy_t*);
 static bullet_t* spawn_bullet(game_t*, int, int, double, int, int);
@@ -14,15 +13,15 @@ static bullet_t* despawn_bullet(game_t*, bullet_t*, bullet_t*);
 static explosion_t* spawn_explosion(game_t*, int, int, int);
 static explosion_t* despawn_explosion(game_t*, explosion_t*, explosion_t*);
 
-/* Spawn the player in the game. */
-static void spawn_player(game_t* game, int lives) {
+/* Spawn a player in the game. */
+void spawn_player(game_t* game, player_t* player, int lives) {
     point_t point = {COLS / 2 - 1, ROWS - 5};
-    game->player = (player_t) {point, lives, 0, PLAYER_INVINCIBILITY, 0, 0, 0, 4};
+    *player = (player_t) {point, lives, 0, PLAYER_INVINCIBILITY, 0, 0, 0, 0, 2};
 }
 
-/* Despawn the player in the game. */
-static void despawn_player(game_t* game) {
-    game->player.respawning = PLAYER_RESPAWN;
+/* Despawn a player in the game. */
+static void despawn_player(game_t* game, player_t* player) {
+    player->respawning = PLAYER_RESPAWN;
 }
 
 /* Spawn an enemy in the game. Returns a pointer to the enemy. */
@@ -98,26 +97,25 @@ static explosion_t* despawn_explosion(game_t* game, explosion_t* explosion, expl
     return next;
 }
 
-/* Make the player shoot a bullet. */
-static void player_shoot(game_t* game) {
+/* Make a player shoot a bullet. */
+static void player_shoot(game_t* game, player_t* player) {
     double velocity = PLAYER_BULLET_VELOCITY;
-    game->player.cooldown = PLAYER_COOLDOWN;
-    if (game->player.bullet_type == 3) {
-        game->player.cooldown = PLAYER_COOLDOWN * 3;
+    player->cooldown = PLAYER_COOLDOWN;
+    if (player->bullet_type == 3) {
+        player->cooldown = PLAYER_COOLDOWN * 3;
         velocity = velocity * 3 / 4;
     }
-    if (game->player.bullet_type == 4) {
-        game->player.cooldown = PLAYER_COOLDOWN * 3;
+    if (player->bullet_type == 4) {
+        player->cooldown = PLAYER_COOLDOWN * 3;
         velocity *= 2;
     }
 
-    spawn_bullet(game, game->player.point.x, game->player.point.y - 2, velocity, 1, game->player.bullet_type);
+    spawn_bullet(game, player->point.x, player->point.y - 2, velocity, 1, player->bullet_type);
 }
 
-/* Do game logic involving moving the player. */
-static void do_player_movement_logic(game_t* game) {
+/* Do game logic involving moving a player. */
+static void do_player_movement_logic(game_t* game, player_t* player) {
     static int vertical_radius = 0, horiz_radius = 0;
-    player_t* player = &game->player;
     if (!vertical_radius) {
         vertical_radius = get_sprite(PLAYER)->height / 2;
         horiz_radius = get_sprite(PLAYER)->width / 2;
@@ -151,16 +149,15 @@ static void do_player_movement_logic(game_t* game) {
     }
 }
 
-/* Test whether the player is colliding with any enemy ships. If so, destroy both. */
-static void do_player_enemy_collision(game_t* game) {
-    player_t* player = &game->player;
+/* Test whether a player is colliding with any enemy ships. If so, destroy both. */
+static void do_player_enemy_collision(game_t* game, player_t* player) {
     enemy_t* enemy = game->first_enemy;
     enemy_t* prev = NULL;
     while (enemy) {
         if (collides(&player->point, &enemy->point, 3, 3)) {
             game->score += COLLISION_POINTS;
             despawn_enemy(game, enemy, prev);
-            despawn_player(game);
+            despawn_player(game, player);
             spawn_explosion(game, enemy->point.x, enemy->point.y, COLLISION_POINTS);
             spawn_explosion(game, player->point.x, player->point.y, 0);
             return;
@@ -170,30 +167,31 @@ static void do_player_enemy_collision(game_t* game) {
     }
 }
 
-/* Do game logic involving the player. */
-static void do_player_logic(game_t* game) {
-    player_t* player = &game->player;
+/* Do game logic involving a player. */
+static void do_player_logic(game_t* game, player_t* player) {
     if (player->invincible)  // Post-spawn invincibility timer
         player->invincible--;
-    if (player->respawning && !game->over) {  // Respawn timer
+    if (player->respawning && !player->nospawn) {  // Respawn timer
         player->respawning--;
         if (!player->respawning) {
             if (!player->lives) {
                 player->respawning = 1;  // Prevent player from being displayed
-                game->over = GAME_OVER_TIMER;
+                player->nospawn = 1;  // Prevent player from respawning
+                if (game->multiplayer)
+                    check_multiplayer_game_over(game);
+                else
+                    game->over = GAME_OVER_TIMER;
             }
-            else {
-                spawn_player(game, player->lives - 1);
-                player = &game->player;
-            }
+            else
+                spawn_player(game, player, player->lives - 1);
         }
     }
     if (player->cooldown)  // Bullet cooldown timer
         player->cooldown--;
     if (!player->respawning && !player->invincible)
-        do_player_enemy_collision(game);
+        do_player_enemy_collision(game, player);
     if (!player->respawning) {
-        do_player_movement_logic(game);
+        do_player_movement_logic(game, player);
     }
 }
 
@@ -223,12 +221,17 @@ static int player_bullet_impacts(game_t* game, bullet_t* bullet) {
 
 /* Enemy bullet impact test function. See bullet_impacts(). */
 static int enemy_bullet_impacts(game_t* game, bullet_t* bullet) {
-    player_t* player = &game->player;
-    if (!player->respawning && !player->invincible) {
-        if (collides(&bullet->point, &player->point, 2, 1)) {
-            despawn_player(game);
-            spawn_explosion(game, player->point.x, player->point.y, 0);
-            return 1;
+    player_t* player;
+    int slot;
+
+    for (slot = 0; slot < (game->multiplayer ? game->multiplayer_data.players : 1); slot++) {
+        player = &game->players[slot];
+        if (!player->respawning && !player->invincible) {
+            if (collides(&bullet->point, &player->point, 2, 1)) {
+                despawn_player(game, player);
+                spawn_explosion(game, player->point.x, player->point.y, 0);
+                return 1;
+            }
         }
     }
     return 0;
@@ -317,7 +320,9 @@ static void do_explosion_logic(game_t* game) {
 
 /* Do game logic, mainly involving bullets and enemy spawning/movement. */
 void do_logic(game_t* game) {
-    do_player_logic(game);
+    int slot;
+    for (slot = 0; slot < (game->multiplayer ? game->multiplayer_data.players : 1); slot++)
+        do_player_logic(game, &game->players[slot]);
     do_bullet_logic(game);
     do_enemy_logic(game);
     do_explosion_logic(game);
@@ -334,57 +339,57 @@ static void handle_input(game_t* game) {
     while ((key = getkey()) != KEY_NOTHING) {
         switch (key) {
             case '1':
-                game->player.bullet_type = 2;
+                game->players[0].bullet_type = 2;
                 break;
             case '2':
-                game->player.bullet_type = 3;
+                game->players[0].bullet_type = 3;
                 break;
             case '3':
-                game->player.bullet_type = 4;
+                game->players[0].bullet_type = 4;
                 break;
             case 'q':
                 game->running = 0;
                 break;
             case KEY_UP:
             case 'w':
-                if (!game->player.respawning) {
-                    if (game->player.vertical_accel > 0)
-                        game->player.vertical_accel = 0;
+                if (!game->players[0].respawning) {
+                    if (game->players[0].vertical_accel > 0)
+                        game->players[0].vertical_accel = 0;
                     else
-                        game->player.vertical_accel = -1;
+                        game->players[0].vertical_accel = -1;
                 }
                 break;
             case KEY_DOWN:
             case 's':
-                if (!game->player.respawning) {
-                    if (game->player.vertical_accel < 0)
-                        game->player.vertical_accel = 0;
+                if (!game->players[0].respawning) {
+                    if (game->players[0].vertical_accel < 0)
+                        game->players[0].vertical_accel = 0;
                     else
-                        game->player.vertical_accel = 1;
+                        game->players[0].vertical_accel = 1;
                 }
                 break;
             case KEY_LEFT:
             case 'a':
-                if (!game->player.respawning) {
-                    if (game->player.horiz_accel > 0)
-                        game->player.horiz_accel = 0;
+                if (!game->players[0].respawning) {
+                    if (game->players[0].horiz_accel > 0)
+                        game->players[0].horiz_accel = 0;
                     else
-                        game->player.horiz_accel = -1;
+                        game->players[0].horiz_accel = -1;
                 }
                 break;
             case KEY_RIGHT:
             case 'd':
-                if (!game->player.respawning) {
-                    if (game->player.horiz_accel < 0)
-                        game->player.horiz_accel = 0;
+                if (!game->players[0].respawning) {
+                    if (game->players[0].horiz_accel < 0)
+                        game->players[0].horiz_accel = 0;
                     else
-                        game->player.horiz_accel = 1;
+                        game->players[0].horiz_accel = 1;
                 }
                 break;
             case ' ':
-                if (!game->player.respawning) {
-                    if (!game->player.cooldown)
-                        player_shoot(game);
+                if (!game->players[0].respawning) {
+                    if (!game->players[0].cooldown)
+                        player_shoot(game, &game->players[0]);
                 }
                 break;
         }
@@ -394,15 +399,17 @@ static void handle_input(game_t* game) {
 /* Draw the heads-up display to the screen. */
 static void draw_hud(game_t* game) {
     int i;
+    player_t* player = &game->players[game->multiplayer ? game->multiplayer_data.player : 0];
+
     if (!game->over) {
         SETPOS(1, 1);
         printf("%sScore:%s %s%d%s", XT_CH_BOLD, XT_CH_NORMAL, XT_CH_YELLOW, game->score, XT_CH_NORMAL);
         SETPOS(ROWS, 1);
         printf("%sShips:%s", XT_CH_BOLD, XT_CH_NORMAL);
-        if (game->player.lives >= 5)
-            printf(" %s^%s x %s%d%s", XT_CH_GREEN, XT_CH_NORMAL, XT_CH_YELLOW, game->player.lives, XT_CH_NORMAL);
-        else if (game->player.lives) {
-            for (i = 0; i < game->player.lives; i++)
+        if (player->lives >= 5)
+            printf(" %s^%s x %s%d%s", XT_CH_GREEN, XT_CH_NORMAL, XT_CH_YELLOW, player->lives, XT_CH_NORMAL);
+        else if (player->lives) {
+            for (i = 0; i < player->lives; i++)
                 printf(" %s^%s", XT_CH_GREEN, XT_CH_NORMAL);
         }
         else
@@ -422,7 +429,8 @@ static void render(game_t* game) {
     enemy_t* enemy = game->first_enemy;
     bullet_t* bullet = game->first_bullet;
     explosion_t* explosion = game->first_explosion;
-    int explosion_num = 0;
+    player_t* player;
+    int explosion_num = 0, slot;
 
     xt_par0(XT_CLEAR_SCREEN);
     while (explosion) {
@@ -442,8 +450,12 @@ static void render(game_t* game) {
         draw(&(enemy->point), get_sprite(ENEMY));
         enemy = enemy->next;
     }
-    if (!game->player.respawning && !(game->player.invincible % 2))
-        draw(&(game->player.point), get_sprite(PLAYER));
+
+    for (slot = 0; slot < (game->multiplayer ? game->multiplayer_data.players : 1); slot++) {
+        player = &game->players[slot];
+        if (!player->respawning && !(player->invincible % 2))
+            draw(&(player->point), get_sprite(PLAYER));
+    }
     draw_hud(game);
 }
 
@@ -458,7 +470,8 @@ void setup_game(game_t* game) {
     game->first_enemy = NULL;
     game->first_bullet = NULL;
     game->first_explosion = NULL;
-    spawn_player(game, PLAYER_LIVES);
+    game->players = malloc(sizeof(player_t));
+    spawn_player(game, &game->players[0], PLAYER_LIVES);
 }
 
 /* Do a single cycle of game logic: render and handle input. */
