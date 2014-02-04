@@ -812,7 +812,6 @@ int badserver = 0; //impt later on trust me
                     SETPOS(ROWS / 2 + 3, COLS / 2 - 30);
                     printf("%s                       Esc to go back                       %s", XT_CH_INVERSE, XT_CH_NORMAL);
                 }
-                free(address);
                 fflush(stdout);
                 lobby();
                 //  return 1;
