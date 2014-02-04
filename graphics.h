@@ -1,14 +1,17 @@
+#pragma once
+
 // Defines
 
 #define PLAYER     0
-#define ENEMY      1
-#define BULLET     2
-#define CANNON     3
-#define LASER      4
-#define EXPLOSION  5
-#define EXPLOSIONS 6
+#define ALLY       1
+#define ENEMY      2
+#define BULLET     3
+#define CANNON     4
+#define LASER      5
+#define EXPLOSION  6
+#define EXPLOSIONS 7
 
-#define NUM_SPRITES 11
+#define NUM_SPRITES 12
 #define MAX_SPRITE_HEIGHT 7
 
 // Structs

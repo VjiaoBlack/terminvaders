@@ -15,6 +15,13 @@ static void init_sprites(void) {
             ":n^n:"
         }, 5, 3, XT_CH_GREEN
     };
+    sprite_table[ALLY] = (sprite_t) {
+        {
+            "  |  ",
+            " /^\\ ",
+            ":n^n:"
+        }, 5, 3, XT_CH_BLUE
+    };
     sprite_table[ENEMY] = (sprite_t) {
         {
             ":---:",
@@ -26,14 +33,14 @@ static void init_sprites(void) {
     sprite_table[CANNON] = (sprite_t) {{"0"}, 1, 1};
     sprite_table[LASER]  = (sprite_t) {
         {
-            " ",
-            " ",
-            " ",
-            " ",
-            " ",
-            " ",
-            " "
-        }, 1, 7, XT_CH_INVERSE
+            "|",
+            "|",
+            "|",
+            "|",
+            "|",
+            "|",
+            "|"
+        }, 1, 7, XT_CH_CYAN
     };
     //(sprite_t) {{"|"}, 1, 1};
 

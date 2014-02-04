@@ -1,5 +1,8 @@
+#pragma once
 #include "graphics.h"
 #include "terminvaders.h"
+
+/* Defines */
 
 #define FPS 20
 
@@ -10,6 +13,7 @@
 #define PLAYER_Y_VELOCITY 0.5
 #define PLAYER_BULLET_VELOCITY -1
 #define PLAYER_COOLDOWN (FPS / 4)
+#define NUMBER_OF_PLAYERS (game->multiplayer ? game->multiplayer_data.players : 1)
 
 #define COLLISION_POINTS 25
 #define EXPLOSION_STEPS_PER_SPRITE 2
@@ -18,11 +22,15 @@
 #define SPAWN_TIMER_DECREASE 3
 #define GAME_OVER_TIMER (FPS * 4)
 
+/* Structs */
+
 struct player_t {
     point_t point;
+    int lives;
     int respawning;
     int invincible;
     int cooldown;
+    int nospawn;
     int vertical_accel;
     int horiz_accel;
     int bullet_type;
@@ -57,18 +65,33 @@ struct explosion_t {
 };
 typedef struct explosion_t explosion_t;
 
+struct multidata_t {
+    int mode;
+    int players;
+    int player;
+    int sockfd;
+};
+typedef struct multidata_t multidata_t;
+
 struct game_t {
     int running;
+    int multiplayer;
     int score;
-    int lives;
     int over;
     int until_spawn;
     int spawn_timer;
-    player_t player;
+    player_t* players;
     enemy_t* first_enemy;
     bullet_t* first_bullet;
     explosion_t* first_explosion;
+    multidata_t multiplayer_data;
 };
 typedef struct game_t game_t;
 
+/* Functions */
+
+void spawn_player(game_t*, player_t*, int);
+void handle_serializable_input(game_t*, int, int);
+void setup_game(game_t*);
+void do_logic(game_t*);
 void play(void);
