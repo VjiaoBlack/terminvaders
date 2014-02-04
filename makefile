@@ -1,5 +1,5 @@
-COMPILE=gcc -g -O2 -Wall -c
-LINK=gcc -g -O2 -Wall
+COMPILE=gcc -g -O2 -Wall -lm -c
+LINK=gcc -g -O2 -Wall -lm
 
 all: terminvaders server
 	rm -f preferences.txt
