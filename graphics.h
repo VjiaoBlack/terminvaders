@@ -9,7 +9,7 @@
 #define EXPLOSIONS 6
 
 #define NUM_SPRITES 11
-#define MAX_SPRITE_HEIGHT 5
+#define MAX_SPRITE_HEIGHT 7
 
 // Structs
 

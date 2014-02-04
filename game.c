@@ -8,7 +8,7 @@ static void spawn_player(game_t*);
 static void despawn_player(game_t*);
 static enemy_t* spawn_enemy(game_t*);
 static enemy_t* despawn_enemy(game_t*, enemy_t*, enemy_t*);
-static bullet_t* spawn_bullet(game_t*, int, int, double, int);
+static bullet_t* spawn_bullet(game_t*, int, int, double, int, int);
 static bullet_t* despawn_bullet(game_t*, bullet_t*, bullet_t*);
 static explosion_t* spawn_explosion(game_t*, int, int, int);
 static explosion_t* despawn_explosion(game_t*, explosion_t*, explosion_t*);
@@ -16,7 +16,7 @@ static explosion_t* despawn_explosion(game_t*, explosion_t*, explosion_t*);
 /* Spawn the player in the game. */
 static void spawn_player(game_t* game) {
     point_t point = {COLS / 2 - 1, ROWS - 5};
-    game->player = (player_t) {point, 0, PLAYER_INVINCIBILITY, 0, 0, 0};
+    game->player = (player_t) {point, 0, PLAYER_INVINCIBILITY, 0, 0, 0, 2};
 }
 
 /* Despawn the player in the game. */
@@ -31,7 +31,7 @@ static enemy_t* spawn_enemy(game_t* game) {
     double velocity = ((rand() % 11) + 5) / 10.,       // Between 0.5 and 1.5
            bullet_velocity = ((rand() % 3) + 1) * .5;  // Between 0.5 and 1.5
     int max_cooldown = (rand() % 11) + 5;              // Between 5 and 15
-    // Final score is between 50 and 200
+    // Final score is between 50 and 200x
     int score = (velocity + bullet_velocity + (max_cooldown / 10.)) * 50 - 24.5;
 
     point.x = rand() % 2 ? 3 : COLS - 3;
@@ -54,10 +54,14 @@ static enemy_t* despawn_enemy(game_t* game, enemy_t* enemy, enemy_t* prev) {
 }
 
 /* Spawn a bullet in the game. Returns a pointer to the bullet. */
-static bullet_t* spawn_bullet(game_t* game, int x, int y, double velocity, int fired_by_player) {
+static bullet_t* spawn_bullet(game_t* game, int x, int y, double velocity, int fired_by_player, int type) {
     bullet_t* bullet = malloc(sizeof(bullet_t));
     point_t point = {x, y};
-    *bullet = (bullet_t) {point, velocity, fired_by_player, game->first_bullet};
+    //------- change speed for cannons
+    if (type == 3) {
+        velocity = velocity * 3/4;
+    }
+    *bullet = (bullet_t) {point, velocity, fired_by_player, type, game->first_bullet};
     game->first_bullet = bullet;
     return bullet;
 }
@@ -95,8 +99,18 @@ static explosion_t* despawn_explosion(game_t* game, explosion_t* explosion, expl
 
 /* Make the player shoot a bullet. */
 static void player_shoot(game_t* game) {
+    double velocity = PLAYER_BULLET_VELOCITY;
     game->player.cooldown = PLAYER_COOLDOWN;
-    spawn_bullet(game, game->player.point.x, game->player.point.y - 2, PLAYER_BULLET_VELOCITY, 1);
+    if (game->player.bullet_type == 3) {
+        game->player.cooldown = PLAYER_COOLDOWN * 3;
+        velocity = velocity * 3 / 4;
+    }
+    if (game->player.bullet_type == 4) {
+        game->player.cooldown = PLAYER_COOLDOWN * 3;
+        velocity *= 2;
+    }
+
+    spawn_bullet(game, game->player.point.x, game->player.point.y - 2, velocity, 1, game->player.bullet_type);
 }
 
 /* Do game logic involving moving the player. */
@@ -188,7 +202,14 @@ static int player_bullet_impacts(game_t* game, bullet_t* bullet) {
     enemy_t* enemy = game->first_enemy;
     enemy_t* prev = NULL;
     while (enemy) {
-        if (collides(&bullet->point, &enemy->point, 3, 1)) {
+
+        int fuzzy = get_sprite(bullet->type)->height / 2;
+
+        fuzzy += 2;
+
+        //-------------------------------------------------------------------------------
+        if (collides(&bullet->point, &enemy->point, 3, fuzzy)) {
+        //------------------------------------------------------------------------------------
             game->score += enemy->score;
             despawn_enemy(game, enemy, prev);
             spawn_explosion(game, enemy->point.x, enemy->point.y, enemy->score);
@@ -229,7 +250,7 @@ static void do_bullet_logic(game_t* game) {
     while (bullet) {
         // bullet impact logic goes here
         bullet->point.y += bullet->velocity;
-        if (bullet->point.y < 0 || bullet->point.y >= ROWS || bullet_impacts(game, bullet))
+        if (bullet->point.y < 0 || bullet->point.y >= ROWS || (bullet_impacts(game, bullet) && bullet->type != 3)) // cannons go thru ships
             bullet = despawn_bullet(game, bullet, prev);
         else {
             prev = bullet;
@@ -261,7 +282,7 @@ static void do_enemy_logic(game_t* game) {
         }
         if (!enemy->cooldown) {  // Bullet cooldown timer
             enemy->cooldown = enemy->max_cooldown;
-            spawn_bullet(game, enemy->point.x, enemy->point.y + 2, enemy->bullet_velocity, 0);
+            spawn_bullet(game, enemy->point.x, enemy->point.y + 2, enemy->bullet_velocity, 0, 2);
         }
         else
             enemy->cooldown--;
@@ -312,6 +333,15 @@ static void handle_input(game_t* game) {
     int key;
     while ((key = getkey()) != KEY_NOTHING) {
         switch (key) {
+            case '1':
+                game->player.bullet_type = 2;
+                break;
+            case '2':
+                game->player.bullet_type = 3;
+                break;
+            case '3':
+                game->player.bullet_type = 4;
+                break;
             case 'q':
                 game->running = 0;
                 break;
@@ -404,16 +434,16 @@ static void render(game_t* game) {
         }
         explosion = explosion->next;
     }
+    while (bullet) {
+        draw(&(bullet->point), get_sprite(bullet->type));
+        bullet = bullet->next;
+    }
     while (enemy) {
         draw(&(enemy->point), get_sprite(ENEMY));
         enemy = enemy->next;
     }
     if (!game->player.respawning && !(game->player.invincible % 2))
         draw(&(game->player.point), get_sprite(PLAYER));
-    while (bullet) {
-        draw(&(bullet->point), get_sprite(BULLET));
-        bullet = bullet->next;
-    }
     draw_hud(game);
 }
 

@@ -8,7 +8,7 @@
 #define PLAYER_INVINCIBILITY (FPS * 3)
 #define PLAYER_X_VELOCITY 1
 #define PLAYER_Y_VELOCITY 0.5
-#define PLAYER_BULLET_VELOCITY -2
+#define PLAYER_BULLET_VELOCITY -1
 #define PLAYER_COOLDOWN (FPS / 4)
 
 #define COLLISION_POINTS 25
@@ -25,6 +25,7 @@ struct player_t {
     int cooldown;
     int vertical_accel;
     int horiz_accel;
+    int bullet_type;
 };
 typedef struct player_t player_t;
 
@@ -43,6 +44,7 @@ struct bullet_t {
     point_t point;
     double velocity;
     int fired_by_player;
+    int type; // 2 for normal, 4 for laser, 3 for cannon
     struct bullet_t* next;
 };
 typedef struct bullet_t bullet_t;
