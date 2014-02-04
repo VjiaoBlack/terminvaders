@@ -8,7 +8,7 @@
 #include "settings.h"
 #include "terminvaders.h"
 
-#define fps 180
+#define fps 240
 
 #define vo 10
 #define xo 50

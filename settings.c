@@ -110,9 +110,6 @@ static int read_int(int rows) {
     char key;
     int result = 0;
     char* data = malloc(sizeof(char) * 4); // no HD displays here; fourth is a "\0"
-    // int pos = 0;
-
-    // int cols = COLS / 2 + 3;
 
     if (rows == ROWS / 2) { // then its height
         sprintf(data,"%d",get_rows());

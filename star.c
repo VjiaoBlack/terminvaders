@@ -287,7 +287,7 @@ void update(star_t* stars) {
             stars[i].xwait = calculate_wait(1, abs(stars[i].x - get_cols() / 2), abs(stars[i].y - get_rows() / 2));
             stars[i].ywait = calculate_wait(0, abs(stars[i].x - get_cols() / 2), abs(stars[i].y - get_rows() / 2));
             
-            if (stars[i].ywait <= 1) {
+            if (stars[i].ywait <= 3) {
                 stars[i].ywait = calculate_wait(0, abs(stars[i].x - get_cols() / 2), abs(stars[i].y - get_rows() / 2));
                 if (stars[i].y > get_rows() / 2)
                     stars[i].y = stars[i].y + 1;
@@ -309,7 +309,7 @@ void update(star_t* stars) {
             stars[i].ywait = calculate_wait(0, abs(stars[i].x - get_cols() / 2), abs(stars[i].y - get_rows() / 2));
 
             
-            if (stars[i].xwait <= 1) {
+            if (stars[i].xwait <= 3) {
                 stars[i].xwait = calculate_wait(1, abs(stars[i].x - get_cols() / 2), abs(stars[i].y - get_rows() / 2));
 
                 if (stars[i].x > get_cols() / 2)
