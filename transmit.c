@@ -89,3 +89,8 @@ void serialize_game_data(game_t* game, char** buffer_ptr) {
 void unserialize_game_setup(char* buffer, char* name, int* type, int* slots) {
     sscanf(buffer, "%d|%d|%s", type, slots, name);
 }
+
+/* Unserialize game data. */
+void unserialize_game_data(char* buffer) {
+    // TODO
+}

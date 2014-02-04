@@ -202,6 +202,7 @@ static void cancel_requests(int game_id) {
 
 /* Process input from a user into a game. */
 static void process_game_input(game_t* game, int player, int action) {
+    // TODO: convert 'player' to SLOT by looking for the index in .players
     switch (action) {
         case INPUT_UP:
             break;
@@ -439,7 +440,8 @@ static void process_accept_req(int id, int sockfd, char* buffer) {
         for (slot = 0; slot < games[game_id].slots_filled; slot++) {
             player = games[game_id].players[slot];
             clients[player].status = CLIENT_IN_GAME;
-            SAFE_TRANSMIT2(player, CMD_GAME_START, NULL);
+            snprintf(tempbuf2, 8, "%d", slot);
+            SAFE_TRANSMIT2(player, CMD_GAME_START, slot);
         }
         cancel_requests(game_id);
         start_game_thread(game_id);

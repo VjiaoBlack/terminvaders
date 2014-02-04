@@ -177,8 +177,10 @@ static void do_player_logic(game_t* game, player_t* player) {
             if (!player->lives) {
                 player->respawning = 1;  // Prevent player from being displayed
                 player->nospawn = 1;  // Prevent player from respawning
-                if (game->multiplayer)
-                    check_multiplayer_game_over(game);
+                if (game->multiplayer) {
+                    if (check_multiplayer_game_over(game))
+                        game->over = GAME_OVER_TIMER;
+                }
                 else
                     game->over = GAME_OVER_TIMER;
             }

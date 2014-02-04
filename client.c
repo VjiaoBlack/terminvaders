@@ -21,21 +21,21 @@ void setup_multiplayer(game_t* game, int players, int player, int sockfd) {
 }
 
 /* Check whether a multiplayer game should end. */
-void check_multiplayer_game_over(game_t* game) {
-    player_t* peer;
+int check_multiplayer_game_over(game_t* game) {
+    int slot;
 
-    // for () {
-    //     if ()
-    //         return;
-    // }
-    game->over = GAME_OVER_TIMER;
+    for (slot = 0; slot < NUMBER_OF_PLAYERS; slot++) {
+        if (game->players[slot].lives > 0)
+            return 0;
+    }
+    return 1;
 }
 
 /* Load multiplayer data from the server; non-blocking. */
 void load_server_data(game_t* game) {
     // TODO: loop while server has data to send (non-blocking loop)
     // TODO: if server has broken the connection, end the game
-    // TODO: handle CMD_GAME_UPDATE, CMD_GAME_OVER, CMD_QUIT
+    // TODO: handle CMD_GAME_UPDATE, CMD_GAME_OVER, CMD_QUIT, CMD_PLAYER_PART (set user lives to 0, respawn 1)
 }
 
 /* Handle user keyboard input during a multiplayer game. */
