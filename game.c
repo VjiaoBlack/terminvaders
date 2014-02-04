@@ -16,7 +16,7 @@ static explosion_t* despawn_explosion(game_t*, explosion_t*, explosion_t*);
 /* Spawn the player in the game. */
 static void spawn_player(game_t* game) {
     point_t point = {COLS / 2 - 1, ROWS - 5};
-    game->player = (player_t) {point, 0, PLAYER_INVINCIBILITY, 0, 0, 0, 4};
+    game->player = (player_t) {point, 0, PLAYER_INVINCIBILITY, 0, 0, 0, 2};
 }
 
 /* Despawn the player in the game. */
