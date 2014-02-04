@@ -5,6 +5,7 @@
 #include "game.h"
 #include "settings.h"
 #include "star.h"  
+#include "lobby.h"
 
 /* Set up the game by clearing the screen, etc. */
 static void setup(void) {
@@ -97,6 +98,33 @@ static void drawmenu(int choice) {
     xt_par0(XT_CH_RED);
     printf("Quit");
 
+    SETPOS(3 * ROWS / 4 + 2, COLS / 2 - 2);
+    SETPOS(3 * ROWS / 4 + 2, COLS / 2 - 2);
+    xt_par0(XT_CH_RED);
+    xt_par0(XT_CH_BOLD);
+    printf("M");
+    xt_par0(XT_CH_YELLOW);
+    printf("u");
+    xt_par0(XT_CH_GREEN);
+    printf("L");
+    xt_par0(XT_CH_CYAN);
+    printf("t");
+    xt_par0(XT_CH_BLUE);
+    printf("I");
+    xt_par0(XT_CH_MAGENTA);
+    printf("p");
+    xt_par0(XT_CH_RED);
+    printf("L");
+    xt_par0(XT_CH_YELLOW);
+    printf("a");
+    xt_par0(XT_CH_GREEN);
+    printf("Y");
+    xt_par0(XT_CH_CYAN);
+    printf("e");
+    xt_par0(XT_CH_BLUE);
+    printf("R");
+
+
     xt_par0(XT_CH_BOLD);
     xt_par0(XT_CH_INVERSE);
     switch (choice) { // makes the button highlighted
@@ -119,6 +147,33 @@ static void drawmenu(int choice) {
             printf("Quit");
             SETPOS(ROWS, COLS);
             break;
+        case 3:
+            SETPOS(3 * ROWS / 4 + 2, COLS / 2 - 2);
+            xt_par0(XT_CH_RED);
+            xt_par0(XT_CH_BOLD);
+            printf("M");
+            xt_par0(XT_CH_YELLOW);
+            printf("u");
+            xt_par0(XT_CH_GREEN);
+            printf("L");
+            xt_par0(XT_CH_CYAN);
+            printf("t");
+            xt_par0(XT_CH_BLUE);
+            printf("I");
+            xt_par0(XT_CH_MAGENTA);
+            printf("p");
+            xt_par0(XT_CH_RED);
+            printf("L");
+            xt_par0(XT_CH_YELLOW);
+            printf("a");
+            xt_par0(XT_CH_GREEN);
+            printf("Y");
+            xt_par0(XT_CH_CYAN);
+            printf("e");
+            xt_par0(XT_CH_BLUE);
+            printf("R");
+            SETPOS(ROWS, COLS);
+            break;
     }
     xt_par0(XT_CH_NORMAL);
 
@@ -129,6 +184,8 @@ static int menu(void) {
     drawmenu(0);
     star_t* stars = malloc(sizeof(star_t) * numstars);
     init(stars);
+
+    printf("asdfasdfdfsafdsffdas\nafsn\n\n\\n\n\nasdf\nasdf\nasdf\nsadf\n");
 
     int key, choice = 0;
     SETPOS(ROWS, COLS);
@@ -156,8 +213,37 @@ static int menu(void) {
                     xt_par0(XT_CH_RED);
                     printf("Quit");
                     break;
+                case 3:
+                    SETPOS(3 * ROWS / 4 + 2, COLS / 2 - 2);
+                    xt_par0(XT_CH_RED);
+                    xt_par0(XT_CH_BOLD);
+                    printf("M");
+                    xt_par0(XT_CH_YELLOW);
+                    printf("u");
+                    xt_par0(XT_CH_GREEN);
+                    printf("L");
+                    xt_par0(XT_CH_CYAN);
+                    printf("t");
+                    xt_par0(XT_CH_BLUE);
+                    printf("I");
+                    xt_par0(XT_CH_MAGENTA);
+                    printf("p");
+                    xt_par0(XT_CH_RED);
+                    printf("L");
+                    xt_par0(XT_CH_YELLOW);
+                    printf("a");
+                    xt_par0(XT_CH_GREEN);
+                    printf("Y");
+                    xt_par0(XT_CH_CYAN);
+                    printf("e");
+                    xt_par0(XT_CH_BLUE);
+                    printf("R");
+                    break;
             }
-            choice = !choice ? 2 : choice - 1;
+            if (choice > 0)
+                choice--;
+            else 
+                choice = 3;
             xt_par0(XT_CH_BOLD);
             xt_par0(XT_CH_INVERSE);
             switch (choice) { // makes the button highlighted
@@ -202,8 +288,37 @@ static int menu(void) {
                     xt_par0(XT_CH_RED);
                     printf("Quit");
                     break;
+                case 3:
+                    SETPOS(3 * ROWS / 4 + 2, COLS / 2 - 2);
+                    xt_par0(XT_CH_RED);
+                    xt_par0(XT_CH_BOLD);
+                    printf("M");
+                    xt_par0(XT_CH_YELLOW);
+                    printf("u");
+                    xt_par0(XT_CH_GREEN);
+                    printf("L");
+                    xt_par0(XT_CH_CYAN);
+                    printf("t");
+                    xt_par0(XT_CH_BLUE);
+                    printf("I");
+                    xt_par0(XT_CH_MAGENTA);
+                    printf("p");
+                    xt_par0(XT_CH_RED);
+                    printf("L");
+                    xt_par0(XT_CH_YELLOW);
+                    printf("a");
+                    xt_par0(XT_CH_GREEN);
+                    printf("Y");
+                    xt_par0(XT_CH_CYAN);
+                    printf("e");
+                    xt_par0(XT_CH_BLUE);
+                    printf("R");
+                    break;
             }
-            choice = (choice + 1) % 3;
+            if (choice < 3) 
+                choice++;
+            else
+                choice = 0;
             xt_par0(XT_CH_BOLD);
             xt_par0(XT_CH_INVERSE);
             switch (choice) { // makes the button highlighted
@@ -225,6 +340,32 @@ static int menu(void) {
                     xt_par0(XT_CH_RED);
                     printf("Quit");
                     SETPOS(ROWS, COLS);
+                    break;
+                case 3:
+                    SETPOS(3 * ROWS / 4 + 2, COLS / 2 - 2);
+                    xt_par0(XT_CH_RED);
+                    xt_par0(XT_CH_BOLD);
+                    printf("M");
+                    xt_par0(XT_CH_YELLOW);
+                    printf("u");
+                    xt_par0(XT_CH_GREEN);
+                    printf("L");
+                    xt_par0(XT_CH_CYAN);
+                    printf("t");
+                    xt_par0(XT_CH_BLUE);
+                    printf("I");
+                    xt_par0(XT_CH_MAGENTA);
+                    printf("p");
+                    xt_par0(XT_CH_RED);
+                    printf("L");
+                    xt_par0(XT_CH_YELLOW);
+                    printf("a");
+                    xt_par0(XT_CH_GREEN);
+                    printf("Y");
+                    xt_par0(XT_CH_CYAN);
+                    printf("e");
+                    xt_par0(XT_CH_BLUE);
+                    printf("R");
                     break;
                 }
                 xt_par0(XT_CH_NORMAL);
@@ -249,6 +390,9 @@ static void loop(void) {
                 break;
             case MENU_SETTINGS:
                 configloop();
+                break;
+            case MULTIPLAYER:
+                lobby();
                 break;
             case MENU_QUIT:
                 return;

@@ -22,7 +22,7 @@ build/game.o: game.c game.h graphics.h terminvaders.h settings.h
 build/graphics.o: graphics.c graphics.h
 	$(COMPILE) graphics.c -o build/graphics.o
 
-build/terminvaders.o: terminvaders.c terminvaders.h game.h graphics.h settings.h star.h
+build/terminvaders.o: terminvaders.c terminvaders.h game.h graphics.h settings.h star.h lobby.h
 	$(COMPILE) terminvaders.c -o build/terminvaders.o
 
 build/settings.o: settings.c settings.h terminvaders.h star.h
@@ -42,6 +42,9 @@ build/client.o: client.c client.h game.c game.h
 
 build/star.o: star.c star.h
 	$(COMPILE) star.c -o build/star.o
+
+build/lobby.o: lobby.c lobby.h
+	$(COMPILE) lobby.c -o build/lobby.o
 
 build:
 	mkdir build
