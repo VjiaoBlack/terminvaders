@@ -21,6 +21,8 @@
 #define SPAWN_TIMER_DECREASE 3
 #define GAME_OVER_TIMER (FPS * 4)
 
+#define MODE_CO_OP 0
+
 /* Structs */
 
 struct player_t {
@@ -63,8 +65,16 @@ struct explosion_t {
 };
 typedef struct explosion_t explosion_t;
 
+struct multidata_t {
+    int mode;
+    int player;
+    int sockfd;
+};
+typedef struct multidata_t multidata_t;
+
 struct game_t {
     int running;
+    int multiplayer;
     int score;
     int over;
     int until_spawn;
@@ -73,11 +83,13 @@ struct game_t {
     enemy_t* first_enemy;
     bullet_t* first_bullet;
     explosion_t* first_explosion;
+    multidata_t multiplayer_data;
 };
 typedef struct game_t game_t;
 
 /* Functions */
 
 void setup_game(game_t*);
+void setup_multiplayer(game_t*, int, int);
 void do_logic(game_t*);
 void play(void);

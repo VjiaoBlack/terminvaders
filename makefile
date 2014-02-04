@@ -4,8 +4,8 @@ LINK=gcc -g -O2 -Wall
 all: terminvaders server
 	rm -f preferences.txt
 
-terminvaders: build build/keyboard.o build/xterm_control.o build/game.o build/graphics.o build/terminvaders.o build/settings.o build/star.o
-	$(LINK) build/keyboard.o build/xterm_control.o build/game.o build/graphics.o build/terminvaders.o build/settings.o build/star.o -o terminvaders
+terminvaders: build build/keyboard.o build/xterm_control.o build/network.o build/transmit.o build/game.o build/graphics.o build/terminvaders.o build/settings.o build/star.o
+	$(LINK) build/keyboard.o build/xterm_control.o build/network.o build/transmit.o build/game.o build/graphics.o build/terminvaders.o build/settings.o build/star.o -o terminvaders
 
 server: build build/keyboard.o build/xterm_control.o build/network.o build/transmit.o build/server.o build/game.o build/graphics.o build/settings.o build/star.o
 	$(LINK) build/keyboard.o build/xterm_control.o build/network.o build/transmit.o build/server.o build/game.o build/graphics.o build/settings.o build/star.o -o server

@@ -63,7 +63,7 @@ struct mgame_t {
     int slots_filled;
     int players[MAX_SLOTS];
     char name[NAME_LEN + 1];
-    int type;
+    int mode;
     game_t data;
     pthread_t thread;
     inptbuf_t input_buffer;

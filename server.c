@@ -223,6 +223,7 @@ static void* handle_game(void* arg) {
 
     /* Set up the game and enter the logic loop. */
     setup_game(&games[id].data);
+    setup_multiplayer(&games[id].data, -1, -1);
     while (games[id].data.running) {
         pthread_mutex_lock(&games[id].state_lock);
         if (games[id].status != GAME_PLAYING) {  /* All players have left. */
@@ -310,11 +311,11 @@ static void remove_player(int id, int game_id) {
 
 /* Process CMD_SETUP_GAME. */
 static void process_setup_game(int id, int sockfd, char* buffer) {
-    int game_id, game_type, slots_total;
+    int game_id, game_mode, slots_total;
     char name[NAME_LEN + 1], tempbuf[8];
 
     /* Load the game data and try to fetch a free ID. */
-    unserialize_game_setup(buffer, name, &game_type, &slots_total);
+    unserialize_game_setup(buffer, name, &game_mode, &slots_total);
     pthread_mutex_lock(&new_game_lock);
     if ((game_id = get_free_game_id()) < 0) {
         pthread_mutex_unlock(&new_game_lock);
@@ -327,7 +328,7 @@ static void process_setup_game(int id, int sockfd, char* buffer) {
     games[game_id].slots_filled = 1;
     games[game_id].players[0] = id;
     strcpy(games[game_id].name, name);
-    games[game_id].type = game_type;
+    games[game_id].mode = game_mode;
     games[game_id].status = GAME_WAITING;
     pthread_mutex_unlock(&new_game_lock);
 
