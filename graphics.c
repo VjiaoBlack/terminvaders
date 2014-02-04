@@ -15,6 +15,13 @@ static void init_sprites(void) {
             ":n^n:"
         }, 5, 3, XT_CH_GREEN
     };
+    sprite_table[ALLY] = (sprite_t) {
+        {
+            "  |  ",
+            " /^\\ ",
+            ":n^n:"
+        }, 5, 3, XT_CH_BLUE
+    };
     sprite_table[ENEMY] = (sprite_t) {
         {
             ":---:",

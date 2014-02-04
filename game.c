@@ -430,7 +430,7 @@ static void render(game_t* game) {
     bullet_t* bullet = game->first_bullet;
     explosion_t* explosion = game->first_explosion;
     player_t* player;
-    int explosion_num = 0, slot;
+    int explosion_num = 0, slot, this_player;
 
     xt_par0(XT_CLEAR_SCREEN);
     while (explosion) {
@@ -443,7 +443,7 @@ static void render(game_t* game) {
         explosion = explosion->next;
     }
     while (bullet) {
-        draw(&(bullet->point), get_sprite(bullet->type));
+        draw(&(bullet->point), get_sprite(bullet->type + 1));
         bullet = bullet->next;
     }
     while (enemy) {
@@ -451,10 +451,11 @@ static void render(game_t* game) {
         enemy = enemy->next;
     }
 
+    this_player = game->multiplayer ? game->multiplayer_data.player : 0;
     for (slot = 0; slot < NUMBER_OF_PLAYERS; slot++) {
         player = &game->players[slot];
         if (!player->respawning && !(player->invincible % 2))
-            draw(&(player->point), get_sprite(PLAYER));
+            draw(&(player->point), get_sprite(slot == this_player ? PLAYER : ALLY));
     }
     draw_hud(game);
 }
