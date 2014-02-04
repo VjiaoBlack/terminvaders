@@ -42,7 +42,7 @@ void join_popup (multiplayergame_t);
 int create_popup ();
 void help_popup ();
 void game_wait(int);
-
+int lobby(void);
 
 
 // 'lobby' shud rly be 'game'!!
@@ -64,7 +64,7 @@ every 3 secconds make a call to server to get user invo for lobby
 "so when connecting to the server (after hitting multiplayer on main menu + inputting server name in a box but before the lobby is displayed) you call int sockfd = make_connection(char* server_name); which is defined in network.h"
 
 then to get user info, keep sockfd somewhere
-then 
+then
 transmit(sockfd, CMD_CONNECT, user_name); to tell server ur username
 
 transmit(sockfd, CMD_USERS, NULL) to get a user LIST

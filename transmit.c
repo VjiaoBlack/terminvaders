@@ -84,7 +84,7 @@ void serialize_lobby_info(client_t* clients, mgame_t* games, char** buffer_ptr) 
 
 /* Serialize game data into a malloc()'d buffer. */
 void serialize_game_data(game_t* game, char** buffer_ptr) {
-    int pos = 0, bufsize = 32768;  // TODO: fix this very rough upper bound
+    int pos = 0, bufsize = 32768, slot;  // TODO: fix this rough upper bound
     char* buffer = malloc(sizeof(char) * bufsize);
     player_t* player;
     enemy_t* enemy = game->first_enemy;
@@ -92,25 +92,25 @@ void serialize_game_data(game_t* game, char** buffer_ptr) {
     explosion_t* explosion = game->first_explosion;
 
     *buffer_ptr = buffer;
-    APPEND("%d|%d|%d\n", running, score, over);
+    APPEND("%d|%d|%d\n", game->running, game->score, game->over);
     for (slot = 0; slot < game->multiplayer_data.players; slot++) {
         player = &game->players[slot];
-        APPEND("%d,%d|%d|%d|%d\n", player->point.x, player->point.y,
+        APPEND("%.2lf,%.2lf|%d|%d|%d\n", player->point.x, player->point.y,
                player->lives, player->respawning, player->invincible);
     }
     while (enemy) {
-        APPEND("1|%d,%d\n", enemy->point.x, enemy->point.y);
+        APPEND("1|%.2lf,%.2lf\n", enemy->point.x, enemy->point.y);
         enemy = enemy->next;
     }
     APPEND("0|");
     while (bullet) {
-        APPEND("1|%d,%d|%d|%d\n", bullet->point.x, bullet->point.y,
+        APPEND("1|%.2lf,%.2lf|%d|%d\n", bullet->point.x, bullet->point.y,
                bullet->fired_by_player, bullet->type);
         bullet = bullet->next;
     }
     APPEND("0|");
     while (explosion) {
-        APPEND("1|%d,%d|%d|%d\n", explosion->point.x, explosion->point.y,
+        APPEND("1|%.2lf,%.2lf|%d|%d\n", explosion->point.x, explosion->point.y,
                explosion->step, explosion->score);
         explosion = explosion->next;
     }
@@ -124,7 +124,8 @@ void unserialize_game_setup(char* buffer, char* name, int* type, int* slots) {
 
 /* Unserialize game data. */
 void unserialize_game_data(char* buffer, game_t* game) {
-    int pos = 0, offset, more;
+    int pos = 0, offset, slot, more;
+    player_t* player;
     enemy_t *enemy = game->first_enemy, *next_enemy;
     bullet_t *bullet = game->first_bullet, *next_bullet;
     explosion_t *explosion = game->first_explosion, *next_explosion;
@@ -150,7 +151,7 @@ void unserialize_game_data(char* buffer, game_t* game) {
     SCAN("%d|%d|%d\n%n", &game->running, &game->score, &game->over);
     for (slot = 0; slot < game->multiplayer_data.players; slot++) {
         player = &game->players[slot];
-        SCAN("%d,%d|%d|%d|%d\n%n", &player->point.x, &player->point.y,
+        SCAN("%lf,%lf|%d|%d|%d\n%n", &player->point.x, &player->point.y,
              &player->lives, &player->respawning, &player->invincible);
     }
 
@@ -160,8 +161,8 @@ void unserialize_game_data(char* buffer, game_t* game) {
         if (!more)
             break;
         enemy = malloc(sizeof(enemy_t));
-        *enemy = (enemy_t) {0};
-        SCAN("%d,%d\n%n", &enemy->point.x, &enemy->point.y);
+        *enemy = (enemy_t) {{0}};
+        SCAN("%lf,%lf\n%n", &enemy->point.x, &enemy->point.y);
         enemy->next = game->first_enemy;
         game->first_enemy = enemy;
     }
@@ -172,8 +173,8 @@ void unserialize_game_data(char* buffer, game_t* game) {
         if (!more)
             break;
         bullet = malloc(sizeof(bullet_t));
-        *bullet = (bullet_t) {0};
-        SCAN("%d,%d|%d|%d\n%n", &bullet->point.x, &bullet->point.y,
+        *bullet = (bullet_t) {{0}};
+        SCAN("%lf,%lf|%d|%d\n%n", &bullet->point.x, &bullet->point.y,
              &bullet->fired_by_player, &bullet->type);
         bullet->next = game->first_bullet;
         game->first_bullet = bullet;
@@ -185,8 +186,8 @@ void unserialize_game_data(char* buffer, game_t* game) {
         if (!more)
             break;
         explosion = malloc(sizeof(explosion_t));
-        *explosion = (explosion_t) {0};
-        SCAN("%d,%d|%d|%d\n%n", &explosion->point.x, &explosion->point.y,
+        *explosion = (explosion_t) {{0}};
+        SCAN("%lf,%lf|%d|%d\n%n", &explosion->point.x, &explosion->point.y,
              &explosion->step, &explosion->score);
         explosion->next = game->first_explosion;
         game->first_explosion = explosion;

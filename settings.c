@@ -110,9 +110,9 @@ static int read_int(int rows) {
     char key;
     int result = 0;
     char* data = malloc(sizeof(char) * 4); // no HD displays here; fourth is a "\0"
-    int pos = 0;
+    // int pos = 0;
 
-    int cols = COLS / 2 + 3;
+    // int cols = COLS / 2 + 3;
 
     if (rows == ROWS / 2) { // then its height
         sprintf(data,"%d",get_rows());
@@ -160,7 +160,7 @@ static int read_int(int rows) {
                     for (int i = pos; i <= 2; i++) {
                         data[i] = data[i+1];
                     }
-                }   
+                }
                 break;
             case KEY_ENTER:
                 for (int i = 0; i < 3; i++) {
@@ -170,7 +170,7 @@ static int read_int(int rows) {
                         break;
                 }
                 return result;
-            default: 
+            default:
                 while(1)
                     putchar('3');
                 break;
@@ -215,7 +215,7 @@ void configloop(void) {
             switch (key) {
                 case KEY_UP:
                 case 'w':
-                    config = !config ? 2 : config - 1;  
+                    config = !config ? 2 : config - 1;
                     break;
                 case KEY_DOWN:
                 case 's':
