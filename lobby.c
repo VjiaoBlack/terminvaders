@@ -50,10 +50,10 @@ int lobby() {
     games[0] = (multiplayergame_t) {1,"join this room if you have swag", 10, 4, 2, users1};//lobby_t current_lobby = (lobby_t) {"join this room if you have swag", 10, 4, 2, users1, NULL, NULL};
     games[1] = (multiplayergame_t) {1,"join this room if you dont have swag :(", 4, 1, 1, users2};//current_lobby.next = &((lobby_t) {"join this room if you dont have swag :(", 4, 1, 1, users2, NULL, &current_lobby});
     games[2] = (multiplayergame_t) {1,"pls dont join this room ty", 2, 1, 0, users3};
-    for (int i = 3; i < 10; i++) {
+    for (i = 3; i < 10; i++) {
         games[i] = (multiplayergame_t){1,"testtesttest", i, 4, 0, users1};
     }
-    for (int i = 10; i < MAX_GAMES; i++) {
+    for (i = 10; i < MAX_GAMES; i++) {
         games[i] = (multiplayergame_t) {0};
     }
     numgames = 9;
@@ -206,6 +206,7 @@ void printgame(int row, int is_selected, multiplayergame_t game) {
 
 
 int game() {
+    int i = 0;
 
     users[6] = (user_t) {"66666666"};
     users[7] = (user_t) {"77777777"};
@@ -222,7 +223,7 @@ int game() {
     xt_par0(XT_CH_NORMAL);
     SETPOS(2, COLS - 18);
     printf("Who's Online");
-    for (int i = 0; i < numusers - onlinelistoffset; i++) {
+    for ( i = 0; i < numusers - onlinelistoffset; i++) {
         SETPOS(4 + i, COLS - 18);
         if (5 + i > ROWS)
             break;
@@ -236,7 +237,7 @@ int game() {
         xt_par0(XT_CH_NORMAL);
         SETPOS(2, COLS - 18);
         printf("Who's Online");
-        for (int i = 0; i < numusers - onlinelistoffset; i++) {
+        for ( i = 0; i < numusers - onlinelistoffset; i++) {
             SETPOS(4 + i, COLS - 18);
             if (5 + i > ROWS)
                 break;
@@ -253,7 +254,7 @@ int game() {
                 xt_par0(XT_CH_NORMAL);
                 SETPOS(2, COLS - 18);
                 printf("Who's Online");
-                for (int i = 0; i < numusers - onlinelistoffset; i++) {
+                for ( i = 0; i < numusers - onlinelistoffset; i++) {
                     SETPOS(4 + i, COLS - 18);
                     if (5 + i > ROWS)
                         break;
@@ -269,7 +270,7 @@ int game() {
                 xt_par0(XT_CH_NORMAL);
                 SETPOS(2, COLS - 18);
                 printf("Who's Online");
-                for (int i = 0; i < numusers - onlinelistoffset; i++) {
+                for ( i = 0; i < numusers - onlinelistoffset; i++) {
                     SETPOS(4 + i, COLS - 18);
                     if (5 + i > ROWS)
                         break;
@@ -293,7 +294,7 @@ int game() {
                 xt_par0(XT_CH_NORMAL);
                 SETPOS(2, COLS - 18);
                 printf("Who's Online");
-                for (int i = 0; i < numusers - onlinelistoffset; i++) {
+                for ( i = 0; i < numusers - onlinelistoffset; i++) {
                     SETPOS(4 + i, COLS - 18);
                     if (5 + i > ROWS)
                         break;
@@ -311,7 +312,7 @@ int game() {
                 xt_par0(XT_CH_NORMAL);
                 SETPOS(2, COLS - 18);
                 printf("Who's Online");
-                for (int i = 0; i < numusers - onlinelistoffset; i++) {
+                for ( i = 0; i < numusers - onlinelistoffset; i++) {
                     SETPOS(4 + i, COLS - 18);
                     if (5 + i > ROWS)
                         break;
@@ -326,7 +327,7 @@ int game() {
                 xt_par0(XT_CH_NORMAL);
                 SETPOS(2, COLS - 18);
                 printf("Who's Online");
-                for (int i = 0; i < numusers - onlinelistoffset; i++) {
+                for ( i = 0; i < numusers - onlinelistoffset; i++) {
                     SETPOS(4 + i, COLS - 18);
                     if (5 + i > ROWS)
                         break;
@@ -341,7 +342,7 @@ int game() {
                 xt_par0(XT_CH_NORMAL);
                 SETPOS(2, COLS - 18);
                 printf("Who's Online");
-                for (int i = 0; i < numusers - onlinelistoffset; i++) {
+                for ( i = 0; i < numusers - onlinelistoffset; i++) {
                     SETPOS(4 + i, COLS - 18);
                     if (5 + i > ROWS)
                         break;
@@ -621,7 +622,7 @@ void game_wait(int created_game) {
     xt_par0(XT_CH_NORMAL);
     SETPOS(2, COLS - 18);
     printf("Who's Online");
-    for (int i = 0; i < numusers - onlinelistoffset; i++) {
+    for ( i = 0; i < numusers - onlinelistoffset; i++) {
         SETPOS(4 + i, COLS - 18);
         if (5 + i > ROWS)
             break;
@@ -662,7 +663,7 @@ void game_wait(int created_game) {
                 xt_par0(XT_CH_NORMAL);
                 SETPOS(2, COLS - 18);
                 printf("Who's Online");
-                for (int i = 0; i < numusers - onlinelistoffset; i++) {
+                for ( i = 0; i < numusers - onlinelistoffset; i++) {
                     SETPOS(4 + i, COLS - 18);
                     if (5 + i > ROWS)
                         break;
@@ -680,7 +681,7 @@ void game_wait(int created_game) {
                 xt_par0(XT_CH_NORMAL);
                 SETPOS(2, COLS - 18);
                 printf("Who's Online");
-                for (int i = 0; i < numusers - onlinelistoffset; i++) {
+                for ( i = 0; i < numusers - onlinelistoffset; i++) {
                     SETPOS(4 + i, COLS - 18);
                     if (5 + i > ROWS)
                         break;
@@ -699,7 +700,7 @@ void game_wait(int created_game) {
 
 
 void serverlogin(){
-
+int badserver = 0; //impt later on trust me
     int field = 0, pos = 0, len = 0, addresslen = 0, usernamelen = 0, key = 0;
 
     char* address = malloc(sizeof(char) * 33);
@@ -708,30 +709,10 @@ void serverlogin(){
     char* username = malloc(sizeof(char) * 17);
     int j = strlen(username);
 
-    while (i < 32) {
-        strcat(address, " ");
-        i++;
-    }
-
-    while (j < 16) {
-        strcat(username, " ");
-        j++;
-    }
-
     while(1){
 
         i = strlen(address);
         j = strlen(username);
-
-        while (i < 32) {
-            strcat(address, " ");
-            i++;
-        }
-
-        while (j < 16) {
-            strcat(username, " ");
-            j++;
-        }
 
         if (field)
             len = usernamelen;
@@ -746,13 +727,21 @@ void serverlogin(){
         printf("%s  %s                                                        %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, XT_CH_INVERSE,XT_CH_NORMAL);
 
         SETPOS(ROWS / 2 - 1, COLS / 2 - 30);
-        printf("%s  %s  Address: %s%s%s             %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, XT_CH_UNDERLINE, address, XT_CH_NORMAL, XT_CH_INVERSE,XT_CH_NORMAL);
+        printf("%s  %s  Address: %s                                %s             %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, XT_CH_UNDERLINE,XT_CH_NORMAL, XT_CH_INVERSE,XT_CH_NORMAL);
+        SETPOS(ROWS / 2 - 1, COLS / 2 - 17);
+        xt_par0(XT_CH_UNDERLINE);
+        printf("%s", address);
+        xt_par0(XT_CH_NORMAL);
 
         SETPOS(ROWS / 2, COLS / 2 - 30);
         printf("%s  %s                                                        %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, XT_CH_INVERSE,XT_CH_NORMAL);
 
         SETPOS(ROWS / 2 + 1, COLS / 2 - 30);
-        printf("%s  %s  Username: %s%s%s                            %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, XT_CH_UNDERLINE, username, XT_CH_NORMAL, XT_CH_INVERSE,XT_CH_NORMAL);
+        printf("%s  %s  Username: %s                %s                            %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, XT_CH_UNDERLINE, XT_CH_NORMAL, XT_CH_INVERSE,XT_CH_NORMAL);
+        SETPOS(ROWS / 2 + 1, COLS / 2 - 16);
+        xt_par0(XT_CH_UNDERLINE);
+        printf("%s", username);
+        xt_par0(XT_CH_NORMAL);
 
         SETPOS(ROWS / 2 + 2, COLS / 2 - 30);
         printf("%s  %s                                                        %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, XT_CH_INVERSE,XT_CH_NORMAL);
@@ -762,14 +751,21 @@ void serverlogin(){
 
         fflush(stdout);
 
-        if ((field && addresslen < 32) || (!field && usernamelen < 16))
-            xt_par0(XT_CH_UNDERLINE);
+        if (addresslen < 32) {
+            xt_par0(XT_CH_NORMAL);
+            if (pos < 32)
+                xt_par0(XT_CH_UNDERLINE);
+            SETPOS(ROWS / 2 - 1, COLS / 2 - 17 + addresslen);
+            putchar(' ');
+        }
 
-        SETPOS(ROWS / 2 + 1, COLS / 2 - 16 + usernamelen);
-        putchar(' ');
-        SETPOS(ROWS / 2 - 1, COLS / 2 - 17 + addresslen);
-
-        putchar(' ');
+        if (usernamelen < 16) {
+            xt_par0(XT_CH_NORMAL);
+            if (pos < 16)
+                xt_par0(XT_CH_UNDERLINE);
+            SETPOS(ROWS / 2 + 1, COLS / 2 - 16 + usernamelen);
+            putchar(' ');
+        }
         xt_par0(XT_CH_NORMAL);
 
         switch (field) {
@@ -782,13 +778,39 @@ void serverlogin(){
         }
 
         while((key = getkey()) == KEY_NOTHING);
+
+
         switch(key){
             case KEY_ENTER:
                 // ben this shud be ur server magic,  you gotta connect here
                 // NOTE -> the NULL should be replaced with the user that calls this... i'm not sure how to best do it
+                if (badserver) {
+                    xt_par0(XT_CH_NORMAL);
+                    SETPOS(ROWS / 2 - 3, COLS / 2 - 30);
+                    printf("%s                       Server Connect                       %s", XT_CH_INVERSE,XT_CH_NORMAL);
+
+                    SETPOS(ROWS / 2 - 2, COLS / 2 - 30);
+                    printf("%s  %s                                                        %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, XT_CH_INVERSE,XT_CH_NORMAL);
+
+                    SETPOS(ROWS / 2 - 1, COLS / 2 - 30);
+                    printf("%s  %s  Address: %s%s%s             %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, XT_CH_UNDERLINE, address, XT_CH_NORMAL, XT_CH_INVERSE,XT_CH_NORMAL);
+
+                    SETPOS(ROWS / 2, COLS / 2 - 30);
+                    printf("%s  %s                                                        %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, XT_CH_INVERSE,XT_CH_NORMAL);
+
+                    SETPOS(ROWS / 2 + 1, COLS / 2 - 30);
+                    printf("%s  %s           Server not found on this address.            %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, XT_CH_INVERSE,XT_CH_NORMAL);
+
+                    SETPOS(ROWS / 2 + 2, COLS / 2 - 30);
+                    printf("%s  %s                                                        %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, XT_CH_INVERSE,XT_CH_NORMAL);
+
+                    SETPOS(ROWS / 2 + 3, COLS / 2 - 30);
+                    printf("%s                       Esc to go back                       %s", XT_CH_INVERSE, XT_CH_NORMAL);
+                }
                 free(address);
+                fflush(stdout);
                 lobby();
-                //return 1;
+                //  return 1;
                 return;
             case 27: //ESC
                 xt_par0(XT_CLEAR_SCREEN);
@@ -815,28 +837,23 @@ void serverlogin(){
                 }
                 break;
             case KEY_BACKSPACE:
-                if (field) {
-                    if (pos > 0) {
-                        username[--pos] = ' ';
-                        username[usernamelen] = '\0';
-                        usernamelen--;
-                    }
+                if (field && pos > 0) {
+                    username[--pos] = ' ';
+                    username[usernamelen--] = '\0';
                     for (i = pos + 1; i <= usernamelen; i++) {
                         username[i-1] = username[i];
                     }
-                } else {
-                    if (pos > 0) {
-                        address[--pos] = ' ';
-                        address[addresslen] = '\0';
-                        addresslen--;
-                    }
+                } else if (!field && pos > 0) {
+                    address[--pos] = ' ';
+                    address[addresslen--] = '\0';
                     for (i = pos + 1; i <= addresslen; i++) {
                         address[i-1] = address[i];
                     }
                 }
+                break;
             default:
-                if (((key <= 'z' && key >= 'A') || (key >= '0' && key <= '9')) && addresslen < 32) {
-                    if (field) {
+                if (((key <= 'z' && key >= 'A') || (key >= '0' && key <= '9'))) {
+                    if (field && usernamelen < 16) {
                         if (pos != usernamelen) {
                             for (i = usernamelen; i > pos; i--) {
                                 username[i] = username[i-1];
@@ -846,7 +863,7 @@ void serverlogin(){
                         pos++;
                         putchar(key);
                         usernamelen++;
-                    } else {
+                    } else if (!field && addresslen < 32) {
                         if (pos != addresslen) {
                             for (i = addresslen; i > pos; i--) {
                                 address[i] = address[i-1];
@@ -861,13 +878,6 @@ void serverlogin(){
                 break;
         }
     }
-
-
-
-
-
-    //you should connect to the server hereeeee
-    lobby();
 }
 
 int confirm_request(user_t requester) {
@@ -983,6 +993,8 @@ void dispmultiframe(){
         test++;
     }
 }
+
+
 
 
 
