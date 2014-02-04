@@ -68,9 +68,9 @@ void init(star_t* stars) {
     for (int i = 0; i < numstars; ++i) {
         int rox = 0;
         int roy = 0;
-        while (abs(rox) - 2 < 0) 
+        while (abs(rox) - 2 < 0)
             rox = rand() % 400 - 200;
-        while (abs(roy) - 1 < 0) 
+        while (abs(roy) - 1 < 0)
             roy = rand() % 200 - 100;
 
         int x = ( (rox * xo) / (do + xo) ) + get_cols() / 2; //( (rox * sqrt(3)) / (do + xo)) * get_cols() + (get_cols() / 2);
@@ -96,7 +96,7 @@ void update(star_t* stars) {
             stars[i].xwaited = 0;
             stars[i].xwait = calculate_wait(1, abs(stars[i].x - get_cols() / 2), abs(stars[i].y - get_rows() / 2));
             stars[i].ywait = calculate_wait(0, abs(stars[i].x - get_cols() / 2), abs(stars[i].y - get_rows() / 2));
-            
+
             if (stars[i].ywait <= 1) {
                 stars[i].ywait = calculate_wait(0, abs(stars[i].x - get_cols() / 2), abs(stars[i].y - get_rows() / 2));
                 if (stars[i].y > get_rows() / 2)
@@ -118,7 +118,7 @@ void update(star_t* stars) {
             stars[i].xwait = calculate_wait(1, abs(stars[i].x - get_cols() / 2), abs(stars[i].y - get_rows() / 2));
             stars[i].ywait = calculate_wait(0, abs(stars[i].x - get_cols() / 2), abs(stars[i].y - get_rows() / 2));
 
-            
+
             if (stars[i].xwait <= 1) {
                 stars[i].xwait = calculate_wait(1, abs(stars[i].x - get_cols() / 2), abs(stars[i].y - get_rows() / 2));
 
@@ -132,7 +132,7 @@ void update(star_t* stars) {
                 stars[i].y = stars[i].y + 1;
             else
                 stars[i].y = stars[i].y - 1;
-            
+
 
         } else {
             stars[i].ywaited++;
@@ -141,9 +141,9 @@ void update(star_t* stars) {
         if (stars[i].x >= get_cols() || stars[i].x <= 0 || stars[i].y >= get_rows() || stars[i].y <= 0){
             int rox = 0;
             int roy = 0;
-            while (abs(rox) - 2 < 0) 
+            while (abs(rox) - 2 < 0)
                 rox = rand() % 400 - 200;
-            while (abs(roy) - 1 < 0) 
+            while (abs(roy) - 1 < 0)
                 roy = rand() % 200 - 100;
 
             int x = ( (rox * xo) / (do + xo) ) + get_cols() / 2; //( (rox * sqrt(3)) / (do + xo)) * get_cols() + (get_cols() / 2);
@@ -160,16 +160,16 @@ void update(star_t* stars) {
 
 void display(star_t* stars) {
     CLRSCRN();
-    
+
     for (int i = 0; i < numstars; ++i) {
         SETPOS(stars[i].y, stars[i].x);
-        
+
         if (abs(stars[i].x - get_cols() / 2) + 2 * abs(stars[i].y - get_rows() / 2) > 60) {
             putchar('#');
         } else if (abs(stars[i].x - get_cols() / 2) + 2 * abs(stars[i].y - get_rows() / 2) > 35) {
-            if (abs((stars[i].x - get_cols() / 2) - 2 * (stars[i].y - get_rows() / 2)) < 12) 
+            if (abs((stars[i].x - get_cols() / 2) - 2 * (stars[i].y - get_rows() / 2)) < 12)
                 putchar('\\');
-            else if (abs((stars[i].x - get_cols() / 2) + 2 * (stars[i].y - get_rows() / 2)) < 12) 
+            else if (abs((stars[i].x - get_cols() / 2) + 2 * (stars[i].y - get_rows() / 2)) < 12)
                 putchar('/');
             else if (abs(stars[i].x - get_cols() / 2) < 20) {
                 putchar('|');
@@ -180,7 +180,7 @@ void display(star_t* stars) {
             putchar('.');
         }
         xt_par0(XT_CH_NORMAL);
-        
+
         //printf("%d", stars[i].ywait - stars[i].ywaited);
 
         //fflush(stdout);
@@ -188,10 +188,10 @@ void display(star_t* stars) {
 
     dispframe();
 
-}   
+}
 
 void dispframe(){
-    
+
     int cursor_r = 1, cursor_c = 1;
     SETPOS(1, 1);
     while (cursor_c <= get_cols()) {
@@ -255,12 +255,13 @@ int calculate_wait(int is_horiz, int x, int y) { // x and y are displacements fr
 
 
 void init(star_t* stars) {
-    for (int i = 0; i < numstars; ++i) {
+    int i;
+    for (i = 0; i < numstars; ++i) {
         int rox = 0;
         int roy = 0;
-        while (abs(rox) - 2 < 0) 
+        while (abs(rox) - 2 < 0)
             rox = rand() % 400 - 200;
-        while (abs(roy) - 1 < 0) 
+        while (abs(roy) - 1 < 0)
             roy = rand() % 200 - 100;
 
         int x = ( (rox * xo) / (do + xo) ) + get_cols() / 2; //( (rox * sqrt(3)) / (do + xo)) * get_cols() + (get_cols() / 2);
@@ -277,8 +278,8 @@ void init(star_t* stars) {
 
 
 void update(star_t* stars) {
-
-    for (int i = 0; i < numstars; ++i) {
+    int i;
+    for (i = 0; i < numstars; ++i) {
 
         stars[i].d = sqrt((stars[i].x - get_cols() / 2) * (stars[i].x - get_cols() / 2) + (stars[i].y - get_rows() / 2) * (stars[i].y - get_rows() / 2 ) * 4);
 
@@ -286,7 +287,7 @@ void update(star_t* stars) {
             stars[i].xwaited = 0;
             stars[i].xwait = calculate_wait(1, abs(stars[i].x - get_cols() / 2), abs(stars[i].y - get_rows() / 2));
             stars[i].ywait = calculate_wait(0, abs(stars[i].x - get_cols() / 2), abs(stars[i].y - get_rows() / 2));
-            
+
             if (stars[i].ywait <= 3) {
                 stars[i].ywait = calculate_wait(0, abs(stars[i].x - get_cols() / 2), abs(stars[i].y - get_rows() / 2));
                 if (stars[i].y > get_rows() / 2)
@@ -308,7 +309,7 @@ void update(star_t* stars) {
             stars[i].xwait = calculate_wait(1, abs(stars[i].x - get_cols() / 2), abs(stars[i].y - get_rows() / 2));
             stars[i].ywait = calculate_wait(0, abs(stars[i].x - get_cols() / 2), abs(stars[i].y - get_rows() / 2));
 
-            
+
             if (stars[i].xwait <= 3) {
                 stars[i].xwait = calculate_wait(1, abs(stars[i].x - get_cols() / 2), abs(stars[i].y - get_rows() / 2));
 
@@ -322,7 +323,7 @@ void update(star_t* stars) {
                 stars[i].y = stars[i].y + 1;
             else
                 stars[i].y = stars[i].y - 1;
-            
+
 
         } else {
             stars[i].ywaited++;
@@ -331,9 +332,9 @@ void update(star_t* stars) {
         if (stars[i].x >= get_cols() || stars[i].x <= 0 || stars[i].y >= get_rows() || stars[i].y <= 0){
             int rox = 0;
             int roy = 0;
-            while (abs(rox) - 2 < 0) 
+            while (abs(rox) - 2 < 0)
                 rox = rand() % 400 - 200;
-            while (abs(roy) - 1 < 0) 
+            while (abs(roy) - 1 < 0)
                 roy = rand() % 200 - 100;
 
             int x = ( (rox * xo) / (do + xo) ) + get_cols() / 2; //( (rox * sqrt(3)) / (do + xo)) * get_cols() + (get_cols() / 2);
@@ -349,23 +350,23 @@ void update(star_t* stars) {
 }
 
 void display(star_t* stars) {
+    int i;
     CLRSCRN();
-    
-    for (int i = 0; i < numstars; ++i) {
+    for (i = 0; i < numstars; ++i) {
         SETPOS(stars[i].y, stars[i].x);
-        
+
         if (abs(stars[i].x - get_cols() / 2) + 2 * abs(stars[i].y - get_rows() / 2) > 60) {
             putchar('#');
         } else if (abs(stars[i].x - get_cols() / 2) + 2 * abs(stars[i].y - get_rows() / 2) > 35) {
             if (abs((stars[i].x - get_cols() / 2) - 2 * (stars[i].y - get_rows() / 2)) < 12) {
                 putchar('\\');
-            }   
+            }
             else if (abs((stars[i].x - get_cols() / 2) + 2 * (stars[i].y - get_rows() / 2)) < 12) {
                 putchar('/');
             }
             else if (abs(stars[i].x - get_cols() / 2) < 20) {
                 putchar('|');
-            } 
+            }
             else if (abs(stars[i].y - get_rows() / 2 ) < 20) {
                 putchar('_');
             }
@@ -377,10 +378,10 @@ void display(star_t* stars) {
         //fflush(stdout);
     }
 
-}   
+}
 
 void dispframe(){
-    
+
     int cursor_r = 1, cursor_c = 1;
     SETPOS(1, 1);
     while (cursor_c <= get_cols()) {
