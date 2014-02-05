@@ -282,7 +282,7 @@ int join_popup (multiplayergame_t* game) {
     printf("%s  %s                                                        %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, XT_CH_INVERSE,XT_CH_NORMAL);
 
     SETPOS(ROWS / 2 , COLS / 2 - 30);
-    printf("%s  %s  Joining: %41s    %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, game->name, XT_CH_INVERSE,XT_CH_NORMAL);
+    printf("%s  %s  Joining: %-41s    %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, game->name, XT_CH_INVERSE,XT_CH_NORMAL);
 
     SETPOS(ROWS / 2 + 1, COLS / 2 - 30);
     printf("%s  %s                                                        %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, XT_CH_INVERSE,XT_CH_NORMAL);
@@ -324,7 +324,7 @@ int join_popup (multiplayergame_t* game) {
             printf("%s  %s                                                        %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, XT_CH_INVERSE,XT_CH_NORMAL);
 
             SETPOS(ROWS / 2 , COLS / 2 - 30);
-            printf("%s  %s Rejected by %41s. %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, game->name, XT_CH_INVERSE,XT_CH_NORMAL);
+            printf("%s  %s Rejected by %-41s. %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, game->name, XT_CH_INVERSE,XT_CH_NORMAL);
 
             SETPOS(ROWS / 2 + 1, COLS / 2 - 30);
             printf("%s  %s                                                        %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, XT_CH_INVERSE,XT_CH_NORMAL);
@@ -342,7 +342,7 @@ int join_popup (multiplayergame_t* game) {
             printf("%s  %s                                                        %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, XT_CH_INVERSE,XT_CH_NORMAL);
 
             SETPOS(ROWS / 2 , COLS / 2 - 30);
-            printf("%s  %s Accepted by %41s. %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, game->name, XT_CH_INVERSE,XT_CH_NORMAL);
+            printf("%s  %s Accepted by %-41s. %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, game->name, XT_CH_INVERSE,XT_CH_NORMAL);
 
             SETPOS(ROWS / 2 + 1, COLS / 2 - 30);
             printf("%s  %s                                                        %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, XT_CH_INVERSE,XT_CH_NORMAL);
