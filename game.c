@@ -209,7 +209,7 @@ static int player_bullet_impacts(game_t* game, bullet_t* bullet) {
         fuzzy += 2;
 
         //-------------------------------------------------------------------------------
-        if (collides(&bullet->point, &enemy->point, 3, fuzzy)) {
+        if (collides(&bullet->point, &enemy->point, 1, fuzzy)) {
         //------------------------------------------------------------------------------------
             game->score += enemy->score;
             despawn_enemy(game, enemy, prev);

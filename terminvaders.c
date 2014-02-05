@@ -10,7 +10,7 @@
 /* Set up the game by clearing the screen, etc. */
 static void setup(void) {
     srand(time(NULL));
-    //setbuf(stdout, NULL);  // Turn off stdout buffering
+    setbuf(stdout, NULL);  // Turn off stdout buffering
     xt_par0(XT_CLEAR_SCREEN);
     load_rc();
 }
@@ -43,7 +43,7 @@ static void drawmenu(int choice) {
         cursor_c++;
 
         if (test == lim){
-            fflush(stdout);
+            //fflush(stdout);
             test = 0;
         }
         test++;
@@ -58,7 +58,7 @@ static void drawmenu(int choice) {
         printf("#");
         cursor_r++;
         if (test == lim){
-            fflush(stdout);
+            //fflush(stdout);
             test = 0;
         }
         test++;
@@ -178,7 +178,7 @@ static void drawmenu(int choice) {
     }
     xt_par0(XT_CH_NORMAL);
 
-    fflush(stdout);
+    //fflush(stdout);
 }
 static int menu(void) {
     clear();
@@ -186,13 +186,17 @@ static int menu(void) {
     star_t* stars = malloc(sizeof(star_t) * numstars);
     init(stars);
 
-    printf("asdfasdfdfsafdsffdas\nafsn\n\n\\n\n\nasdf\nasdf\nasdf\nsadf\n");
-
+    int frame = 1;
     int key, choice = 0;
     SETPOS(ROWS, COLS);
     while (1) {
         update(stars);
-        display(stars);
+        if (frame % 10 == 0) {
+            display(stars);
+            frame = 1;
+        }
+        else
+            frame++;
         drawmenu(choice);
         switch ((key = getkey())) {
         case KEY_UP:
@@ -402,8 +406,9 @@ static int menu(void) {
             case 'q':
                 return MENU_QUIT;
         }
+	fflush(stdout);
         usleep(1000000/fps);
-        //fflush(stdout);
+        
     }
 }
 
