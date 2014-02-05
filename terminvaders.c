@@ -10,7 +10,7 @@
 /* Set up the game by clearing the screen, etc. */
 static void setup(void) {
     srand(time(NULL));
-    setbuf(stdout, NULL);  // Turn off stdout buffering
+    //setbuf(stdout, NULL);  // Turn off stdout buffering
     xt_par0(XT_CLEAR_SCREEN);
     load_rc();
 }
