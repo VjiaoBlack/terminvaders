@@ -881,7 +881,7 @@ int confirm_request(char* username) {
     fflush(stdout);
 
     while (1){
-        while ((key == getkey()) == KEY_NOTHING);
+        while ((key = getkey()) == KEY_NOTHING);
 
         switch (key) {
             case KEY_LEFT:
@@ -894,25 +894,25 @@ int confirm_request(char* username) {
                 return choice;
         }
 
-            if (choice) {
-                SETPOS(ROWS / 2 + 1, COLS / 2 + 5);
-                printf(XT_CH_INVERSE);
-                printf(XT_CH_BOLD);
-                printf("Yes");
-                printf(XT_CH_NORMAL);
-                SETPOS(ROWS / 2 + 1, COLS / 2 - 5);
-                printf("No");
-                fflush(stdout);
-            } else {
-                SETPOS(ROWS / 2 + 1, COLS / 2 - 5);
-                printf(XT_CH_INVERSE);
-                printf(XT_CH_BOLD);
-                printf("No");
-                printf(XT_CH_NORMAL);
-                SETPOS(ROWS / 2 + 1, COLS / 2 + 5);
-                printf("Yes");
-                fflush(stdout);
-            }
+        if (choice) {
+            SETPOS(ROWS / 2 + 1, COLS / 2 + 4);
+            printf(XT_CH_INVERSE);
+            printf(XT_CH_BOLD);
+            printf("Yes");
+            printf(XT_CH_NORMAL);
+            SETPOS(ROWS / 2 + 1, COLS / 2 - 7);
+            printf("No");
+            fflush(stdout);
+        } else {
+            SETPOS(ROWS / 2 + 1, COLS / 2 - 7);
+            printf(XT_CH_INVERSE);
+            printf(XT_CH_BOLD);
+            printf("No");
+            printf(XT_CH_NORMAL);
+            SETPOS(ROWS / 2 + 1, COLS / 2 + 4);
+            printf("Yes");
+            fflush(stdout);
+        }
     }
 
 

@@ -109,7 +109,6 @@ static void draw_menu(int config) {
 static int read_int(int rows) {
     char key;
     int len= 0;
-    //  int i;
     int place = 0; // this number indicates the place value of the input digit. i.e. tens, hundreds.
     int result = 0;
     char* data = malloc(sizeof(char) * 4); // no HD displays here; fourth is a "\0"
@@ -142,7 +141,7 @@ static int read_int(int rows) {
         if (key >= '0' && key <= '9' && pos < 3){
             SETPOS(rows, COLS / 2 + 3 + pos);
             putchar(key);
-            for(int i = 1; i >= pos; i--) {
+            for (i = 1; i >= pos; i--) {
                 data[i+1] = data[i];
             }
             data[pos] = key;
