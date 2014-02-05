@@ -17,46 +17,39 @@ static int maxplayers_pertype[] = {4};
 int lobby() {
     char* buffer;
     int option, command;
-
     int flags = fcntl(sockfd, F_GETFL, 0);
-    fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
-
     int j;
+
     for (j = 0; j < MAX_CLIENTS; j++)
         users[j].id = j;
     for (j = 0; j < MAX_GAMES; j++)
         games[j].id = j;
 
     while (1) {
-
-        if (transmit(sockfd, CMD_LOBBY_INFO, NULL) < 0) {
-            if (errno != EWOULDBLOCK && errno != EAGAIN)
-                return 0;
-        }
-
-        if (receive(sockfd, &command, &buffer) < 0) {
-            if (errno != EWOULDBLOCK && errno != EAGAIN)
-                return 0;
-        }
-        else {
-            switch (command) {
-                case CMD_LOBBY_INFO: {
-                    int ii;
-                    unserialize_lobby_info(buffer, &users[0], &games[0]);
-                    numgames = 0;
-                    for (ii = 0; ii < MAX_GAMES; ii++) {
-                        if (games[ii].status != GAME_FREE)
-                            numgames++;
-                    }
-                    break;
+        if (transmit(sockfd, CMD_LOBBY_INFO, NULL) < 0)
+            return 0;
+        if (receive(sockfd, &command, &buffer) < 0)
+            return 0;
+        switch (command) {
+            case CMD_LOBBY_INFO: {
+                int ii;
+                unserialize_lobby_info(buffer, &users[0], &games[0]);
+                numgames = 0;
+                for (ii = 0; ii < MAX_GAMES; ii++) {
+                    if (games[ii].status != GAME_FREE)
+                        numgames++;
                 }
-                case CMD_QUIT:
-                case CMD_ERROR:
-                    return 0;
+                break;
             }
-            free(buffer);
+            case CMD_QUIT:
+            case CMD_ERROR:
+                return 0;
         }
-        switch (option = game()) { //game() calls the actual multiplayer lobby logic.
+        free(buffer);
+        fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
+        option = game(); //game() calls the actual multiplayer lobby logic.
+        fcntl(sockfd, F_SETFL, flags);
+        switch (option) {
             case MENU_QUIT:
                 xt_par0(XT_CH_NORMAL);
                 return 0;
@@ -567,7 +560,7 @@ void game_wait(int created_game) {
 
     while (1) {
         int useroffset = 1;
-        for (foxes = 0; foxes < MAX_SLOTS; foxes++) {
+        for (foxes = 0; foxes < games[i].slots_total; foxes++) {
             SETPOS(6 + 2 * i + useroffset, 8);
             if (games[i].players[foxes] != EMPTY_SLOT) {
                 printf("%d", games[i].players[foxes]);
@@ -597,7 +590,7 @@ void game_wait(int created_game) {
                     break;
                 case CMD_PLAYER_JOIN:
                     sscanf(buffer, "%d", &p_id);
-                    for (foxes = 0; foxes < MAX_SLOTS; foxes++) {
+                    for (foxes = 0; foxes < games[i].slots_total; foxes++) {
                         if (games[i].players[foxes] == EMPTY_SLOT) {
                             games[i].players[foxes] = p_id;
                             break;
@@ -606,7 +599,7 @@ void game_wait(int created_game) {
                     break;
                 case CMD_PLAYER_PART:
                     sscanf(buffer, "%d", &p_id);
-                    for (foxes = 0; foxes < MAX_SLOTS; foxes++) {
+                    for (foxes = 0; foxes < games[i].slots_total; foxes++) {
                         if (games[i].players[foxes] == p_id) {
                             games[i].players[foxes] = EMPTY_SLOT;
                             break;

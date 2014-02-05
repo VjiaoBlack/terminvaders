@@ -72,7 +72,7 @@ void serialize_lobby_info(client_t* clients, mgame_t* games, char** buffer_ptr) 
             continue;
         }
         APPEND("1|%d|%d|%d|%d|%d|%s\n", id, status, games[id].mode, games[id].slots_total, games[id].slots_filled, games[id].name);
-        for (i = 0; i < MAX_SLOTS; i++)
+        for (i = 0; i < games[id].slots_total; i++)
             APPEND("%d|", games[id].players[i]);
         pthread_mutex_unlock(&games[id].state_lock);
     }
@@ -111,7 +111,7 @@ void unserialize_lobby_info(char* buffer, user_t* users, multiplayergame_t* game
         games[gameid].slots_total = tslots;
         games[gameid].slots_filled = fslots;
         strcpy(games[gameid].name, name);
-        for (i = 0; i < MAX_SLOTS; i++)
+        for (i = 0; i < tslots; i++)
             SCAN("%d|%n", &games[gameid].players[i]);
     }
 }
