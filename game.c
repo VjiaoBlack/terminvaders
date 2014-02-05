@@ -312,7 +312,7 @@ static void do_explosion_logic(game_t* game) {
 
     while (explosion) {
         explosion->step++;
-        if (explosion->step > EXPLOSIONS * EXPLOSION_STEPS_PER_SPRITE)
+        if (explosion->step >= EXPLOSIONS * EXPLOSION_STEPS_PER_SPRITE)
             explosion = despawn_explosion(game, explosion, prev);
         else {
             prev = explosion;

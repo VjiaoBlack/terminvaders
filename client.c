@@ -26,7 +26,7 @@ int check_multiplayer_game_over(game_t* game) {
     int slot;
 
     for (slot = 0; slot < NUMBER_OF_PLAYERS; slot++) {
-        if (game->players[slot].lives > 0)
+        if (!game->players[slot].nospawn)
             return 0;
     }
     return 1;
