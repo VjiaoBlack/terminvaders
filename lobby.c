@@ -110,14 +110,12 @@ void drawgames(int pos) {
             printf("%s", users[games[i].players[ii]].username);
             useroffset++;
             useroffsettotal++;
-            fflush(stdout);
         }
         useroffset = 1;
         i++;
         ioffset++;
 
     }
-    fflush(stdout);
 
 
     SETPOS(2, 3);
@@ -128,9 +126,6 @@ void drawgames(int pos) {
     printf("terminvaders MuLtIpLaYeR Lobby");
 
     xt_par0(XT_CH_DEFAULT);
-
-
-    fflush(stdout);
 
 }
 
@@ -162,7 +157,6 @@ void draw_users() {
             userdisplayoffset++;
         }
     }
-    fflush(stdout);
 }
 
 
@@ -283,18 +277,9 @@ int join_popup (multiplayergame_t* game) {
     int key = 0;
     //int row = 0, col = 0;
 
-    char* title = malloc(sizeof(char) * 33);
-    strcpy(title, "JOIN GAME - TESTING");
-    // int i = strlen(title);
-
     char tmpbuf[8];
     snprintf(tmpbuf, 8, "%d\n", game->id);
     transmit(sockfd, CMD_JOIN_GAME, tmpbuf);
-
-    // while (i < 41) {
-    //     strcat(title, " ");
-    //     i++;
-    // }
 
     xt_par0(XT_CH_NORMAL);
     SETPOS(ROWS / 2 - 2, COLS / 2 - 30);
@@ -304,13 +289,14 @@ int join_popup (multiplayergame_t* game) {
     printf("%s  %s                                                        %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, XT_CH_INVERSE,XT_CH_NORMAL);
 
     SETPOS(ROWS / 2 , COLS / 2 - 30);
-    printf("%s  %s  Joining: %s    %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, title, XT_CH_INVERSE,XT_CH_NORMAL);
+    printf("%s  %s  Joining: %41s    %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, game->name, XT_CH_INVERSE,XT_CH_NORMAL);
 
     SETPOS(ROWS / 2 + 1, COLS / 2 - 30);
     printf("%s  %s                                                        %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, XT_CH_INVERSE,XT_CH_NORMAL);
 
     SETPOS(ROWS / 2 + 2, COLS / 2 - 30);
     printf("%s                            %sB%s%sack                            %s", XT_CH_INVERSE, XT_CH_UNDERLINE, XT_CH_NORMAL,XT_CH_INVERSE, XT_CH_NORMAL);
+    fflush(stdout);
     usleep(1000000);
     int rejected = 0;
     while(1){
@@ -336,7 +322,7 @@ int join_popup (multiplayergame_t* game) {
             }
         }
 
-        if ((rejected = 1)) {// rejected should be revalued from server here
+        if (rejected == 1) {
             xt_par0(XT_CH_NORMAL);
             SETPOS(ROWS / 2 - 2, COLS / 2 - 30);
             printf("%s                         Join Game                          %s", XT_CH_INVERSE,XT_CH_NORMAL);
@@ -345,16 +331,17 @@ int join_popup (multiplayergame_t* game) {
             printf("%s  %s                                                        %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, XT_CH_INVERSE,XT_CH_NORMAL);
 
             SETPOS(ROWS / 2 , COLS / 2 - 30);
-            printf("%s  %s Rejected by %s. %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, title, XT_CH_INVERSE,XT_CH_NORMAL);
+            printf("%s  %s Rejected by %41s. %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, game->name, XT_CH_INVERSE,XT_CH_NORMAL);
 
             SETPOS(ROWS / 2 + 1, COLS / 2 - 30);
             printf("%s  %s                                                        %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, XT_CH_INVERSE,XT_CH_NORMAL);
 
             SETPOS(ROWS / 2 + 2, COLS / 2 - 30);
             printf("%s                            %sB%s%sack                            %s", XT_CH_INVERSE, XT_CH_UNDERLINE, XT_CH_NORMAL,XT_CH_INVERSE, XT_CH_NORMAL);
+            fflush(stdout);
             usleep(1000000);
             return 0;
-        } else if ((rejected = -1)) { // -1 symbolizes that they were ACCEPTED.
+        } else if (rejected == -1) { // -1 symbolizes that they were ACCEPTED.
             SETPOS(ROWS / 2 - 2, COLS / 2 - 30);
             printf("%s                         Join Game                          %s", XT_CH_INVERSE,XT_CH_NORMAL);
 
@@ -362,13 +349,14 @@ int join_popup (multiplayergame_t* game) {
             printf("%s  %s                                                        %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, XT_CH_INVERSE,XT_CH_NORMAL);
 
             SETPOS(ROWS / 2 , COLS / 2 - 30);
-            printf("%s  %s Accepted by %s. %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, title, XT_CH_INVERSE,XT_CH_NORMAL);
+            printf("%s  %s Accepted by %41s. %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, game->name, XT_CH_INVERSE,XT_CH_NORMAL);
 
             SETPOS(ROWS / 2 + 1, COLS / 2 - 30);
             printf("%s  %s                                                        %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, XT_CH_INVERSE,XT_CH_NORMAL);
 
             SETPOS(ROWS / 2 + 2, COLS / 2 - 30);
             printf("%s                            %sB%s%sack                            %s", XT_CH_INVERSE, XT_CH_UNDERLINE, XT_CH_NORMAL,XT_CH_INVERSE, XT_CH_NORMAL);
+            fflush(stdout);
             usleep(1000000);
             return 1;
         }
@@ -406,6 +394,7 @@ int create_popup () {
 
         SETPOS(ROWS / 2 + 2, COLS / 2 - 15);
         printf("%s   Press any key to go back   %s", XT_CH_INVERSE, XT_CH_NORMAL);
+        fflush(stdout);
 
         int key;
         while ((key = getkey()) == KEY_NOTHING);
@@ -466,6 +455,7 @@ int create_popup () {
                 SETPOS(ROWS / 2, COLS / 2 + 24);
                 break;
         }
+        fflush(stdout);
 
         while((key = getkey()) == KEY_NOTHING);
         switch(key){
@@ -551,6 +541,7 @@ int create_popup () {
                 }
                 break;
         }
+        fflush(stdout);
     }
 }
 
