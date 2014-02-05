@@ -114,6 +114,7 @@ static int read_int(int rows) {
     int result = 0;
     char* data = malloc(sizeof(char) * 4); // no HD displays here; fourth is a "\0"
     int pos = 0;
+    int i;
 
     data[0] = data[1] = data[2] = data[3] = '\0';
     /*
@@ -163,7 +164,7 @@ static int read_int(int rows) {
                 break;
             case KEY_BACKSPACE:
                 if (pos > 0) {
-                    for (int i = pos - 1; i <= 2; i++) {
+                    for (i = pos - 1; i <= 2; i++) {
                         data[i] = data[i+1];
                     }
                     pos--;
@@ -177,7 +178,7 @@ static int read_int(int rows) {
                 break;
             case KEY_DELETE:
                 if (pos < 3) {
-                    for (int i = pos; i <= 2; i++) {
+                    for (i = pos; i <= 2; i++) {
                         data[i] = data[i+1];
                     }
                 }
@@ -186,7 +187,7 @@ static int read_int(int rows) {
                 SETPOS(rows, COLS / 2 + 3 + pos);
                 break;
             case KEY_ENTER:
-                for (int i = 2; i >= 0; i--) {
+                for (i = 2; i >= 0; i--) {
                     if (data[i] != '\0')
                         result += pow(10, place++) * (data[i] - '0');
                 }
