@@ -311,7 +311,7 @@ int join_popup (multiplayergame_t* game) {
 
     SETPOS(ROWS / 2 + 2, COLS / 2 - 30);
     printf("%s                            %sB%s%sack                            %s", XT_CH_INVERSE, XT_CH_UNDERLINE, XT_CH_NORMAL,XT_CH_INVERSE, XT_CH_NORMAL);
-
+    usleep(1000000);
     int rejected = 0;
     while(1){
 
