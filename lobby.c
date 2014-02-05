@@ -439,10 +439,10 @@ int create_popup () {
         while((key = getkey()) == KEY_NOTHING);
         switch(key){
             case KEY_ENTER: {
-                // ben this shud be ur server magic, ithink
-                char bufff[16];
-                snprintf(bufff, 16, "%d|%d|%s", type, users, title);
+                char* bufff;
+                serialize_game_setup(type, users, title, &bufff);
                 transmit(sockfd, CMD_SETUP_GAME, bufff);
+                free(bufff);
                 int nnn = numgames;
                 games[nnn] = (multiplayergame_t) {nnn, GAME_WAITING, users, 0, {0}, {0}, type};
                 strcpy(games[nnn].name, title);

@@ -79,41 +79,13 @@ void serialize_lobby_info(client_t* clients, mgame_t* games, char** buffer_ptr) 
     APPEND("0|");
 }
 
-/* Unserialize lobby info. */
-void unserialize_lobby_info(char* buffer, user_t* users, multiplayergame_t* games) {
-    int pos = 0, offset, more, userid, status, gameid, mode, tslots, fslots, i;
-    char name[NAME_LEN + 1];
+/* Serialize game setup info into a malloc()'d buffer. */
+void serialize_game_setup(int type, int users, char* title, char** buffer_ptr) {
+    int bufsize = NAME_LEN + 16;
+    char* buffer = malloc(sizeof(char) * bufsize);
 
-    /* Reset data. */
-    for (userid = 0; userid < MAX_CLIENTS; userid++)
-        users[userid].status = CLIENT_FREE;
-    for (gameid = 0; gameid < MAX_GAMES; gameid++)
-        games[gameid].status = GAME_FREE;
-
-    /* Scan users. */
-    while (1) {
-        SCAN("%d|%n", &more);
-        if (!more)
-            break;
-        SCAN("%d|%d|%s\n%n", &userid, &status, name);
-        users[userid].status = status;
-        strcpy(users[userid].username, name);
-    }
-
-    /* Scan games. */
-    while (1) {
-        SCAN("%d|%n", &more);
-        if (!more)
-            break;
-        SCAN("%d|%d|%d|%d|%d|%s\n%n", &gameid, &status, &mode, &tslots, &fslots, name);
-        games[gameid].status = status;
-        games[gameid].mode = mode;
-        games[gameid].slots_total = tslots;
-        games[gameid].slots_filled = fslots;
-        strcpy(games[gameid].name, name);
-        for (i = 0; i < tslots; i++)
-            SCAN("%d|%n", &games[gameid].players[i]);
-    }
+    *buffer_ptr = buffer;
+    snprintf(buffer, bufsize, "%d|%d|%s\n", type, users, title);
 }
 
 /* Serialize game data into a malloc()'d buffer. */
@@ -151,9 +123,46 @@ void serialize_game_data(game_t* game, char** buffer_ptr) {
     APPEND("0|");
 }
 
+/* Unserialize lobby info. */
+void unserialize_lobby_info(char* buffer, user_t* users, multiplayergame_t* games) {
+    int pos = 0, offset, more, userid, status, gameid, mode, tslots, fslots, i;
+    char name[NAME_LEN + 1];
+
+    /* Reset data. */
+    for (userid = 0; userid < MAX_CLIENTS; userid++)
+        users[userid].status = CLIENT_FREE;
+    for (gameid = 0; gameid < MAX_GAMES; gameid++)
+        games[gameid].status = GAME_FREE;
+
+    /* Scan users. */
+    while (1) {
+        SCAN("%d|%n", &more);
+        if (!more)
+            break;
+        SCAN("%d|%d|%[^\n]\n%n", &userid, &status, name);
+        users[userid].status = status;
+        strcpy(users[userid].username, name);
+    }
+
+    /* Scan games. */
+    while (1) {
+        SCAN("%d|%n", &more);
+        if (!more)
+            break;
+        SCAN("%d|%d|%d|%d|%d|%[^\n]\n%n", &gameid, &status, &mode, &tslots, &fslots, name);
+        games[gameid].status = status;
+        games[gameid].mode = mode;
+        games[gameid].slots_total = tslots;
+        games[gameid].slots_filled = fslots;
+        strcpy(games[gameid].name, name);
+        for (i = 0; i < tslots; i++)
+            SCAN("%d|%n", &games[gameid].players[i]);
+    }
+}
+
 /* Unserialize game setup data. */
 void unserialize_game_setup(char* buffer, char* name, int* type, int* slots) {
-    sscanf(buffer, "%d|%d|%s", type, slots, name);
+    sscanf(buffer, "%d|%d|%[^\n]\n", type, slots, name);
 }
 
 /* Unserialize game data. */
