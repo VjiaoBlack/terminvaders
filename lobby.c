@@ -357,7 +357,7 @@ int join_popup (multiplayergame_t* game) {
             SETPOS(ROWS / 2 + 2, COLS / 2 - 30);
             printf("%s                            %sB%s%sack                            %s", XT_CH_INVERSE, XT_CH_UNDERLINE, XT_CH_NORMAL,XT_CH_INVERSE, XT_CH_NORMAL);
             fflush(stdout);
-            usleep(1000000);
+            // usleep(1000000);
             return 1;
         }
 
@@ -849,14 +849,6 @@ int confirm_request(char* username) {
 
     int key = 0;
 
-    int j = strlen(username);
-
-    while (j < 16) {
-        strcat(username, " ");
-        j++;
-    }
-
-
     xt_par0(XT_CH_NORMAL);
     SETPOS(ROWS / 2 - 3, COLS / 2 - 16);
     printf("%s                                %s", XT_CH_INVERSE, XT_CH_NORMAL);
@@ -865,7 +857,7 @@ int confirm_request(char* username) {
     printf("%s  %s                            %s  %s", XT_CH_INVERSE, XT_CH_NORMAL, XT_CH_INVERSE, XT_CH_NORMAL);
 
     SETPOS(ROWS / 2 - 1, COLS / 2 - 16);
-    printf("%s  %s Let %s join? %s  %s", XT_CH_INVERSE, XT_CH_NORMAL, username, XT_CH_INVERSE, XT_CH_NORMAL);
+    printf("%s  %s Let %16s join? %s  %s", XT_CH_INVERSE, XT_CH_NORMAL, username, XT_CH_INVERSE, XT_CH_NORMAL);
 
     SETPOS(ROWS / 2 + 0, COLS / 2 - 16);
     printf("%s  %s                            %s  %s", XT_CH_INVERSE, XT_CH_NORMAL, XT_CH_INVERSE, XT_CH_NORMAL);
