@@ -9,7 +9,7 @@
 #define CANNON     4
 #define LASER      5
 #define EXPLOSION  6
-#define EXPLOSIONS 7
+#define EXPLOSIONS 6
 
 #define NUM_SPRITES 12
 #define MAX_SPRITE_HEIGHT 7
