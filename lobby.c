@@ -396,25 +396,11 @@ int create_popup () {
         return 0;
     }
 
-    int type = 0, users = 2, field = 0, pos = 0, titlelen = 0;
+    int type = 0, users = 2, field = 0, pos = 0, titlelen = 0, i;
 
-    char* title = malloc(sizeof(char) * 33);
-    int i = strlen(title);
-
-    while (i < 32) {
-        strcat(title, " ");
-        i++;
-    }
+    char title[NAME_LEN + 1] = "";
 
     while(1){
-
-        i = strlen(title);
-
-        while (i < 32) {
-            strcat(title, " ");
-            i++;
-        }
-
         xt_par0(XT_CH_NORMAL);
         SETPOS(ROWS / 2 - 2, COLS / 2 - 35);
         printf("%s                             Create Game                              %s", XT_CH_INVERSE,XT_CH_NORMAL);
@@ -423,7 +409,7 @@ int create_popup () {
         printf("%s  %s                                                                  %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, XT_CH_INVERSE,XT_CH_NORMAL);
 
         SETPOS(ROWS / 2 , COLS / 2 - 35);
-        printf("%s  %s  Title: %s%s%s Users: %s%d%s Type: %s%s   %s %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, XT_CH_UNDERLINE, title, XT_CH_NORMAL,XT_CH_UNDERLINE, users,XT_CH_NORMAL, XT_CH_UNDERLINE, types[type],XT_CH_NORMAL, XT_CH_INVERSE,XT_CH_NORMAL);
+        printf("%s  %s  Title: %s%-32s%s Users: %s%d%s Type: %s%s   %s %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, XT_CH_UNDERLINE, title, XT_CH_NORMAL,XT_CH_UNDERLINE, users,XT_CH_NORMAL, XT_CH_UNDERLINE, types[type],XT_CH_NORMAL, XT_CH_INVERSE,XT_CH_NORMAL);
 
         SETPOS(ROWS / 2 + 1, COLS / 2 - 35);
         printf("%s  %s                                                                  %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, XT_CH_INVERSE,XT_CH_NORMAL);
@@ -462,7 +448,6 @@ int create_popup () {
                 strcpy(games[nnn].name, title);
                 numgames++;
                 xt_par0(XT_CLEAR_SCREEN);
-                free(title);
                 return 1;
             }
             case 9: //TAB
@@ -473,7 +458,6 @@ int create_popup () {
                 break;
             case 27: //ESC
                 xt_par0(XT_CLEAR_SCREEN);
-                free(title);
                 return 0;
             case KEY_UP:
                 if (field == 1){
