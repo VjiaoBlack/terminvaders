@@ -56,7 +56,7 @@ int lobby() {
             }
             free(buffer);
         }
-        switch (option = game()) {
+        switch (option = game()) { //game() calls the actual multiplayer lobby logic.
             case MENU_QUIT:
                 xt_par0(XT_CH_NORMAL);
                 return 0;
@@ -153,10 +153,14 @@ void printgame(int row, int is_selected, multiplayergame_t game) {
 
 void draw_users() {
     int i;
+    int userdisplayoffset = 0;
     printf("Who's Online");
     for (i = 0; i < 16; i++) {
-        if (users[i].status != CLIENT_FREE)
+        if (users[i].status != CLIENT_FREE) {
+            SETPOS(4 + userdisplayoffset, COLS - 18);
             printf("%s", users[i].username);
+            userdisplayoffset++;
+        }
     }
     fflush(stdout);
 }
@@ -164,7 +168,6 @@ void draw_users() {
 
 int game() {
     static int selected_game = 0;
-
     xt_par0(XT_CLEAR_SCREEN);
     xt_par0(XT_CH_NORMAL);
     SETPOS(2, COLS - 18);
@@ -778,7 +781,7 @@ int badserver = 0; //impt later on trust me
                     break;
                 }
 
-
+                xt_par0(XT_CLEAR_SCREEN);
                 lobby();
                 close(sockfd);
                 return;

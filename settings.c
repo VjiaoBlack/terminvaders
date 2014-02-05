@@ -108,40 +108,58 @@ static void draw_menu(int config) {
 
 static int read_int(int rows) {
     char key;
+    int len= 0;
+    //  int i;
+    int place = 0; // this number indicates the place value of the input digit. i.e. tens, hundreds.
     int result = 0;
     char* data = malloc(sizeof(char) * 4); // no HD displays here; fourth is a "\0"
-
-    if (rows == ROWS / 2) { // then its height
-        sprintf(data,"%d",get_rows());
-    } else {
-        sprintf(data,"%d",get_cols());
-    }
+    int pos = 0;
 
     data[0] = data[1] = data[2] = data[3] = '\0';
+    /*
+    if (rows == ROWS / 2) { // then its height
+        for (i = 2; i >= 0; i--) {
+            if (ROWS / (int) pow(10, i) > 0)
+                data[place++] = (char) (((int)'0') + (ROWS / ((int) pow(10,i))));
+        }
+    } else {
+        for (i = 2; i >= 0; i--) {
+            if (COLS / (int) pow(10, i) > 0)
+                data[place++] = (char) (((int)'0') + (COLS / ((int) pow(10,i))));
+        }
+    }
+*/
+    place = 0;
 
     while (1) {
-
+        SETPOS(rows, COLS / 2 + 3);
+        printf("%s   ", data);
+        SETPOS(rows, COLS / 2 + 3 + pos);
         while ((key = getkey()) == KEY_NOTHING);
-        /*
-        if ((key > '0' || key < '9') && pos < 3){
-            SETPOS(rows, ++cols);
+
+
+        if (key >= '0' && key <= '9' && pos < 3){
+            SETPOS(rows, COLS / 2 + 3 + pos);
             putchar(key);
-            for(int i = 1; i <= pos; i--) {
+            for(int i = 1; i >= pos; i--) {
                 data[i+1] = data[i];
             }
-            printf("  %s", data);
             data[pos] = key;
             pos++;
+            len++;
+            SETPOS(rows, COLS / 2 + 3);
+            printf("%s   ", data);
+            SETPOS(rows, COLS / 2 + 3 + pos);
         } else switch (key) {
             case KEY_LEFT:
                 if (pos > 0)
                     pos--;
-                SETPOS(rows, --cols);
+                SETPOS(rows, COLS / 2 + 3 + pos);
                 break;
             case KEY_RIGHT:
-                if (pos < 3)
+                if (pos < 3 && pos < len)
                     pos++;
-                SETPOS(rows, ++cols);
+                SETPOS(rows, COLS / 2 + 3 + pos);
                 break;
             case KEY_BACKSPACE:
                 if (pos > 0) {
@@ -149,7 +167,12 @@ static int read_int(int rows) {
                         data[i] = data[i+1];
                     }
                     pos--;
-                    SETPOS(rows, --cols);
+                    len--;
+                    SETPOS(rows, COLS / 2 + 3 + pos);
+                    putchar(' ');
+                    SETPOS(rows, COLS / 2 + 3);
+                    printf("%s   ", data);
+                    SETPOS(rows, COLS / 2 + 3 + pos);
                 }
                 break;
             case KEY_DELETE:
@@ -158,29 +181,22 @@ static int read_int(int rows) {
                         data[i] = data[i+1];
                     }
                 }
+                SETPOS(rows, COLS / 2 + 3);
+                printf("%s   ", data);
+                SETPOS(rows, COLS / 2 + 3 + pos);
                 break;
             case KEY_ENTER:
-                for (int i = 0; i < 3; i++) {
+                for (int i = 2; i >= 0; i--) {
                     if (data[i] != '\0')
-                        result += pow(10, i) * (data[i] - 0);
-                    else
-                        break;
+                        result += pow(10, place++) * (data[i] - '0');
                 }
                 return result;
             default:
-                while(1)
-                    putchar('3');
                 break;
         }
-
-
-        */
-        if (key < '0' || key > '9')
-            return result;
-        putchar(key);
-        result = (result * 10) + (key - '0');
     }
 }
+
 
 static void write_preferences(void) {
     FILE *fp = fopen("preferences.txt", "w");
