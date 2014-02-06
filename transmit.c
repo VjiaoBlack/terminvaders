@@ -155,8 +155,9 @@ void unserialize_lobby_info(char* buffer, user_t* users, multiplayergame_t* game
         games[gameid].slots_total = tslots;
         games[gameid].slots_filled = fslots;
         strcpy(games[gameid].name, name);
-        for (i = 0; i < tslots; i++)
+        for (i = 0; i < tslots; i++) {
             SCAN("%d|%n", &games[gameid].players[i]);
+        }
     }
 }
 
