@@ -629,7 +629,7 @@ void game_wait(int created_game) {
 
 
 void serverlogin(){
-int badserver = 0; //impt later on trust me
+    int badserver;
     int field = 0, pos = 0, len = 0, addresslen = 0, usernamelen = 0, key = 0;
 
     char address[33] = "";
@@ -711,6 +711,9 @@ int badserver = 0; //impt later on trust me
 
         switch(key){
             case KEY_ENTER: {
+                if (i == 0 || j < 2)
+                    break;
+                badserver = 0;
                 sockfd = make_connection(address);
                 if (sockfd < 0)
                     badserver = 1;
