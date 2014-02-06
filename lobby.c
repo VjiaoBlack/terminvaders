@@ -155,11 +155,11 @@ void draw_users() {
 
 int game() {
     static int selected_game = 0;
-    xt_par0(XT_CLEAR_SCREEN);
+
+    drawgames(selected_game);
     xt_par0(XT_CH_NORMAL);
     SETPOS(2, COLS - 18);
     draw_users();
-    drawgames(0);
     fflush(stdout);
     int key;
     if ((key = getkey()) == KEY_NOTHING)
@@ -216,29 +216,35 @@ int game() {
             SETPOS(0,0);
             return MENU_QUIT;
         case 'w':
-        case KEY_UP:
-            xt_par0(XT_CLEAR_SCREEN);
-            if (selected_game > 0) {
-                drawgames(--selected_game);
-            } else {
-                drawgames(selected_game);
+        case KEY_UP: {
+            int i;
+            for (i = selected_game - 1; i > 0; i--) {
+                if (games[i].status != GAME_FREE) {
+                    selected_game = i;
+                    drawgames(selected_game);
+                    xt_par0(XT_CH_NORMAL);
+                    SETPOS(2, COLS - 18);
+                    draw_users();
+                    fflush(stdout);
+                }
             }
-            xt_par0(XT_CH_NORMAL);
-            SETPOS(2, COLS - 18);
-            draw_users();
             break;
+        }
         case 's':
-        case KEY_DOWN:
-            xt_par0(XT_CLEAR_SCREEN);
-            if (selected_game < 64 && games[selected_game + 1].status != GAME_FREE) {
-                drawgames(++selected_game);
-            } else {
-                drawgames(selected_game);
+        case KEY_DOWN: {
+            int i;
+            for (i = selected_game + 1; i < MAX_GAMES; i++) {
+                if (games[i].status != GAME_FREE) {
+                    selected_game = i;
+                    drawgames(selected_game);
+                    xt_par0(XT_CH_NORMAL);
+                    SETPOS(2, COLS - 18);
+                    draw_users();
+                    fflush(stdout);
+                }
             }
-            xt_par0(XT_CH_NORMAL);
-            SETPOS(2, COLS - 18);
-            draw_users();
             break;
+        }
         case 'j':
         case 'J':
             if (join_popup(&games[selected_game]))
@@ -323,7 +329,7 @@ int join_popup (multiplayergame_t* game) {
             printf("%s  %s                                                        %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, XT_CH_INVERSE,XT_CH_NORMAL);
 
             SETPOS(ROWS / 2 , COLS / 2 - 30);
-            printf("%s  %s Rejected by %-41s. %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, game->name, XT_CH_INVERSE,XT_CH_NORMAL);
+            printf("%s  %s Rejected by %-42s %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, game->name, XT_CH_INVERSE,XT_CH_NORMAL);
 
             SETPOS(ROWS / 2 + 1, COLS / 2 - 30);
             printf("%s  %s                                                        %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, XT_CH_INVERSE,XT_CH_NORMAL);
@@ -341,7 +347,7 @@ int join_popup (multiplayergame_t* game) {
             printf("%s  %s                                                        %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, XT_CH_INVERSE,XT_CH_NORMAL);
 
             SETPOS(ROWS / 2 , COLS / 2 - 30);
-            printf("%s  %s Accepted by %-41s. %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, game->name, XT_CH_INVERSE,XT_CH_NORMAL);
+            printf("%s  %s Accepted by %-42s %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, game->name, XT_CH_INVERSE,XT_CH_NORMAL);
 
             SETPOS(ROWS / 2 + 1, COLS / 2 - 30);
             printf("%s  %s                                                        %s  %s", XT_CH_INVERSE,XT_CH_NORMAL, XT_CH_INVERSE,XT_CH_NORMAL);
@@ -349,7 +355,7 @@ int join_popup (multiplayergame_t* game) {
             SETPOS(ROWS / 2 + 2, COLS / 2 - 30);
             printf("%s                            %sB%s%sack                            %s", XT_CH_INVERSE, XT_CH_UNDERLINE, XT_CH_NORMAL,XT_CH_INVERSE, XT_CH_NORMAL);
             fflush(stdout);
-            // usleep(1000000);
+            usleep(1000000 / 5);
             return 1;
         }
 
@@ -360,9 +366,9 @@ int join_popup (multiplayergame_t* game) {
             case 'b':
             case 'B':
                 transmit(sockfd, CMD_CANCEL_REQ, NULL);
-                xt_par0(XT_CLEAR_SCREEN);
                 return 0;
         }
+        fflush(stdout);
         usleep(1000000/2);
     }
 }
@@ -543,18 +549,6 @@ void game_wait(int created_game) {
 
     while (1) {
         int useroffset = 1;
-        for (foxes = 0; foxes < games[i].slots_total; foxes++) {
-            SETPOS(6 + 2 * i + useroffset, 8);
-            if (games[i].players[foxes] != EMPTY_SLOT) {
-                printf("%d", games[i].players[foxes]);
-                useroffset++;
-            }
-        }
-
-        SETPOS(2,3);
-        printf("%s", games[created_game].name);
-        SETPOS(ROWS, COLS);
-        fflush(stdout);
 
         if (receive(sockfd, &command, &buffer) < 0) {
             if (errno != EWOULDBLOCK && errno != EAGAIN)
@@ -567,6 +561,7 @@ void game_wait(int created_game) {
                         transmit(sockfd, CMD_ACCEPT_REQ, buffer);
                     else
                         transmit(sockfd, CMD_REJECT_REQ, buffer);
+                    dispmultiframe();
                     break;
                 case CMD_CANCEL_REQ:
                     // TODO: implement
@@ -615,6 +610,19 @@ void game_wait(int created_game) {
                 return;
         }
 
+        for (foxes = 0; foxes < games[i].slots_total; foxes++) {
+            SETPOS(6 + 2 * i + useroffset, 8);
+            if (games[i].players[foxes] != EMPTY_SLOT) {
+                printf("%d", games[i].players[foxes]);
+                useroffset++;
+            }
+        }
+
+        SETPOS(2,3);
+        printf("%s", games[created_game].name);
+        SETPOS(ROWS, COLS);
+
+        fflush(stdout);
         usleep(1000000 / 20);
     }
 }
@@ -890,6 +898,7 @@ int confirm_request(char* username) {
 
 
 void dispmultiframe(){
+    xt_par0(XT_CLEAR_SCREEN);
     SETPOS(10,10);
     xt_par0(XT_CH_NORMAL);
     int cursor_r = 1, cursor_c = 1;

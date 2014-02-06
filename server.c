@@ -263,12 +263,17 @@ static void* handle_game(void* arg) {
     }
 
     /* Game has ended; inform remaining players. */
+    pthread_mutex_lock(&games[id].state_lock);
     for (slot = 0; slot < games[id].slots_total; slot++) {
         player = games[id].players[slot];
         if (player == EMPTY_SLOT)
             continue;
         SAFE_TRANSMIT2(player, CMD_GAME_OVER, NULL);
+        clients[player].status = CLIENT_IDLE;
     }
+    games[id].status = GAME_FREE;
+    cancel_requests(id);
+    pthread_mutex_unlock(&games[id].state_lock);
     return NULL;
 }
 
