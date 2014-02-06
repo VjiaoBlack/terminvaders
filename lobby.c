@@ -175,7 +175,6 @@ int game() {
     //     printf("%s", users[i + onlinelistoffset].username);
 
     // }
-    // fflush(stdout);
     switch(key) {
         // case '<':
         //     xt_par0(XT_CLEAR_SCREEN);

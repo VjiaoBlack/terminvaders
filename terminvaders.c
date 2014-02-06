@@ -4,13 +4,12 @@
 #include "terminvaders.h"
 #include "game.h"
 #include "settings.h"
-#include "star.h"  
+#include "star.h"
 #include "lobby.h"
 
 /* Set up the game by clearing the screen, etc. */
 static void setup(void) {
     srand(time(NULL));
-    //setbuf(stdout, NULL);  // Turn off stdout buffering
     xt_par0(XT_CLEAR_SCREEN);
     load_rc();
 }
@@ -43,7 +42,6 @@ static void drawmenu(int choice) {
         cursor_c++;
 
         if (test == lim){
-            //fflush(stdout);
             test = 0;
         }
         test++;
@@ -58,7 +56,6 @@ static void drawmenu(int choice) {
         printf("#");
         cursor_r++;
         if (test == lim){
-            //fflush(stdout);
             test = 0;
         }
         test++;
@@ -83,7 +80,6 @@ static void drawmenu(int choice) {
     xt_par0(XT_CH_RED);
     SETPOS(3 * ROWS / 4, COLS / 2 - 2);
     printf("Quit");*/
-    //fflush(stdout);
 
     xt_par0(XT_CH_DEFAULT);
 
@@ -178,25 +174,20 @@ static void drawmenu(int choice) {
     }
     xt_par0(XT_CH_NORMAL);
 
-    //fflush(stdout);
-}
+    }
 static int menu(void) {
     clear();
     drawmenu(0);
     star_t* stars = malloc(sizeof(star_t) * numstars);
     init(stars);
 
-    int frame = 1;
+    int frame;
     int key, choice = 0;
     SETPOS(ROWS, COLS);
     while (1) {
-        update(stars);
-        if (frame % 10 == 0) {
-            display(stars);
-            frame = 1;
-        }
-        else
-            frame++;
+        for (frame = 0; frame < fps / FPS; frame++)
+            update(stars);
+        display(stars);
         drawmenu(choice);
         switch ((key = getkey())) {
         case KEY_UP:
@@ -247,7 +238,7 @@ static int menu(void) {
             }
             if (choice > 0)
                 choice--;
-            else 
+            else
                 choice = 3;
             xt_par0(XT_CH_BOLD);
             xt_par0(XT_CH_INVERSE);
@@ -346,7 +337,7 @@ static int menu(void) {
                     printf("R");
                     break;
             }
-            if (choice < 3) 
+            if (choice < 3)
                 choice++;
             else
                 choice = 0;
@@ -406,9 +397,9 @@ static int menu(void) {
             case 'q':
                 return MENU_QUIT;
         }
-	fflush(stdout);
-        usleep(1000000/fps);
-        
+        fflush(stdout);
+        usleep(1000000/FPS);
+
     }
 }
 

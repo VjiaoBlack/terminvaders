@@ -115,6 +115,8 @@ static void start_server(void) {
         exit(1);
     }
 
+    /* Set up remaining data. */
+    srand(time(NULL));
     for (id = 0; id < MAX_CLIENTS; id++) {
         clients[id] = (client_t) {id, CLIENT_FREE};
         clients[id].request = NO_REQUEST;

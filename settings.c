@@ -6,7 +6,7 @@
 #include "star.h"
 
 static int rows = 40;
-static int cols = 100;
+static int cols = 120;
 
 int get_rows(void) {
     return rows;
@@ -69,7 +69,6 @@ static void draw_menu(int config) {
     xt_par0(XT_CH_BOLD);
     printf("{[ Settings ]}");
     xt_par0(XT_CH_NORMAL);
-    //fflush(stdout);
 
     SETPOS(ROWS / 2, COLS / 2 - 5);
     if (config == 0) {
@@ -81,7 +80,6 @@ static void draw_menu(int config) {
     else
         printf("Height: ");
     printf("%d", rows);
-    //fflush(stdout);
     SETPOS(5 * ROWS / 8, COLS / 2 - 4);
     if (config == 1) {
         xt_par0(XT_CH_BOLD);

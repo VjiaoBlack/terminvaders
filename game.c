@@ -200,17 +200,12 @@ static void do_player_logic(game_t* game, player_t* player) {
 
 /* Player bullet impact test function. See bullet_impacts(). */
 static int player_bullet_impacts(game_t* game, bullet_t* bullet) {
+    int fuzzy = (get_sprite(bullet->type)->height / 2) + 1;
     enemy_t* enemy = game->first_enemy;
     enemy_t* prev = NULL;
+
     while (enemy) {
-
-        int fuzzy = get_sprite(bullet->type)->height / 2;
-
-        fuzzy += 2;
-
-        //-------------------------------------------------------------------------------
-        if (collides(&bullet->point, &enemy->point, 1, fuzzy)) {
-        //------------------------------------------------------------------------------------
+        if (collides(&bullet->point, &enemy->point, 2, fuzzy)) {
             game->score += enemy->score;
             despawn_enemy(game, enemy, prev);
             spawn_explosion(game, enemy->point.x, enemy->point.y, enemy->score);
@@ -482,6 +477,7 @@ static void render(game_t* game) {
             draw(&(player->point), get_sprite(slot == this_player ? PLAYER : ALLY));
     }
     draw_hud(game);
+    fflush(stdout);
 }
 
 /* Set up the game. */
