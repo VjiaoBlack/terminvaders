@@ -593,7 +593,7 @@ void game_wait(int created_game) {
                 case CMD_GAME_START: {
                     game_t game;
                     setup_game(&game);
-                    setup_multiplayer(&game, games[i].slots_total, our_id, sockfd);
+                    setup_multiplayer(&game, games[i].slots_total, atoi(buffer), sockfd);
                     while (game.running) {
                         update_game(&game);
                         usleep(1000000 / FPS);
