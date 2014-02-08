@@ -84,7 +84,7 @@ sprite_t* get_sprite(int name) {
 }
 
 /* Draw a sprite on the screen at a given point. */
-void draw(point_t* point, sprite_t* sprite) {
+void draw(point_t* point, sprite_t* sprite, int fired_by_player) {
     int startx = point->x - sprite->width / 2,
         starty = point->y - sprite->height / 2,
         row, col;
@@ -93,6 +93,8 @@ void draw(point_t* point, sprite_t* sprite) {
         xt_par0(sprite->fg_color);
     if (sprite->bg_color)
         xt_par0(sprite->bg_color);
+    if (!fired_by_player)
+        xt_par0(XT_CH_RED);
     for (row = 0; row < sprite->height; row++) {
         SETPOS(row + starty + 1, startx + 1);
         for (col = 0; col < sprite->width; col++)

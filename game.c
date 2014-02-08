@@ -453,7 +453,7 @@ static void render(game_t* game) {
 
     xt_par0(XT_CLEAR_SCREEN);
     while (explosion) {
-        draw(&(explosion->point), get_sprite(EXPLOSION + (explosion->step / EXPLOSION_STEPS_PER_SPRITE)));
+        draw(&(explosion->point), get_sprite(EXPLOSION + (explosion->step / EXPLOSION_STEPS_PER_SPRITE)), 1);
         if (explosion->score) {
             SETPOS(2 + explosion_num, 7);
             printf("%s+%d%s", XT_CH_YELLOW, explosion->score, XT_CH_NORMAL);
@@ -462,11 +462,11 @@ static void render(game_t* game) {
         explosion = explosion->next;
     }
     while (bullet) {
-        draw(&(bullet->point), get_sprite(bullet->type + 1));
+        draw(&(bullet->point), get_sprite(bullet->type + 1), bullet->fired_by_player);
         bullet = bullet->next;
     }
     while (enemy) {
-        draw(&(enemy->point), get_sprite(ENEMY));
+        draw(&(enemy->point), get_sprite(ENEMY), 1);
         enemy = enemy->next;
     }
 
@@ -474,7 +474,7 @@ static void render(game_t* game) {
     for (slot = 0; slot < NUMBER_OF_PLAYERS; slot++) {
         player = &game->players[slot];
         if (!player->respawning && !(player->invincible % 2))
-            draw(&(player->point), get_sprite(slot == this_player ? PLAYER : ALLY));
+            draw(&(player->point), get_sprite(slot == this_player ? PLAYER : ALLY), 1);
     }
     draw_hud(game);
     fflush(stdout);

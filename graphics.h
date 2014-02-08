@@ -34,5 +34,5 @@ typedef struct sprite_t sprite_t;
 // Functions
 
 sprite_t* get_sprite(int);
-void draw(point_t*, sprite_t*);
+void draw(point_t*, sprite_t*, int);
 int collides(point_t*, point_t*, int, int);
